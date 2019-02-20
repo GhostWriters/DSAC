@@ -1,37 +1,12 @@
-## Welcome to GitHub Pages
+## Welcome to DSAC!
 
-You can use the [editor on GitHub](https://github.com/GhostWriters/DSAC/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+DockSTARTer Application Configurator or DSAC as we call it is super nice!
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+DSAC is your friend!  DSAC is your buddy!
 
-### Markdown
+...but DSAC won't pick you up at the airport.  Come on now, that's asking a bit much from a script...
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+DSAC will though help you through the tough and complex task of having a turnkey setup for your DockSTARTer install!  DSAC will not replace DockSTARTer's configuration nor is it meant to.
+DSAC is an optional set of very specific configurations and task to make sure you have a turnkey and completely setup server!
 
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/GhostWriters/DSAC/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+DSAC is still under heavy development and early users expect bugs and many MANY bad jokes.  Trust me.  They are going to be real groaners of bad jokes.  Oh and the bugs may be a little annoying to...  But the jokes. Yea... sorry in advance....
