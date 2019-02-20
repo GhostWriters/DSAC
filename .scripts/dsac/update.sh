@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+update() {
+    local BRANCH
+    BRANCH=${1:-origin/master}
+    local QUESTION
+    QUESTION="Would you like to update DockSTARTer App Config to ${BRANCH} now?"
+    info "${QUESTION}"
+    local YN
+    while true; do
+        if [[ ${CI:-} == true ]] && [[ ${TRAVIS:-} == true ]]; then
+            info "Travis will not run this."
+            return
+        elif [[ ${PROMPT:-} == "menu" ]]; then
+            local ANSWER
+            set +e
+            ANSWER=$(
+                whiptail --fb --clear --title "DockSTARTer" --yesno "${QUESTION}" 0 0 3>&1 1>&2 2>&3
+                echo $?
+            )
+            set -e
+            if [[ ${ANSWER} == 0 ]]; then
+                YN=Y
+            else
+                YN=N
+            fi
+        else
+            read -rp "[Yn]" YN
+        fi
+        case ${YN} in
+            [Yy]*)
+                info "Updating DockSTARTer App Config."
+                cd "${SCRIPTPATH}/.dsac" || fatal "Failed to change to ${SCRIPTPATH}/.dsac directory."
+                git fetch > /dev/null 2>&1 || fatal "Failed to fetch recent changes from git."
+                git reset --hard "${BRANCH}" > /dev/null 2>&1 || fatal "Failed to reset to ${BRANCH}."
+                git pull > /dev/null 2>&1 || fatal "Failed to pull recent changes from git."
+                git for-each-ref --format '%(refname:short)' refs/heads | grep -v master | xargs git branch -D > /dev/null 2>&1 || true
+                # TODO: Copy/move DSAC files
+                # TODO: Inject code - run_script 'dsac/run_inject'
+                break
+                ;;
+            [Nn]*)
+                info "DockSTARTer App Config will not be updated."
+                return 1
+                ;;
+            *)
+                error "Please answer yes or no."
+                ;;
+        esac
+    done
+}
