@@ -25,4 +25,4 @@ It will assist with:
 
 ### What to know about DSAC?
 
-DSAC is still under heavy development and early users expect bugs.
+DSAC is still under heavy development and early users; expect there to be many bugs.
