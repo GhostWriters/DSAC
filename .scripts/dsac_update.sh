@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-update() {
+dsac_update() {
     local BRANCH
     BRANCH=${1:-origin/master}
     local QUESTION

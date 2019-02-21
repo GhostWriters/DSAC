@@ -59,6 +59,9 @@ readonly DETECTED_PGID=$(id -g "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 
+# DSAC Information
+readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.docker/.dsac" 2> /dev/null || true)
+
 # Colors
 # https://misc.flogisoft.com/bash/tip_colors_and_formatting
 readonly BLU='\e[34m'
@@ -82,12 +85,11 @@ fatal() {
 run_script() {
     local SCRIPTSNAME="${1:-}"
     shift
-    if [[ -f ${SCRIPTPATH}/.scripts/${SCRIPTSNAME}.sh ]]; then
-        # shellcheck source=/dev/null
-        source "${SCRIPTPATH}/.scripts/${SCRIPTSNAME}.sh"
+    if [[ -f ${DETECTED_HOMEDIR}/.docker/.scripts/${SCRIPTSNAME}.sh ]]; then
+        source "${DETECTED_HOMEDIR}/.docker/.scripts/${SCRIPTSNAME}.sh"
         ${SCRIPTSNAME} "$@"
     else
-        fatal "${SCRIPTPATH}/.scripts/${SCRIPTSNAME}.sh not found."
+        fatal "${DETECTED_HOMEDIR}/.docker/.scripts/${SCRIPTSNAME}.sh not found."
     fi
 }
 
@@ -138,15 +140,36 @@ main() {
         if [[ ! -d ${DETECTED_HOMEDIR}/.docker/.git ]]; then
             warning "Attempting to clone DockSTARTer repo to ${DETECTED_HOMEDIR}/.docker location."
             git clone https://github.com/GhostWriters/DockSTARTer "${DETECTED_HOMEDIR}/.docker" || fatal "Failed to clone DockSTARTer repo to ${DETECTED_HOMEDIR}/.docker location."
-            warning "Attempting to clone DockSTARTer App Config repo to ${DETECTED_HOMEDIR}/.docker/.dsac location."
-            git clone https://github.com/GhostWriters/DSAC "${DETECTED_HOMEDIR}/.docker/.dsac" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_HOMEDIR}/.docker/.dsac location."
-            info "Configuring DockSTARTer to support DockSTARTer App Config."
-            # TODO: Copy/move DSAC files
-            # TODO: Inject code - run_script 'dsac/run_inject'
+            warning "Attempting to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
+            git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_HOMEDIR}/.docker/.dsac location."
+            if [[ -f "${DETECTED_HOMEDIR}/dsac_branch" ]]; then
+                local DSAC_BRANCH
+                DSAC_BRANCH=$(cat "${DETECTED_HOMEDIR}/dsac_branch")
+                if [[ $DSAC_BRANCH ]]; then
+                    info "Switching DockSTARTer App Config to ${DSAC_BRANCH} branch"
+                    cd "${DETECTED_DSACDIR}"
+                    git checkout ${DSAC_BRANCH} > /dev/null || fatal "Failed to switch DockSTARTer App Config branch to ${DSAC_BRANCH}"
+                    cd "${SCRIPTPATH}"
+                fi
+            else
+                info "DockSTARTer App Config on branch master"
+            fi
+            info "Copying DockSTARTer App Config to DockSTARTer"
+            find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
+            cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
+            info "Injecting DockSTARTer App Config code into DockSTARTer"
+            run_script 'dsac_run_inject'
+            exit
             info "Performing first run install."
             (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-i") || fatal "Failed first run install, please reboot and try again."
             exit
         elif [[ ${SCRIPTPATH} != "${DETECTED_HOMEDIR}/.docker" ]]; then
+            info "Copying DockSTARTer App Config to DockSTARTer"
+            find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
+            cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
+            info "Injecting DockSTARTer App Config code into DockSTARTer"
+            run_script 'dsac_run_inject'
+            exit
             (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-u") || true
             warning "Attempting to run DockSTARTer from ${DETECTED_HOMEDIR}/.docker location."
             (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh") || true
