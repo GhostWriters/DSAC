@@ -8,11 +8,11 @@ DSAC is shorthand for DockSTARTer Application Configurator
 
 ### What DSAC is NOT?
 
-DSAC will not replace DockSTARTer's configuration nor is it meant to. DSAC is an optional set of very specific configurations and task to make sure you have a turnkey and completely setup server!
+DSAC will not replace DockSTARTer's configuration nor is it meant to. DSAC is an optional set of very specific configurations and tasks to make sure you have a turnkey and completely setup server!
 
 ### Why DSAC?
 
-DSAC will though help you through the tough and complex task of having a turnkey setup for your DockSTARTer.
+DSAC will help you through the tough and complex task of having a turnkey setup for your DockSTARTer.
 
 
 It will assist with:
