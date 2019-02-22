@@ -14,8 +14,8 @@ dsac_inject_update_self() {
         line_number=$(($(grep -n "${line_to_add_after}" $file_path | sed 's/^\([0-9]\+\):.*$/\1/')+1))
 
         lines_to_add=(
-            "            # DSAC injected code",
-            "            run_script 'dsac_update'",
+            "            # DSAC injected code"
+            "            run_script 'dsac_update'"
             "            # /DSAC injected code"
         )
 
