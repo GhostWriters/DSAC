@@ -3,10 +3,17 @@ set -euo pipefail
 IFS=$'\n\t'
 
 dsac_update() {
-    local BRANCH
-    BRANCH=${1:-origin/master}
+    local DSAC_BRANCH
+    if [[ -f "${DETECTED_HOMEDIR}/dsac_branch" ]]; then
+        DSAC_BRANCH=$(cat "${DETECTED_HOMEDIR}/dsac_branch")
+    fi
+
+    if [[ ! $DSAC_BRANCH ]]; then
+        DSAC_BRANCH="origin/master"
+    fi
+    
     local QUESTION
-    QUESTION="Would you like to update DockSTARTer App Config to ${BRANCH} now?"
+    QUESTION="Would you like to update DockSTARTer App Config to ${DSAC_BRANCH} now?"
     info "${QUESTION}"
     local YN
     while true; do
@@ -34,11 +41,14 @@ dsac_update() {
                 info "Updating DockSTARTer App Config."
                 cd "${SCRIPTPATH}/.dsac" || fatal "Failed to change to ${SCRIPTPATH}/.dsac directory."
                 git fetch > /dev/null 2>&1 || fatal "Failed to fetch recent changes from git."
-                git reset --hard "${BRANCH}" > /dev/null 2>&1 || fatal "Failed to reset to ${BRANCH}."
+                git reset --hard "${DSAC_BRANCH}" > /dev/null 2>&1 || fatal "Failed to reset to ${DSAC_BRANCH}."
                 git pull > /dev/null 2>&1 || fatal "Failed to pull recent changes from git."
                 git for-each-ref --format '%(refname:short)' refs/heads | grep -v master | xargs git branch -D > /dev/null 2>&1 || true
-                # TODO: Copy/move DSAC files
-                # TODO: Inject code - run_script 'dsac/run_inject'
+                info "Copying DockSTARTer App Config to DockSTARTer"
+                find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
+                cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
+                info "Injecting DockSTARTer App Config code into DockSTARTer"
+                run_script 'dsac_run_inject'
                 break
                 ;;
             [Nn]*)
