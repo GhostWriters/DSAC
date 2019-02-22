@@ -159,7 +159,6 @@ main() {
             cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
             info "Injecting DockSTARTer App Config code into DockSTARTer"
             run_script 'dsac_run_inject'
-            exit
             info "Performing first run install."
             (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-i") || fatal "Failed first run install, please reboot and try again."
             exit
@@ -169,7 +168,6 @@ main() {
             cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
             info "Injecting DockSTARTer App Config code into DockSTARTer"
             run_script 'dsac_run_inject'
-            exit
             (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-u") || true
             warning "Attempting to run DockSTARTer from ${DETECTED_HOMEDIR}/.docker location."
             (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh") || true
