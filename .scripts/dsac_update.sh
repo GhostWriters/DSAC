@@ -48,7 +48,6 @@ dsac_update() {
                 find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
                 cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
                 info "Injecting DockSTARTer App Config code into DockSTARTer"
-                run_script 'dsac_run_inject'
                 break
                 ;;
             [Nn]*)
@@ -60,4 +59,6 @@ dsac_update() {
                 ;;
         esac
     done
+    
+    run_script 'dsac_run_inject'
 }
