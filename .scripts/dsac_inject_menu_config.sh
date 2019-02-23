@@ -25,12 +25,13 @@ dsac_inject_menu_config() {
             line_number=$((line_number+1))
         done
         
-        line_to_add_after="\"Full Setup \")"
-        line_number=$(($(grep -n "${line_to_add_after}" $file_path | sed 's/^\([0-9]\+\):.*$/\1/')+1))
+        line_to_add_before="\"Full Setup \")"
+        line_number=$(grep -n "${line_to_add_before}" $file_path | sed 's/^\([0-9]\+\):.*$/\1/')
 
         lines_to_add=(
             "            # DSAC injected code"
-            "            \"Full Setup \")"
+            "            \"DSAC Setup \")"
+            "            fatal \"This option is not yet functional\""
             "            run_script 'env_update'"
             "            # TODO: DSAC config - run_script 'dsac_menu_app_select'"
             "            run_script 'generate_yml'"
