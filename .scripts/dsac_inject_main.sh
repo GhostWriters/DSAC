@@ -31,12 +31,12 @@ dsac_inject_main() {
         line_number=$(($(grep -n "${line_to_add_after}" $file_path | sed 's/^\([0-9]\+\):.*$/\1/')+1))
 
         lines_to_add=(
-            "            # DSAC injected code"
-            "            warning \"Attempting to clone DockSTARTer App Config repo to \${DETECTED_HOMEDIR}/.docker/.dsac location.\""
-            "            git clone https://github.com/GhostWriters/DSAC \"\${DETECTED_HOMEDIR}/.docker/.dsac\" || fatal \"Failed to clone DockSTARTer App Config repo to \${DETECTED_HOMEDIR}/.docker location.\""
-            "            info \"Configuring DockSTARTer to support DockSTARTer App Config.\""
-            "            run_script 'dsac_run_inject'"
-            "            # /DSAC injected code"
+            "\            # DSAC injected code"
+            "\            warning \"Attempting to clone DockSTARTer App Config repo to \${DETECTED_HOMEDIR}/.docker/.dsac location.\""
+            "\            git clone https://github.com/GhostWriters/DSAC \"\${DETECTED_HOMEDIR}/.docker/.dsac\" || fatal \"Failed to clone DockSTARTer App Config repo to \${DETECTED_HOMEDIR}/.docker location.\""
+            "\            info \"Configuring DockSTARTer to support DockSTARTer App Config.\""
+            "\            run_script 'dsac_run_inject'"
+            "\            # /DSAC injected code"
         )
 
         for i in ${!lines_to_add[@]}; do

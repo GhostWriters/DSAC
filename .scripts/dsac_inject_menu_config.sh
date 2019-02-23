@@ -29,15 +29,14 @@ dsac_inject_menu_config() {
         line_number=$(grep -n "${line_to_add_before}" $file_path | sed 's/^\([0-9]\+\):.*$/\1/')
 
         lines_to_add=(
-            "            # DSAC injected code"
-            "            \"DSAC Setup \")"
-            "            fatal \"This option is not yet functional\""
-            "            run_script 'env_update'"
-            "            # TODO: DSAC config - run_script 'dsac_menu_app_select'"
-            "            run_script 'generate_yml'"
-            "            run_script 'run_compose'"
-            "            # /DSAC injected code"
-            "            ;;"
+            "\            # DSAC injected code"
+            "\            \"DSAC Setup \")"
+            "\            run_script 'env_update'"
+            "\            run_script 'dsac_menu_app_select'"
+            "\            run_script 'generate_yml'"
+            "\            run_script 'run_compose'"
+            "\            # /DSAC injected code"
+            "\            ;;"
         )
 
         for i in ${!lines_to_add[@]}; do
