@@ -14,9 +14,9 @@ dsac_inject_menu_config() {
         line_number=$(($(grep -n "${line_to_add_after}" $file_path | sed 's/^\([0-9]\+\):.*$/\1/')+1))
 
         lines_to_add=(
-            "    # DSAC injected code"
-            "    CONFIGOPTS+=(\"DSAC Setup \" \"\")"
-            "    # /DSAC injected code"
+            "\    # DSAC injected code"
+            "\    CONFIGOPTS+=(\"DSAC Setup \" \"\")"
+            "\    # /DSAC injected code"
         )
 
         for i in ${!lines_to_add[@]}; do
@@ -31,9 +31,9 @@ dsac_inject_menu_config() {
         lines_to_add=(
             "\            # DSAC injected code"
             "\            \"DSAC Setup \")"
-            "\            run_script 'dsac_menu_config'"
+            "\               run_script 'dsac_menu_config'"
+            "\               ;;"
             "\            # /DSAC injected code"
-            "\            ;;"
         )
 
         for i in ${!lines_to_add[@]}; do
