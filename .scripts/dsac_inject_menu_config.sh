@@ -31,10 +31,7 @@ dsac_inject_menu_config() {
         lines_to_add=(
             "\            # DSAC injected code"
             "\            \"DSAC Setup \")"
-            "\            run_script 'env_update'"
-            "\            run_script 'dsac_menu_app_select'"
-            "\            run_script 'generate_yml'"
-            "\            run_script 'run_compose'"
+            "\            run_script 'dsac_menu_config'"
             "\            # /DSAC injected code"
             "\            ;;"
         )
