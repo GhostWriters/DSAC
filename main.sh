@@ -60,7 +60,7 @@ readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 
 # DSAC Information
-readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.docker/.dsac" 2> /dev/null || true)
+readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null || true)
 
 # Colors
 # https://misc.flogisoft.com/bash/tip_colors_and_formatting
@@ -163,13 +163,6 @@ main() {
             (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-i") || fatal "Failed first run install, please reboot and try again."
             exit
         elif [[ ${SCRIPTPATH} != "${DETECTED_HOMEDIR}/.docker" ]]; then
-            info "Copying DockSTARTer App Config to DockSTARTer"
-            find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
-            cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
-            info "Injecting DockSTARTer App Config code into DockSTARTer"
-            run_script 'dsac_run_inject'
-            (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-u") || true
-            warning "Attempting to run DockSTARTer from ${DETECTED_HOMEDIR}/.docker location."
             (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh") || true
             exit
         fi
