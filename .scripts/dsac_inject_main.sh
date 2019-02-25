@@ -17,7 +17,7 @@ dsac_inject_main() {
         lines_to_add=(
             "# DSAC injected code"
             "# DSAC Information"
-            "readonly DETECTED_DSACDIR=\$(eval echo \"~\${DETECTED_UNAME}/.docker/.dsac\" 2> /dev/null || true)"
+            "readonly DETECTED_DSACDIR=\$(eval echo \"~\${DETECTED_UNAME}/.dsac\" 2> /dev/null || true)"
             "# /DSAC injected code"
         )
 
