@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-dsac_inject_menu_config() {
+inject_ds_menu_config() {
     local file
     file="menu_config.sh"
     local file_path

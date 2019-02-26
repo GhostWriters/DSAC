@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-dsac_update() {
+update_self() {
     local DSAC_BRANCH
     if [[ -f "${DETECTED_HOMEDIR}/dsac_branch" ]]; then
         DSAC_BRANCH=$(cat "${DETECTED_HOMEDIR}/dsac_branch")
@@ -44,10 +44,6 @@ dsac_update() {
                 git reset --hard "${DSAC_BRANCH}" > /dev/null 2>&1 || fatal "Failed to reset to ${DSAC_BRANCH}."
                 git pull > /dev/null 2>&1 || fatal "Failed to pull recent changes from git."
                 git for-each-ref --format '%(refname:short)' refs/heads | grep -v master | xargs git branch -D > /dev/null 2>&1 || true
-                info "Copying DockSTARTer App Config to DockSTARTer"
-                find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
-                cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
-                info "Injecting DockSTARTer App Config code into DockSTARTer"
                 break
                 ;;
             [Nn]*)
@@ -59,6 +55,4 @@ dsac_update() {
                 ;;
         esac
     done
-    
-    run_script 'dsac_run_inject'
 }

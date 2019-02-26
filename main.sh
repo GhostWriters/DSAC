@@ -2,14 +2,13 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+
 # Usage Information
-#/ This is the main DockSTARTer App Config script.
-#/ After first run this file should not be run again.
-#/ See DockSTARTer for usage options
-#/ Usage: sudo ds [OPTION]
-#/ NOTE: ds shortcut is only available after the first run of
-#/       sudo bash ~/.docker/main.sh
+#/ Usage: sudo dsac [OPTION]
+#/ NOTE: dsac shortcut is only available after the first run of
+#/       sudo bash ~/.dsac/main.sh
 #/
+#/ This is the main DockSTARTer App Config script.
 #/ For regular usage you can run without providing any options.
 #/
 #/  -t --test <test_name>
@@ -60,7 +59,7 @@ readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 
 # DSAC Information
-readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.docker/.dsac" 2> /dev/null || true)
+readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null || true)
 
 # Colors
 # https://misc.flogisoft.com/bash/tip_colors_and_formatting
@@ -85,11 +84,11 @@ fatal() {
 run_script() {
     local SCRIPTSNAME="${1:-}"
     shift
-    if [[ -f ${DETECTED_HOMEDIR}/.docker/.scripts/${SCRIPTSNAME}.sh ]]; then
-        source "${DETECTED_HOMEDIR}/.docker/.scripts/${SCRIPTSNAME}.sh"
+    if [[ -f ${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh ]]; then
+        source "${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh"
         ${SCRIPTSNAME} "$@"
     else
-        fatal "${DETECTED_HOMEDIR}/.docker/.scripts/${SCRIPTSNAME}.sh not found."
+        fatal "${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh not found."
     fi
 }
 
@@ -115,7 +114,7 @@ root_check() {
 
 # Cleanup Function
 cleanup() {
-    if [[ ${SCRIPTPATH} == "${DETECTED_HOMEDIR}/.docker" ]]; then
+    if [[ ${SCRIPTPATH} == "${DETECTED_DSACDIR}" ]]; then
         chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "ds must be executable."
     fi
     if [[ ${CI:-} == true ]] && [[ ${TRAVIS:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS} == false ]]; then
@@ -137,11 +136,9 @@ main() {
     fi
     if [[ ${CI:-} != true ]] && [[ ${TRAVIS:-} != true ]] && [[ -z ${ARGS[*]:-} ]]; then
         root_check
-        if [[ ! -d ${DETECTED_HOMEDIR}/.docker/.git ]]; then
-            warning "Attempting to clone DockSTARTer repo to ${DETECTED_HOMEDIR}/.docker location."
-            git clone https://github.com/GhostWriters/DockSTARTer "${DETECTED_HOMEDIR}/.docker" || fatal "Failed to clone DockSTARTer repo to ${DETECTED_HOMEDIR}/.docker location."
+        if [[ ! -d ${DETECTED_DSACDIR}/.git ]]; then
             warning "Attempting to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
-            git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_HOMEDIR}/.docker/.dsac location."
+            git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR}/.dsac location."
             if [[ -f "${DETECTED_HOMEDIR}/dsac_branch" ]]; then
                 local DSAC_BRANCH
                 DSAC_BRANCH=$(cat "${DETECTED_HOMEDIR}/dsac_branch")
@@ -154,23 +151,11 @@ main() {
             else
                 info "DockSTARTer App Config on branch master"
             fi
-            info "Copying DockSTARTer App Config to DockSTARTer"
-            find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
-            cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
-            info "Injecting DockSTARTer App Config code into DockSTARTer"
-            run_script 'dsac_run_inject'
             info "Performing first run install."
-            (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-i") || fatal "Failed first run install, please reboot and try again."
+            (sudo bash "${DETECTED_DSACDIR}/main.sh" "-i") || fatal "Failed first run install, please reboot and try again."
             exit
-        elif [[ ${SCRIPTPATH} != "${DETECTED_HOMEDIR}/.docker" ]]; then
-            info "Copying DockSTARTer App Config to DockSTARTer"
-            find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
-            cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
-            info "Injecting DockSTARTer App Config code into DockSTARTer"
-            run_script 'dsac_run_inject'
-            (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh" "-u") || true
-            warning "Attempting to run DockSTARTer from ${DETECTED_HOMEDIR}/.docker location."
-            (sudo bash "${DETECTED_HOMEDIR}/.docker/main.sh") || true
+        elif [[ ${SCRIPTPATH} != "${DETECTED_DSACDIR}" ]]; then
+            (sudo bash "${DETECTED_DSACDIR}/main.sh") || true
             exit
         fi
     fi
@@ -179,5 +164,11 @@ main() {
         (sudo bash "${SCRIPTNAME:-}" "${ARGS[@]:-}") || true
         exit
     fi
+    run_script 'symlink_dsac'
+    # shellcheck source=/dev/null
+    source "${SCRIPTPATH}/.scripts/cmdline.sh"
+    cmdline "${ARGS[@]:-}"
+    readonly PROMPT="menu"
+    run_script 'menu_main'
 }
 main
