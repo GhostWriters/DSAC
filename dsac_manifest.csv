@@ -1,4 +1,4 @@
-"application"|"brief_desc"|"session_id"|"run_count"|"ds_var_dir"|"dsac_var_dir"|"ds_supported"|"dsac_supported"|"step_count"|"project_url"|"svr_url"|"svr_port"|"selected"|"dsac_quicksetup"
+"application"|"description"|"ds_supported"|"dsac_supported"|"dsac_quicksetup"|"selected"|"session_id"|"run_count"|"ds_var_dir"|"dsac_var_dir"|"step_count"|"project_url"|"svr_url"|"svr_port"
 "AirdcPP"|"Client for Advanced Direct Connect and Direct Connect networks "||||||||||||
 "Airsonic"|"Web-based media streamer providing ubiquitious access to your music "||||||||||||
 "Bazarr"|"Companion to Sonarr to manage and download subtitles"||||||||||||
@@ -43,11 +43,11 @@
 "NZBGetVPN"|"NZBGet, OpenVPN and Privoxy   "||||||||||||
 "Ombi"|"Allow your users to Request Movies, TV Shows and Albums  "||||||||||||
 "OpenVPNAS"|"Secure network tunneling VPN     "||||||||||||
-"Organizr"|"HTPC/Homelab Services Organizer    "||||||||||||
+"Organizr"|"HTPC/Homelab Services Organizer    "||true||||||||||
 "Ouroboros"|"Automatically update running Docker containers "||||||||||||
 "phpMyAdmin"|"A web interface for MySQL and MariaDB  "||||||||||||
 "PiHole"|"A black hole for internet advertisements "||||||||||||
-"Plex"|"Organizes all of your video, music and photo collections   "||||||||||||
+"Plex"|"Organizes all of your video, music and photo collections   "||true||||||||||
 "PlexRequests"|"Automated way for users to request new content for Plex  "||||||||||||
 "Portainer"|"Simple management UI for Docker  "||||||||||||
 "PortainerAgent"|"An agent used to manage all the resources in a Swarm cluster "||||||||||||
