@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-dsac_inject_main() {
+inject_ds_main() {
     local file
     file="main.sh"
     local file_path

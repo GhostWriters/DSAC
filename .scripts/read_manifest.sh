@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-dsac_read_manifest() {
+read_manifest() {
     local MANIFEST_FILE
     MANIFEST_FILE="${DETECTED_DSACDIR}/dsac_manifest.csv"
     local DSAC_APPS_FILE
@@ -14,18 +14,18 @@ dsac_read_manifest() {
     local HEADERS
     IFS='|' read -r -a HEADERS <<< "$CSV_HEADERS"
 
-    local DSAC_APPNAME
-    DSAC_APPNAME=""
+    local APPNAME
+    APPNAME=""
     while IFS= read -r line; do
         IFS='|' read -r -a ROW <<< $line
         for index in "${!ROW[@]}"
         do
             if [[ "${HEADERS[$index]}" = "${HEADERS[0]}" ]]; then
-                DSAC_APPNAME=${ROW[$index]//\"/}
+                APPNAME=${ROW[$index]//\"/}
                 echo "" >> $DSAC_APPS_FILE
-                echo "### ${DSAC_APPNAME}" >> $DSAC_APPS_FILE
+                echo "### ${APPNAME}" >> $DSAC_APPS_FILE
             else
-                echo "${DSAC_APPNAME}_${HEADERS[$index]}=${ROW[$index]}" >> $DSAC_APPS_FILE
+                echo "${APPNAME}_${HEADERS[$index]}=${ROW[$index]}" >> $DSAC_APPS_FILE
             fi
         done
 

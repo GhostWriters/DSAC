@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-dsac_inject_update_self() {
+inject_ds_update_self() {
     local file
     file="update_self.sh"
     local file_path

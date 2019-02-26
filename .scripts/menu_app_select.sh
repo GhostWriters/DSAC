@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-dsac_menu_app_select() {
+menu_app_select() {
     local APPLIST
     APPLIST=()
 
