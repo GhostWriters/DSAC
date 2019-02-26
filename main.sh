@@ -155,7 +155,6 @@ main() {
                 info "DockSTARTer App Config on branch master"
             fi
             info "Copying DockSTARTer App Config to DockSTARTer"
-            find "${DETECTED_DSACDIR}/.scripts/" -type f -iname "*.sh" -exec chmod +x {} \;
             cp -rp "${DETECTED_DSACDIR}/.scripts/." "${DETECTED_HOMEDIR}/.docker/.scripts/"
             info "Injecting DockSTARTer App Config code into DockSTARTer"
             run_script 'dsac_run_inject'
