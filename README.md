@@ -18,8 +18,8 @@ DSAC will help you through the tough and complex task of having a turnkey setup 
 It will assist with:
 ```bash
    Presenting you with a checklist of activities necessary.
-   Error check you at critical steps for the information needed to continue.
-   The ability to fill in the configuration information necessary.
+   Error check you at critical steps and collect the information needed to continue.
+   The ability to fill-in the configuration information necessary.
    Pushing that info into your DockSTARTer install.
 ```
 

@@ -1,0 +1,78 @@
+"application"|"description"|"ds_supported"|"dsac_supported"|"dsac_quicksetup"|"selected"|"session_id"|"run_count"|"ds_var_dir"|"dsac_var_dir"|"step_count"|"project_url"|"svr_url"|"svr_port"
+"AirdcPP"|"Client for Advanced Direct Connect and Direct Connect networks "||||||||||||
+"Airsonic"|"Web-based media streamer providing ubiquitious access to your music "||||||||||||
+"Bazarr"|"Companion to Sonarr to manage and download subtitles"||||||||||||
+"CalibreWeb"|"Web app for browsing, reading and downloading eBooks "||||||||||||
+"CloudCMD"|"A web file manager with console and editor "||||||||||||
+"CloudFlareDDNS"|"Free service which will point a DNS to an IP of your choice  "||||||||||||
+"Couchpotato"|"Movies PVR Client    "||||||||||||
+"DDClient"|"Update dynamic DNS entries  "||||||||||||
+"Deluge"|"Lightweight, Full-featured BitTorrent client "||||||||||||
+"DelugeVPN"|"Deluge, OpenVPN and Privoxy"||||||||||||
+"DuckDNS"|"Free service which will point a DNS to an IP of your choice  "||||||||||||
+"Duplicati"|"Backup software to store backups online with strong encryption  "||||||||||||
+"Emby"|"Organize, play, and stream audio and video  "||||||||||||
+"FreshRSS"|"Free, self-hostable aggregator for rss feeds   "||||||||||||
+"Glances"|"Cross-platform system monitoring tool  "||||||||||||
+"Grafana"|"Metrics dashboard and graph editor  "||||||||||||
+"Guacamole"|"Web application that provides access to desktop environments using remote desktop protocols "||||||||||||
+"h5ai"|"Modern file indexer    "||||||||||||
+"HandBrake"|"Tool for converting video from nearly any format to a selection of modern, widely supported codecs"||||||||||||
+"Headphones"|"Music PVR Client  "||||||||||||
+"Heimdall"|"Application dashboard and launcher  "||||||||||||
+"HomeAssistant"|"Track and control all devices at home and automate control "||||||||||||
+"HTPCManager"|"Front end for many htpc related applications"||||||||||||
+"Hydra2"|"Meta search for NZB indexers   "||||||||||||
+"InfluxDB"|"Time series database for recording metrics, events, and analytics"||||||||||||
+"Jackett"|"API Support for your favorite private trackers  "||||||||||||
+"LazyLibrarian"|"Book PVR Client"||||||||||||
+"LetsEncrypt"|"Certificate authority that provides free X.509 certificates  "||||||||||||
+"Lidarr"|"Music download manager for Usenet and BitTorrent users  "||||||||||||
+"Logarr"|"Self-hosted, single-page, log consolidation tool  "||||||||||||
+"LogitechMediaServer"|"LogitechMediaServer(SqueezeBox) "||||||||||||
+"MakeMKV"|"Convert video that you own into free and patents-unencumbered format"||||||||||||
+"MariaDB"|"One of the most popular database servers"||||||||||||
+"McMyAdmin2"|"Minecraft with a web control panel and admin console "||||||||||||
+"Medusa"|"Automatic Video Library Manager for TV Shows  "||||||||||||
+"Monitorr"|"Webfront to live display the status of any webapp or service  "||||||||||||
+"Muximux"|"A lightweight way to manage your HTPC"||||||||||||
+"Mylar"|"Comic book PVR client   "||||||||||||
+"netdata"|"Distributed real-time performance and health monitoring  "||||||||||||
+"Nextcloud"|"Gives you access to all your files wherever you are   "||||||||||||
+"NZBGet"|"NZB Newsgrabber / Downloader "||||||||||||
+"NZBGetVPN"|"NZBGet, OpenVPN and Privoxy   "||||||||||||
+"Ombi"|"Allow your users to Request Movies, TV Shows and Albums  "||||||||||||
+"OpenVPNAS"|"Secure network tunneling VPN     "||||||||||||
+"Organizr"|"HTPC/Homelab Services Organizer    "||true||||||||||
+"Ouroboros"|"Automatically update running Docker containers "||||||||||||
+"phpMyAdmin"|"A web interface for MySQL and MariaDB  "||||||||||||
+"PiHole"|"A black hole for internet advertisements "||||||||||||
+"Plex"|"Organizes all of your video, music and photo collections   "||true||||||||||
+"PlexRequests"|"Automated way for users to request new content for Plex  "||||||||||||
+"Portainer"|"Simple management UI for Docker  "||||||||||||
+"PortainerAgent"|"An agent used to manage all the resources in a Swarm cluster "||||||||||||
+"pyLoad"|"Python Download Manager alternative to JDownloader  "||||||||||||
+"qBittorrent"|"Cross-platform free and open-source BitTorrent client    "||||||||||||
+"qBittorrentVPN"|"qBittorrent, OpenVPN and Privoxy   "||||||||||||
+"Radarr"|"Automatically download movies via Usenet and BitTorrent  "||||||||||||
+"rTorrentVPN"|"rTorrent, Flood or ruTorrent WebUI, OpenVPN and Privoxy  "||||||||||||
+"ruTorrent"|"rTorrent client and ruTorrent WebUI  "||||||||||||
+"SABnzbd"|"NZB Newsgrabber / Downloader    "||||||||||||
+"SABnzbdVPN"|"SABnzbd, OpenVPN and Privoxy  "||||||||||||
+"Samba"|"Access media directories and Docker config over Samba "||||||||||||
+"Sickrage"|"Automatic Video Library Manager for TV Shows    "||||||||||||
+"smokeping"|"Free service which will point a DNS to an IP of your choice "||||||||||||
+"Sonarr"|"Smart TV show PVR via Usenet and BitTorrent "||||||||||||
+"Syncthing"|"Open-source peer-to-peer file synchronization "||||||||||||
+"Tautulli"|"Monitoring and tracking tool for Plex Media Server   "||||||||||||
+"Telegraf"|"Agent for collecting metrics and writing them to InfluxDB or other outputs     "||||||||||||
+"TheLounge"|"Web IRC client that you host on your own server "||||||||||||
+"Transmission"|"Fast, easy, and free BitTorrent client "||||||||||||
+"TransmissionVPN"|"Transmission, WebUI and OpenVPN  "||||||||||||
+"TTRSS"|"News feed (RSS/Atom) reader and aggregator  "||||||||||||
+"Tvheadend"|"TV streaming server and recorder       "||||||||||||
+"Ubooquity"|"Home server for your comics and ebooks"||||||||||||
+"Unifi"|"Controller software for wireless networks     "||||||||||||
+"varken"|"Standalone command-line utility to aggregate data from the Plex ecosystem into InfluxDB"||||||||||||
+"vsftpd"|"Probably the most secure and fastest FTP server for UNIX-like systems  "||||||||||||
+"Watchtower"|"Automatically update running Docker containers   "||||||||||||
