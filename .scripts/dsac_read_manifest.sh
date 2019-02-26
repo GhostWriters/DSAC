@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 dsac_read_manifest() {
     local MANIFEST_FILE
-    MANIFEST_FILE="${DETECTED_DSACDIR}/dsac_manefest.csv"
+    MANIFEST_FILE="${DETECTED_DSACDIR}/dsac_manifest.csv"
     local DSAC_APPS_FILE
     DSAC_APPS_FILE="${DETECTED_DSACDIR}/dsac_apps"
     touch ${DSAC_APPS_FILE}

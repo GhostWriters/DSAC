@@ -9,18 +9,18 @@ dsac_menu_config() {
     DSAC_CONFIGOPTS+=("Full Setup " "= Full user input with no pre-selected apps")
 
     local DSAC_CONFIGCHOICE
-    CONFIGCHOICE=$(whiptail --fb --clear --title "DockSTARTer App Config" --menu "What would you like to do?" 0 0 0 "${DSAC_CONFIGOPTS[@]}" 3>&1 1>&2 2>&3 || echo "Cancel")
+    DSAC_CONFIGCHOICE=$(whiptail --fb --clear --title "DockSTARTer App Config" --menu "What would you like to do?" 0 0 0 "${DSAC_CONFIGOPTS[@]}" 3>&1 1>&2 2>&3 || echo "Cancel")
 
     case "${DSAC_CONFIGCHOICE}" in
         "Quick Setup ")
+            run_script 'dsac_read_manifest'
             # TODO: pre-configured apps
             # TODO: user inputs, as needed
-            error "${CONFIGCHOICE} not yet available"
             ;;
         "Full Setup ")
-            # TODO: run_script 'dsac_menu_app_select'
+            run_script 'dsac_read_manifest'
+            run_script 'dsac_menu_app_select'
             # TODO: user inputs, as needed
-            error "${CONFIGCHOICE} not yet available"
             ;;
         "Cancel")
             info "Returning to Main Menu."
