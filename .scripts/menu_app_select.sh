@@ -11,7 +11,6 @@ menu_app_select() {
         APPNAME=${line%%_DSAC_SUPPORTED=*}
         local APPDESCRIPTION
         APPDESCRIPTION=$(grep "${APPNAME}_DESCRIPTION" "${DETECTED_DSACDIR}/dsac_apps")
-        info "DESC: $APPDESCRIPTION"
         APPDESCRIPTION=${APPDESCRIPTION##*_DESCRIPTION=}
         APPDESCRIPTION=${APPDESCRIPTION//\"/}
         local APPONOFF
