@@ -8,7 +8,7 @@ update_self() {
         DSAC_BRANCH=$(cat "${DETECTED_HOMEDIR}/dsac_branch")
     fi
 
-    if [[ ! "$DSAC_BRANCH" ]]; then
+    if [[ ! -n "$DSAC_BRANCH" ]]; then
         DSAC_BRANCH="origin/master"
     fi
 
