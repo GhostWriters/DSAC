@@ -7,7 +7,7 @@ inject_ds_main() {
     file="main.sh"
     local file_path
     file_path="${DETECTED_HOMEDIR}/.docker/${file}"
-    
+
     if [[ $(grep -c "# DSAC injected code" $file_path) = 0 ]]; then
         info "Injecting code into DockSTARTer ${file}"
 
