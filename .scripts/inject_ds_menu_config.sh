@@ -24,7 +24,7 @@ inject_ds_menu_config() {
             sed -i "${line_number}i $line_to_add" $file_path
             line_number=$((line_number+1))
         done
-        
+
         line_to_add_before="\"Full Setup \")"
         line_number=$(grep -n "${line_to_add_before}" $file_path | sed 's/^\([0-9]\+\):.*$/\1/')
 
@@ -44,5 +44,5 @@ inject_ds_menu_config() {
     else
         warning "Code already injected into DockSTARTer ${file}"
     fi
-    
+
 }

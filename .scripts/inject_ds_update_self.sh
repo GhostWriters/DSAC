@@ -27,5 +27,4 @@ inject_ds_update_self() {
     else
         warning "Code already injected into DockSTARTer ${file}"
     fi
-    
 }

@@ -11,7 +11,7 @@ update_self() {
     if [[ ! $DSAC_BRANCH ]]; then
         DSAC_BRANCH="origin/master"
     fi
-    
+
     local QUESTION
     QUESTION="Would you like to update DockSTARTer App Config to ${DSAC_BRANCH} now?"
     info "${QUESTION}"
