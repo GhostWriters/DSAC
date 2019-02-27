@@ -4,11 +4,12 @@ IFS=$'\n\t'
 
 update_self() {
     local DSAC_BRANCH
+
     if [[ -f "${DETECTED_HOMEDIR}/dsac_branch" ]]; then
         DSAC_BRANCH=$(cat "${DETECTED_HOMEDIR}/dsac_branch")
     fi
 
-    if [[ ! -n "$DSAC_BRANCH" ]]; then
+    if [[ ! -z "$DSAC_BRANCH" ]]; then
         DSAC_BRANCH="origin/master"
     fi
 
