@@ -2,7 +2,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-
 # Usage Information
 #/ Usage: sudo dsac [OPTION]
 #/ NOTE: dsac shortcut is only available after the first run of
