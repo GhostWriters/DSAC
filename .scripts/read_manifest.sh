@@ -19,7 +19,7 @@ read_manifest() {
     while IFS= read -r line; do
         IFS='|' read -r -a ROW <<< "$line"
         for index in "${!ROW[@]}"; do
-            if [[ "${HEADERS[$index]}" = "${HEADERS[0]}" ]]; then
+            if [[ ${HEADERS[$index]} == "${HEADERS[0]}" ]]; then
                 APPNAME=${ROW[$index]//\"/}
                 echo "" >> "$DSAC_APPS_FILE"
                 echo "### ${APPNAME}" >> "$DSAC_APPS_FILE"
