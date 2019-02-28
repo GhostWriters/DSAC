@@ -230,7 +230,7 @@ develop() {
         #Update DSAC
         if [[ -n ${UPDATE:-} ]]; then
             info "Updating DSAC from repo"
-            (dsac -u ${BRANCH:-origin/master})
+            (dsac -u "${BRANCH:-origin/master}")
         fi
         #Update DSAC from local
         if [[ -n ${LOCAL:-} ]]; then
@@ -244,7 +244,7 @@ develop() {
             else
                 cp "${DETECTED_DSACDIR}/.scripts/${SCRIPTNAME}" "${DETECTED_HOMEDIR}/${SCRIPTNAME}"
                 warning "${SCRIPTNAME} has changed. Re-running."
-                bash "${SCRIPTNAME}" "${ARGS}"
+                bash "${SCRIPTNAME}" "${ARGS[@]:-}"
                 exit
             fi
         fi
