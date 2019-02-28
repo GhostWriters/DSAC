@@ -192,7 +192,7 @@ cmdline() {
 # Main Function
 develop() {
     # Sudo Check
-    if [[ ${EUID} = "0" ]]; then
+    if [[ ${EUID} == "0" ]]; then
         fatal "Do not run ${SCRIPTNAME} using sudo!"
         exit
     fi
@@ -224,7 +224,7 @@ develop() {
         fi
     fi
 
-    if [[ -n ${FIRSTRUN:-} ]] || [[ ! -n "$(command -v dsac)" ]] || [[ ! -d .dsac ]]; then
+    if [[ -n ${FIRSTRUN:-} ]] || [[ -z "$(command -v dsac)" ]] || [[ ! -d .dsac ]]; then
         (bash -c "$(curl -fsSL https://ghostwriters.github.io/DSAC/main.sh)")
     else
         #Update DSAC
