@@ -33,7 +33,7 @@ update_self() {
         case ${YN} in
             [Yy]*)
                 info "Updating DockSTARTer App Config."
-                cd "${SCRIPTPATH}/.dsac" || fatal "Failed to change to ${SCRIPTPATH}/.dsac directory."
+                cd "${DETECTED_DSACDIR}" || fatal "Failed to change to ${DETECTED_DSACDIR} directory."
                 git fetch > /dev/null 2>&1 || fatal "Failed to fetch recent changes from git."
                 git reset --hard "${BRANCH}" > /dev/null 2>&1 || fatal "Failed to reset to ${BRANCH}."
                 git pull > /dev/null 2>&1 || fatal "Failed to pull recent changes from git."
