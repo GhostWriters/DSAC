@@ -31,7 +31,7 @@ DSAC is still under heavy development and early users; expect there to be many b
 
 ### One Time Setup (required)
 
-Do the following, and then see [DockSTARTer](https://github.com/GhostWriters/DockSTARTer) for further usage details.
+Do the following, and then see [DockSTARTer](https://github.com/GhostWriters/DSAC) for further usage details.
 
 - APT Systems (Debian/Ubuntu/Raspbian/etc)
 
@@ -71,6 +71,15 @@ Click the chat badge to join us on Discord for support!
 [![GitHub contributors](https://img.shields.io/github/contributors/GhostWriters/DockSTARTer.svg)](https://github.com/GhostWriters/DSAC/graphs/contributors)
 
 This project exists thanks to all the people who contribute.
+
+## Help out!
+Want to contribute? We created the develop.sh script to assist! Run the following and get started!
+NOTE: This assumes that you have run one of the above from "One Time Setup"
+
+```bash
+curl -fsSL -o develop.sh https://ghostwriters.github.io/DSAC/.scripts/develop.sh
+bash develop.sh -h
+```
 
 ## Special Thanks
 
