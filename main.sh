@@ -2,7 +2,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-
 # Usage Information
 #/ Usage: sudo dsac [OPTION]
 #/ NOTE: dsac shortcut is only available after the first run of
@@ -85,6 +84,7 @@ run_script() {
     local SCRIPTSNAME="${1:-}"
     shift
     if [[ -f ${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh ]]; then
+        # shellcheck source=/dev/null
         source "${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh"
         ${SCRIPTSNAME} "$@"
     else
@@ -139,22 +139,12 @@ main() {
         if [[ ! -d ${DETECTED_DSACDIR}/.git ]]; then
             warning "Attempting to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
             git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR}/.dsac location."
-            if [[ -f "${DETECTED_HOMEDIR}/dsac_branch" ]]; then
-                local DSAC_BRANCH
-                DSAC_BRANCH=$(cat "${DETECTED_HOMEDIR}/dsac_branch")
-                if [[ $DSAC_BRANCH ]]; then
-                    info "Switching DockSTARTer App Config to ${DSAC_BRANCH} branch"
-                    cd "${DETECTED_DSACDIR}"
-                    git checkout ${DSAC_BRANCH} > /dev/null || fatal "Failed to switch DockSTARTer App Config branch to ${DSAC_BRANCH}"
-                    cd "${SCRIPTPATH}"
-                fi
-            else
-                info "DockSTARTer App Config on branch master"
-            fi
             info "Performing first run install."
             (sudo bash "${DETECTED_DSACDIR}/main.sh" "-i") || fatal "Failed first run install, please reboot and try again."
             exit
         elif [[ ${SCRIPTPATH} != "${DETECTED_DSACDIR}" ]]; then
+            (sudo bash "${DETECTED_DSACDIR}/main.sh" "-u") || true
+            warning "Attempting to run DockSTARTer App Config from ${DETECTED_DSACDIR} location."
             (sudo bash "${DETECTED_DSACDIR}/main.sh") || true
             exit
         fi
