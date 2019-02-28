@@ -213,7 +213,7 @@ develop() {
     cmdline "${ARGS[@]:-}"
 
     #Reset
-    if [[ ${RESET:-} ]] || [[ ${FIRSTRUN:-} ]]; then
+    if [[ -n ${RESET:-} ]] || [[ -n ${FIRSTRUN:-} ]]; then
         if [[ -d .dsac ]]; then
             info "Removing DSAC directory"
             rm -r .dsac
@@ -224,16 +224,16 @@ develop() {
         fi
     fi
 
-    if [[ ${FIRSTRUN:-} ]] || [[ ! -n "$(command -v dsac)" ]] || [[ ! -d .dsac ]]; then
+    if [[ -n ${FIRSTRUN:-} ]] || [[ ! -n "$(command -v dsac)" ]] || [[ ! -d .dsac ]]; then
         (bash -c "$(curl -fsSL https://ghostwriters.github.io/DSAC/main.sh)")
     else
         #Update DSAC
-        if [[ ${UPDATE:-} ]]; then
+        if [[ -n ${UPDATE:-} ]]; then
             info "Updating DSAC from repo"
             (dsac -u ${BRANCH:-origin/master})
         fi
         #Update DSAC from local
-        if [[ ${LOCAL:-} ]]; then
+        if [[ -n ${LOCAL:-} ]]; then
             info "Updating DSAC from local development files: ${DETECTED_HOMEDIR}/${LOCAL_DIR}"
             cp -r "${DETECTED_HOMEDIR}/${LOCAL_DIR}/." "${DETECTED_DSACDIR}"
         fi
