@@ -189,21 +189,6 @@ cmdline() {
     return 0
 }
 
-update_system() {
-    if [[ -n "$(command -v apt-get)" ]]; then
-        info "apt package manager detected."
-        run_script 'run_apt'
-    elif [[ -n "$(command -v dnf)" ]]; then
-        info "dnf package manager detected."
-        run_script 'run_dnf'
-    elif [[ -n "$(command -v yum)" ]]; then
-        info "yum package manager detected."
-        run_script 'run_yum'
-    else
-        fatal "Package manager not detected!"
-    fi
-}
-
 # Main Function
 develop() {
     # Sudo Check
@@ -224,8 +209,6 @@ develop() {
         root_check
 
     fi
-    #Add/Update packages
-    update_system
     #Process args
     cmdline "${ARGS[@]:-}"
 
