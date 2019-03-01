@@ -10,12 +10,14 @@ IFS=$'\n\t'
 #/ For regular usage you can run without providing any options.
 #/
 #/  -f --firstrun
-#/      Removes downloaded files
+#/      Removes DSAC files and runs first run commands
 #/  -l --local <folder>
 #/      Copies local development files from ~/<folder> folder to ~/.dsac
 #/      If <folder> is not provided, it defaults to ~/DSAC
 #/  -r --reset
-#/      Removes downloaded files
+#/      Removes DSAC & DS files files
+#/  -t --test <test_name>
+#/      run tests to check the program
 #/  -u --update
 #/      update DockSTARTer to the latest stable commits
 #/  -u --update <branch>
@@ -73,13 +75,13 @@ readonly YLW='\e[33m'
 readonly NC='\e[0m'
 
 # Log Functions
-readonly LOG_FILE="/tmp/dockstarterappconfig.log"
+readonly LOG_FILE="/tmp/dsac-develop.log"
 sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
-info() { echo -e "${NC}$(date +"%F %T") ${BLU}[INFO]${NC}       $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-warning() { echo -e "${NC}$(date +"%F %T") ${YLW}[WARNING]${NC}    $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-error() { echo -e "${NC}$(date +"%F %T") ${RED}[ERROR]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+info() { echo -e "${NC}$(date +"%F %T") ${BLU}[INFO]${NC}       (develop.sh) $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+warning() { echo -e "${NC}$(date +"%F %T") ${YLW}[WARNING]${NC}    (develop.sh) $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+error() { echo -e "${NC}$(date +"%F %T") ${RED}[ERROR]${NC}      (develop.sh) $*${NC}" | tee -a "${LOG_FILE}" >&2; }
 fatal() {
-    echo -e "${NC}$(date +"%F %T") ${RED}[FATAL]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
+    echo -e "${NC}$(date +"%F %T") ${RED}[FATAL]${NC}      (develop.sh) $*${NC}" | tee -a "${LOG_FILE}" >&2
     exit 1
 }
 
@@ -100,6 +102,19 @@ run_script() {
 root_check() {
     if [[ ${DETECTED_PUID} == "0" ]] || [[ ${DETECTED_HOMEDIR} == "/root" ]]; then
         fatal "Running as root is not supported. Please run as a standard user with sudo."
+    fi
+}
+
+# Test Runner Function
+run_test() {
+    local TESTSNAME="${1:-}"
+    shift
+    if [[ -f ${DETECTED_DSACDIR}/.tests/${TESTSNAME}.sh ]]; then
+        # shellcheck source=/dev/null
+        source "${DETECTED_DSACDIR}/.tests/${TESTSNAME}.sh"
+        ${TESTSNAME} "$@"
+    else
+        fatal "${DETECTED_DSACDIR}/.tests/${TESTSNAME}.sh not found."
     fi
 }
 
@@ -126,6 +141,7 @@ cmdline() {
             --firstrun) LOCAL_ARGS="${LOCAL_ARGS:-}-f " ;;
             --help) LOCAL_ARGS="${LOCAL_ARGS:-}-h " ;;
             --reset) LOCAL_ARGS="${LOCAL_ARGS:-}-r " ;;
+            --test) LOCAL_ARGS="${LOCAL_ARGS:-}-t " ;;
             --update) LOCAL_ARGS="${LOCAL_ARGS:-}-u " ;;
             --verbose) LOCAL_ARGS="${LOCAL_ARGS:-}-v " ;;
             --debug) LOCAL_ARGS="${LOCAL_ARGS:-}-x " ;;
@@ -151,15 +167,37 @@ cmdline() {
                 ;;
             l)
                 readonly LOCAL=1
-                readonly LOCAL_DIR=${OPTARG:-DSAC}
+                readonly LOCAL_DIR="${OPTARG:-DSAC}"
                 ;;
             r)
                 readonly RESET=1
                 ;;
+            t)
+                case ${OPTARG} in
+                    dsac_*)
+                        info "Passing through test '${OPTARG}' to DSAC as '${OPTARG//dsac_/}'"
+                        DSAC_ARGS="${DSAC_ARGS:-}-u ${OPTARG//dsac_/} "
+                        ;;
+                    "validate" | "VALIDATE" | "v")
+                        readonly TEST="run_validate"
+                        ;;
+                    *)
+                        info "Passing through test '${OPTARG}' for development"
+                        readonly TEST="${OPTARG}"
+                        ;;
+                esac
+                ;;
             u)
-                readonly UPDATE=1
-                readonly BRANCH=${OPTARG:-origin/master}
-                DSAC_ARGS="${DSAC_ARGS:-}-u ${OPTARG} "
+                case ${OPTARG} in
+                    dsac_*)
+                        info "Passing through '${OPTARG}' to DSAC as '${OPTARG//dsac_/}'"
+                        DSAC_ARGS="${DSAC_ARGS:-}-u ${OPTARG//dsac_/} "
+                        ;;
+                    *)
+                        readonly UPDATE=1
+                        readonly BRANCH=${OPTARG:-origin/master}
+                        ;;
+                esac
                 ;;
             v)
                 readonly VERBOSE=1
@@ -174,7 +212,7 @@ cmdline() {
                 case ${OPTARG} in
                     u)
                         readonly UPDATE=1
-                        DSAC_ARGS="${DSAC_ARGS:-}-u "
+                        readonly BRANCH="origin/master"
                         ;;
                     *)
                         fatal "${OPTARG} requires an option."
@@ -182,7 +220,8 @@ cmdline() {
                 esac
                 ;;
             *)
-                DSAC_ARGS="${DSAC_ARGS:-}-${OPTION} ${OPTARG} "
+                info "Passing through '${OPTION}' to DSAC"
+                DSAC_ARGS="${DSAC_ARGS:-}-${OPTION} "
                 ;;
         esac
     done
@@ -205,52 +244,50 @@ develop() {
     if [[ -n ${PS1:-} ]] || [[ ${-} == *"i"* ]]; then
         root_check
     fi
-    if [[ ${CI:-} != true ]] && [[ ${TRAVIS:-} != true ]] && [[ -z ${ARGS[*]:-} ]]; then
+    if [[ ${CI:-} != true ]] && [[ ${TRAVIS:-} != true ]]; then
         root_check
 
-    fi
-    #Process args
-    cmdline "${ARGS[@]:-}"
+        #Process args
+        cmdline "${ARGS[@]:-}"
 
-    #Reset
-    if [[ -n ${RESET:-} ]] || [[ -n ${FIRSTRUN:-} ]]; then
-        if [[ -d .dsac ]]; then
-            info "Removing DSAC directory"
-            rm -r .dsac
+        #Reset
+        if [[ -n ${RESET:-} ]] || [[ -n ${FIRSTRUN:-} ]]; then
+            run_script 'develop_reset'
         fi
-        if [[ -d .docker ]]; then
-            info "Removing DS directory"
-            rm -r .docker
-        fi
-    fi
-
-    if [[ -n ${FIRSTRUN:-} ]] || [[ -z "$(command -v dsac)" ]] || [[ ! -d .dsac ]]; then
-        (bash -c "$(curl -fsSL https://ghostwriters.github.io/DSAC/main.sh)")
-    else
-        #Update DSAC
-        if [[ -n ${UPDATE:-} ]]; then
-            info "Updating DSAC from repo"
-            (dsac -u "${BRANCH:-origin/master}")
-        fi
-        #Update DSAC from local
-        if [[ -n ${LOCAL:-} ]]; then
-            info "Updating DSAC from local development files: ${DETECTED_HOMEDIR}/${LOCAL_DIR}"
-            cp -r "${DETECTED_HOMEDIR}/${LOCAL_DIR}/." "${DETECTED_DSACDIR}"
-        fi
-        #Check if this script has been updated
-        if [[ -f "${DETECTED_DSACDIR}/.scripts/${SCRIPTNAME}" ]]; then
-            if cmp -s "${DETECTED_HOMEDIR}/${SCRIPTNAME}" "${DETECTED_DSACDIR}/.scripts/${SCRIPTNAME}"; then
-                info "${SCRIPTNAME} hasn't changed"
-            else
-                cp "${DETECTED_DSACDIR}/.scripts/${SCRIPTNAME}" "${DETECTED_HOMEDIR}/${SCRIPTNAME}"
-                warning "${SCRIPTNAME} has changed. Re-running."
-                bash "${SCRIPTNAME}" "${ARGS[@]:-}"
+        #First run
+        if [[ -n ${FIRSTRUN:-} ]] || [[ -z "$(command -v dsac)" ]] || [[ ! -d .dsac ]]; then
+            (bash -c "$(curl -fsSL https://ghostwriters.github.io/DSAC/main.sh)")
+            exit
+        else
+            #Update DSAC
+            if [[ -n ${UPDATE:-} ]]; then
+                info "Updating DSAC from repo"
+                (dsac -u "${BRANCH:-origin/master}")
+            fi
+            #Update DSAC from local
+            if [[ -n ${LOCAL:-} ]]; then
+                run_script 'develop_local' "${LOCAL_DIR}"
+            fi
+            #Run tests
+            if [[ -n ${TEST:-} ]]; then
+                run_test "${TEST}"
                 exit
             fi
+            #Check if this script has been updated
+            if [[ -f "${DETECTED_DSACDIR}/.scripts/${SCRIPTNAME}" ]]; then
+                if cmp -s "${DETECTED_HOMEDIR}/${SCRIPTNAME}" "${DETECTED_DSACDIR}/.scripts/${SCRIPTNAME}"; then
+                    info "${SCRIPTNAME} hasn't changed"
+                else
+                    cp "${DETECTED_DSACDIR}/.scripts/${SCRIPTNAME}" "${DETECTED_HOMEDIR}/${SCRIPTNAME}"
+                    warning "${SCRIPTNAME} has changed. Re-running."
+                    bash "${SCRIPTNAME}" "${ARGS[@]:-}"
+                    exit
+                fi
+            fi
+            # Place code for testing below here
+            info "Running DSAC..."
+            (dsac "${DSAC_ARGS:-}")
         fi
-        # Place code for testing below here
-        info "Running DSAC..."
-        (dsac "${DSAC_ARGS:-}")
     fi
 }
 develop
