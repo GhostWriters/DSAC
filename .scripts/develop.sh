@@ -101,7 +101,7 @@ run_script() {
 # Root Check
 root_check() {
     if [[ ${DETECTED_PUID} == "0" ]] || [[ ${DETECTED_HOMEDIR} == "/root" ]]; then
-        fatal "Running as root is not supported. Please run as a standard user with sudo."
+        fatal "Running as root is not supported. Please run as a standard user without sudo."
     fi
 }
 
@@ -262,7 +262,7 @@ develop() {
             #Update DSAC
             if [[ -n ${UPDATE:-} ]]; then
                 info "Updating DSAC from repo"
-                (dsac -u "${BRANCH:-origin/master}")
+                (sudo dsac -u "${BRANCH:-origin/master}")
             fi
             #Update DSAC from local
             if [[ -n ${LOCAL:-} ]]; then
@@ -284,10 +284,10 @@ develop() {
                     exit
                 fi
             fi
-            # Place code for testing below here
-            info "Running DSAC..."
-            (dsac "${DSAC_ARGS:-}")
         fi
+        # Place code for testing below here
+        info "Running DSAC..."
+        (sudo dsac "${DSAC_ARGS:-}")
     fi
 }
 develop
