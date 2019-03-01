@@ -105,6 +105,13 @@ run_test() {
     fi
 }
 
+# Version functions
+# https://stackoverflow.com/questions/4023830/how-to-compare-two-strings-in-dot-separated-version-format-in-bash#comment92693604_4024263
+vergte() { printf '%s\n%s' "${2}" "${1}" | sort -C -V; }
+vergt() { ! verlte "${1}" "${2}"; }
+verlte() { printf '%s\n%s' "${1}" "${2}" | sort -C -V; }
+verlt() { ! verlte "${2}" "${1}"; }
+
 # Root Check
 root_check() {
     if [[ ${DETECTED_PUID} == "0" ]] || [[ ${DETECTED_HOMEDIR} == "/root" ]]; then
