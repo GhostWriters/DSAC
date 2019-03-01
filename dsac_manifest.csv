@@ -22,12 +22,12 @@
 "Heimdall"|"Application dashboard and launcher"||||||||||||
 "HomeAssistant"|"Track and control all devices at home and automate control"||||||||||||
 "HTPCManager"|"Front end for many htpc related applications"||||||||||||
-"Hydra2"|"Meta search for NZB indexers"||||||||||||
+"Hydra2"|"Meta search for NZB indexers"||true|true|||||||||
 "InfluxDB"|"Time series database for recording metrics, events, and analytics"||||||||||||
-"Jackett"|"API Support for your favorite private trackers"||||||||||||
+"Jackett"|"API Support for your favorite private trackers"||true|true|||||||||
 "LazyLibrarian"|"Book PVR Client"||||||||||||
 "LetsEncrypt"|"Certificate authority that provides free X.509 certificates"||||||||||||
-"Lidarr"|"Music download manager for Usenet and BitTorrent users"||||||||||||
+"Lidarr"|"Music download manager for Usenet and BitTorrent users"||true|true|||||||||
 "Logarr"|"Self-hosted, single-page, log consolidation tool"||||||||||||
 "LogitechMediaServer"|"LogitechMediaServer(SqueezeBox)"||||||||||||
 "MakeMKV"|"Convert video that you own into free and patents-unencumbered format"||||||||||||
@@ -41,20 +41,20 @@
 "Nextcloud"|"Gives you access to all your files wherever you are"||||||||||||
 "NZBGet"|"NZB Newsgrabber / Downloader "||||||||||||
 "NZBGetVPN"|"NZBGet, OpenVPN and Privoxy"||||||||||||
-"Ombi"|"Allow your users to Request Movies, TV Shows and Albums"||||||||||||
+"Ombi"|"Allow your users to Request Movies, TV Shows and Albums"||true|true|||||||||
 "OpenVPNAS"|"Secure network tunneling VPN"||||||||||||
-"Organizr"|"HTPC/Homelab Services Organizer"||true||||||||||
+"Organizr"|"HTPC/Homelab Services Organizer"||||||||||||
 "Ouroboros"|"Automatically update running Docker containers"||||||||||||
 "phpMyAdmin"|"A web interface for MySQL and MariaDB"||||||||||||
 "PiHole"|"A black hole for internet advertisements"||||||||||||
-"Plex"|"Organizes all of your video, music and photo collections"||true||||||||||
+"Plex"|"Organizes all of your video, music and photo collections"||true|true|||||||||
 "PlexRequests"|"Automated way for users to request new content for Plex"||||||||||||
-"Portainer"|"Simple management UI for Docker"||||||||||||
+"Portainer"|"Simple management UI for Docker"||true|true|||||||||
 "PortainerAgent"|"An agent used to manage all the resources in a Swarm cluster"||||||||||||
 "pyLoad"|"Python Download Manager alternative to JDownloader"||||||||||||
 "qBittorrent"|"Cross-platform free and open-source BitTorrent client"||||||||||||
 "qBittorrentVPN"|"qBittorrent, OpenVPN and Privoxy"||||||||||||
-"Radarr"|"Automatically download movies via Usenet and BitTorrent"||||||||||||
+"Radarr"|"Automatically download movies via Usenet and BitTorrent"||true|true|||||||||
 "rTorrentVPN"|"rTorrent, Flood or ruTorrent WebUI, OpenVPN and Privoxy"||||||||||||
 "ruTorrent"|"rTorrent client and ruTorrent WebUI"||||||||||||
 "SABnzbd"|"NZB Newsgrabber / Downloader"||||||||||||
@@ -62,11 +62,12 @@
 "Samba"|"Access media directories and Docker config over Samba"||||||||||||
 "Sickrage"|"Automatic Video Library Manager for TV Shows"||||||||||||
 "smokeping"|"Free service which will point a DNS to an IP of your choice"||||||||||||
-"Sonarr"|"Smart TV show PVR via Usenet and BitTorrent"||||||||||||
+"Sonarr"|"Smart TV show PVR via Usenet and BitTorrent"||true|true|||||||||
 "Syncthing"|"Open-source peer-to-peer file synchronization "||||||||||||
-"Tautulli"|"Monitoring and tracking tool for Plex Media Server"||||||||||||
+"Tautulli"|"Monitoring and tracking tool for Plex Media Server"||true|true|||||||||
 "Telegraf"|"Agent for collecting metrics and writing them to InfluxDB or other outputs"||||||||||||
 "TheLounge"|"Web IRC client that you host on your own server"||||||||||||
+"Traefik"|"Reverse proxy with LetsEncrypt"||true|true|||||||||
 "Transmission"|"Fast, easy, and free BitTorrent client "||||||||||||
 "TransmissionVPN"|"Transmission, WebUI and OpenVPN"||||||||||||
 "TTRSS"|"News feed (RSS/Atom) reader and aggregator"||||||||||||
@@ -75,4 +76,4 @@
 "Unifi"|"Controller software for wireless networks"||||||||||||
 "varken"|"Standalone command-line utility to aggregate data from the Plex ecosystem into InfluxDB"||||||||||||
 "vsftpd"|"Probably the most secure and fastest FTP server for UNIX-like systems"||||||||||||
-"Watchtower"|"Automatically update running Docker containers"||||||||||||
+"Watchtower"|"Automatically update running Docker containers"||true|true|||||||||
