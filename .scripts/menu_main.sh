@@ -14,6 +14,8 @@ menu_main() {
     case "${MAINCHOICE}" in
         "Quick Setup ")
             run_script 'read_manifest'
+            run_script 'run_install_dockstarter'
+            run_script 'run_apps_preconfigured'
             # TODO: pre-configured apps
             # TODO: user inputs, as needed
             # TODO: run_script 'run_dockstarter'
