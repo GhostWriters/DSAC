@@ -1,4 +1,5 @@
-
+services:
+  portainer:
     labels:
       - "traefik.enable=true"
       - "traefik.backend=portainer"
