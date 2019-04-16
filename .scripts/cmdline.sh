@@ -28,8 +28,11 @@ cmdline() {
     #Reset the positional parameters to the short options
     eval set -- "${LOCAL_ARGS:-}"
 
-    while getopts ":b:c:eghipt:u:vx" OPTION; do
+    while getopts ":b:c:d:eghipt:u:vx" OPTION; do
         case ${OPTION} in
+            d)
+                readonly DEVMODE=${OPTARG}
+                ;;
             h)
                 usage
                 exit
@@ -55,6 +58,9 @@ cmdline() {
                 ;;
             :)
                 case ${OPTARG} in
+                    d)
+                        readonly DEVMODE=1
+                        ;;
                     u)
                         run_script 'update_self'
                         ;;
