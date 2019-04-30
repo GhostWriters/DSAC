@@ -3,6 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 read_manifest() {
+    info "Reading DSAC manifest"
     local MANIFEST_FILE
     MANIFEST_FILE="${DETECTED_DSACDIR}/dsac_manifest.csv"
     local DSAC_APPS_FILE
