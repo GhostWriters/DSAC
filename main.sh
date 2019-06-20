@@ -63,6 +63,10 @@ readonly DETECTED_DSDIR=$(eval echo "~${DETECTED_UNAME}/.docker" 2> /dev/null ||
 # DSAC Information
 readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null || true)
 
+# Other Information
+readonly NIC=$(ip -o -4 route show to default | head -1 | awk '{print $5}')
+readonly LOCAL_IP=$(ifconfig ${NIC} | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
+
 # Colors
 # https://misc.flogisoft.com/bash/tip_colors_and_formatting
 readonly BLU='\e[34m'
