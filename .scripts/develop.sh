@@ -156,7 +156,7 @@ cmdline() {
     #Reset the positional parameters to the short options
     eval set -- "${LOCAL_ARGS:-}"
 
-    while getopts ":bcefghilprt:u:vx" OPTION; do
+    while getopts ":bcdefghilprt:u:vx" OPTION; do
         case ${OPTION} in
             f)
                 readonly FIRSTRUN=1
@@ -287,6 +287,7 @@ develop() {
         fi
         # Place code for testing below here
         info "Running DSAC..."
+        info "DSAC_ARGS='${DSAC_ARGS:-}'"
         (sudo dsac "${DSAC_ARGS:-}")
     fi
 }
