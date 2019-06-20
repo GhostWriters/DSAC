@@ -15,24 +15,44 @@ configure_movies_manager() {
     if [[ ${containers[$container_name]+true} == "true" ]]; then
         info "- Radarr"
         info "  - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"
+        debug "    config_path=${config_path}"
         cp "${config_path}" "${config_path}.dsac_bak"
         info "  - Backing up the database: ${db_file} >> ${db_file}.dsac_bak"
+        debug "    db_path=${db_path}"
         cp "${db_path}" "${db_path}.dsac_bak"
         info "  - Updating Indexer settings"
         if [[ ${containers[hydra2]+true} == "true" ]]; then
-            info "    Hydra2"
             local radarr_hydra2_id
-            radarr_hydra2_id=$(sqlite3 "${db_path}" "SELECT id FROM Indexers WHERE Name='Hydra'")
             local radarr_hydra2_settings
+            local hydra2_port=5076 #TODO: Make this pull from configuration file or db
+            local hydra2_base="/" #TODO: Make this pull from configuration file or db
+            local hydra2_url="http://${LOCAL_IP}:${hydra2_port}${hydra2_base}"
+
+            info "    Hydra2"
+            debug "    Adding NZBHydra2 as an indexer, if needed..."
+            $(sqlite3 "${db_path}" "INSERT INTO Indexers (Name,Implementation,Settings,ConfigContract,EnableRss,EnableSearch)
+                                    SELECT 'NZBHydra2','Newznab','{
+                                            \"baseUrl\": \"${hydra2_url}\",
+                                            \"multiLanguages\": [],
+                                            \"apiKey\": \"${API_KEYS[hydra2]}\",
+                                            \"categories\": [2000,2010,2020,2030,2035,2040,2045,2050,2060],
+                                            \"animeCategories\": [],
+                                            \"removeYear\": false,
+                                            \"searchByTitle\": false }','NewznabSettings',1,1
+                                    WHERE NOT EXISTS(SELECT 1 FROM Indexers WHERE name='NZBHydra2');")
+            debug "    Get Hydra ID"
+            radarr_hydra2_id=$(sqlite3 "${db_path}" "SELECT id FROM Indexers WHERE Name='NZBHydra2'")
+            debug "    Hydra DB ID: ${radarr_hydra2_id}"
+            # Get settings for Hydra
             radarr_hydra2_settings=$(sqlite3 "${db_path}" "SELECT Settings FROM Indexers WHERE id=$radarr_hydra2_id")
             # Set Hydra2 API Key
-            debug "Setting API Key to: ${API_KEYS[hydra2]}"
-            radarr_hydra2_settings=$(sed 's/"apiKey":.*/"apiKey": "'${API_KEYS[hydra2]}'",/' <<< $radarr_hydra2_settings)
-            # Set Hydra2 baseUrl
-            # TODO: hydra2_baseurl=
-            debug "Setting Base URL to: http://localhost:5075/hydra2"
-            radarr_hydra2_settings=$(sed 's#"baseUrl":.*#"baseUrl": "http://localhost:5075/hydra2",#' <<< $radarr_hydra2_settings)
-            debug "Updating DB"
+            debug "    Setting API Key to: ${API_KEYS[hydra2]}"
+            radarr_hydra2_settings=$(sed 's/"apiKey":.*",/"apiKey": "'${API_KEYS[hydra2]}'",/' <<< $radarr_hydra2_settings)
+            # Set Hydra2 Url
+            debug "    Setting URL to: ${hydra2_url}"
+            radarr_hydra2_settings=$(sed 's#"baseUrl":.*",#"baseUrl": "'${hydra2_url}'",#' <<< $radarr_hydra2_settings)
+            #Update the settings for Hydra
+            debug "    Updating DB"
             sqlite3 "${db_path}" "UPDATE Indexers SET Settings='$radarr_hydra2_settings' WHERE id=$radarr_hydra2_id"
             indexer_configured="true"
         fi
@@ -40,7 +60,7 @@ configure_movies_manager() {
         if [[ "${indexer_configured}" != "true" ]]; then
             warning "    None to configure."
         fi
-
+fatal "DEV"
         info "  - Updating Downloader settings"
         if [[ ${containers[nzbget]+true} == "true" ]]; then
             info "    NZBget"
