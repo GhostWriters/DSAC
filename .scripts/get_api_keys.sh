@@ -62,5 +62,4 @@ get_api_keys() {
                 ;;
         esac
     done
-fatal "DEV"
 }
