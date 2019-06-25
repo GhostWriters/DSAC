@@ -16,7 +16,8 @@ get_docker_containers() {
             info "- Adding $container_app to list."
             containers[$container_app]=$container_id
             containers_image[$container_app]=$container_image
-
+            # Get container config path
+            info "  Getting $container_app config path."
             local TEMP=( $(docker container inspect ${container_id} | jq '.[0].Mounts[] | tostring') )
             for i in "${TEMP[@]}"; do
                 local mounts=$(jq 'fromjson | .Destination' <<< "$i")
@@ -27,6 +28,17 @@ get_docker_containers() {
                     containers_config_path[$container_app]=${config_source}
                 fi
             done
+            # Get container ports
+            info "  Getting $container_app port(s)."
+            local TEMP=( $(docker port ${container_id} | awk '{split($3,a,":"); print a[2]}') )
+            for i in "${TEMP[@]}"; do
+                if [[ ${containers_ports[$container_app]+true} == "true" ]]; then
+                    containers_ports[$container_app]=${containers_ports[$container_app]}+","+${i}
+                else
+                    containers_ports[$container_app]=${i}
+                fi
+            done
+            log "  - ${container_app} ports: ${containers_ports[$container_app]}"
         fi
     done < <(sudo docker ps | awk '{if (NR>1) {print $1,$2}}')
 }

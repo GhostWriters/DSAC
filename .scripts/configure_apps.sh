@@ -5,6 +5,7 @@ IFS=$'\n\t'
 typeset -A containers
 typeset -A containers_image
 typeset -A containers_config_path
+typeset -A containers_ports
 typeset -A API_KEYS
 
 configure_apps() {
