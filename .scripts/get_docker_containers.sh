@@ -9,35 +9,45 @@ get_docker_containers() {
         local container_id=${ROW[0]}
         local container_image=${ROW[1]}
         local container_app=${ROW[1]##*/}
+        local TEMP
+
         if [[ ${containers[$container_app]+true} == "true" ]]; then
             warning "- $container_app already exists..."
         else
             # TODO: Convert this to a file, maybe
             info "- Adding $container_app to list."
+            # shellcheck disable=SC2034
             containers[$container_app]=$container_id
+            # shellcheck disable=SC2034
             containers_image[$container_app]=$container_image
             # Get container config path
             info "  Getting $container_app config path."
-            local TEMP=( $(docker container inspect ${container_id} | jq '.[0].Mounts[] | tostring') )
+            mapfile -t TEMP < <(docker container inspect "${container_id}" | jq '.[0].Mounts[] | tostring')
             for i in "${TEMP[@]}"; do
-                local mounts=$(jq 'fromjson | .Destination' <<< "$i")
+                local mounts
+                mounts=$(jq 'fromjson | .Destination' <<< "$i")
                 mounts=${mounts//\"/}
                 if [[ ${mounts} == "/config" ]]; then
                     config_source=$(jq 'fromjson | .Source' <<< "$i")
                     config_source=${config_source//\"/}
+                    debug "  config_source=${config_source}"
+                    # shellcheck disable=SC2034
                     containers_config_path[$container_app]=${config_source}
                 fi
             done
             # Get container ports
             info "  Getting $container_app port(s)."
-            local TEMP=( $(docker port ${container_id} | awk '{split($3,a,":"); print a[2]}') )
+            mapfile -t TEMP < <(docker port "${container_id}" | awk '{split($3,a,":"); print a[2]}')
             for i in "${TEMP[@]}"; do
                 if [[ ${containers_ports[$container_app]+true} == "true" ]]; then
+                    # shellcheck disable=SC2034
                     containers_ports[$container_app]=${containers_ports[$container_app]}+","+${i}
                 else
+                    # shellcheck disable=SC2034
                     containers_ports[$container_app]=${i}
                 fi
             done
+            # shellcheck disable=SC2034
             log "  - ${container_app} ports: ${containers_ports[$container_app]}"
         fi
     done < <(sudo docker ps | awk '{if (NR>1) {print $1,$2}}')
