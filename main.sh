@@ -65,7 +65,7 @@ readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null ||
 
 # Other Information
 readonly NIC=$(ip -o -4 route show to default | head -1 | awk '{print $5}')
-readonly LOCAL_IP=$(ifconfig ${NIC} | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
+readonly LOCAL_IP=$(ifconfig "${NIC}" | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
 
 # Colors
 # https://misc.flogisoft.com/bash/tip_colors_and_formatting
@@ -77,7 +77,8 @@ readonly NC='\e[0m'
 
 # Log Functions
 readonly LOG_FILE="/tmp/dockstarterappconfig.log"
-savelog -n -C -l -t "$LOG_FILE" #Save current log if not empty and rotate logs
+#Save current log if not empty and rotate logs
+savelog -n -C -l -t "$LOG_FILE"
 sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
 log() { echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null; }
 info() { echo -e "${NC}$(date +"%F %T") ${BLU}[INFO]${NC}       $*${NC}" | tee -a "${LOG_FILE}" >&2; }
