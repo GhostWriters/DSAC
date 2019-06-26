@@ -35,7 +35,7 @@ configure_series_manager() {
                                             \"baseUrl\": \"${hydra2_url}\",
                                             \"multiLanguages\": [],
                                             \"apiKey\": \"${API_KEYS[hydra2]}\",
-                                            \"categories\": [2000,2010,2020,2030,2035,2040,2045,2050,2060],
+                                            \"categories\": [5030,5040],
                                             \"animeCategories\": [],
                                             \"removeYear\": false,
                                             \"searchByTitle\": false }','NewznabSettings',1,1
