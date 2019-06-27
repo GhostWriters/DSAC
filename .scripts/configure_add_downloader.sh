@@ -55,12 +55,17 @@ configure_add_downloader() {
             # Set password
             debug "    Setting password to: ${nzbget_restricted_password}"
             nzbget_settings=$(sed 's/"password":.*/"password": "'"${nzbget_restricted_password}"'",/' <<< "$nzbget_settings")
-            # Change TvCategory
-            debug "    Setting TvCategory to: Series"
-            nzbget_settings=$(sed 's/"TvCategory":.*/"TvCategory": "Series",/' <<< "$nzbget_settings")
-            # Set movieCategory
-            debug "    Setting movieCategory to: Movies"
-            nzbget_settings=$(sed 's/"movieCategory":.*/"movieCategory": "Movies",/' <<< "$nzbget_settings")
+
+            if [[ ${container_name} == "sonarr" ]]; then
+                # Change TvCategory
+                debug "    Setting TvCategory to: Series"
+                nzbget_settings=$(sed 's/"TvCategory":.*/"TvCategory": "Series",/' <<< "$nzbget_settings")
+            elif [[ ${container_name} == "radarr" ]]; then
+                # Set movieCategory
+                debug "    Setting movieCategory to: Movies"
+                nzbget_settings=$(sed 's/"movieCategory":.*/"movieCategory": "Movies",/' <<< "$nzbget_settings")
+            fi
+
             debug "    Updating DB"
             sqlite3 "${db_path}" "UPDATE DownloadClients SET Settings='$nzbget_settings' WHERE id=$nzbget_id"
             downloader_configured="true"
