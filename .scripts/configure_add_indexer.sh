@@ -8,6 +8,7 @@ configure_add_indexer() {
     local indexer_configured="false"
 
     info "  - Updating Indexer settings"
+    # shellcheck disable=SC2154,SC2001
     if [[ ${containers[hydra2]+true} == "true" ]]; then
         if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" ]]; then
             local hydra2_id
@@ -21,6 +22,9 @@ configure_add_indexer() {
             hydra2_url="http://${LOCAL_IP}:${hydra2_port}${hydra2_base}"
             local categories
 
+            debug "    container_name=${container_name}"
+            debug "    db_path=${db_path}"
+
             info "    Hydra2"
             debug "    Adding NZBHydra2 as an indexer, if needed..."
 
@@ -32,6 +36,8 @@ configure_add_indexer() {
                 categories=""
                 warning "    No categories configured for ${container_name}"
             fi
+            debug "    container_name=${container_name}"
+            debug "    categories=${categories}"
 
             sqlite3 "${db_path}" "INSERT INTO Indexers (Name,Implementation,Settings,ConfigContract,EnableRss,EnableSearch)
                                     SELECT 'NZBHydra2 (DSAC)','Newznab','{
@@ -54,6 +60,10 @@ configure_add_indexer() {
             # Set Hydra2 Url
             debug "    Setting URL to: ${hydra2_url}"
             hydra2_settings=$(sed 's#"baseUrl":.*",#"baseUrl": "'"${hydra2_url}"'",#' <<< "$hydra2_settings")
+            # Set categories
+            debug "    Setting categories to: [${categories}]"
+            hydra2_settings=$(sed 's#"categories":.*,#"categories": ['"${categories}"'],#' <<< "$hydra2_settings")
+            debug "    hydra2_settings=${hydra2_settings}"
             #Update the settings for Hydra
             debug "    Updating DB"
             sqlite3 "${db_path}" "UPDATE Indexers SET Settings='$hydra2_settings' WHERE id=$hydra2_id"

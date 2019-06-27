@@ -17,10 +17,14 @@ configure_add_downloader() {
             nzbget_restricted_username=${API_KEYS[nzbget]%%,*}
             local nzbget_restricted_password
             nzbget_restricted_password=${API_KEYS[nzbget]#*,}
-            debug "    nzbget_restricted_username='${nzbget_restricted_username}'"
-            debug "    nzbget_restricted_password='${nzbget_restricted_password}'"
             local port
             port=${containers_ports[nzbget]} #TODO: Make this pull from configuration file or db
+
+            debug "    container_name=${container_name}"
+            debug "    db_path=${db_path}"
+            debug "    nzbget_restricted_username='${nzbget_restricted_username}'"
+            debug "    nzbget_restricted_password='${nzbget_restricted_password}'"
+
             info "    NZBget"
             debug "    Adding NZBget as an downloader, if needed..."
             sqlite3 "${db_path}" "INSERT INTO DownloadClients (Enable,Name,Implementation,Settings,ConfigContract)
