@@ -4,20 +4,26 @@ IFS=$'\n\t'
 
 configure_torrent_downloader() {
     info "Configuring Torrent Downloader(s)"
-    local container_name="qbittorrent"
-    local config_file="qBittorrent.conf"
-    # shellcheck disable=SC2154
-    local config_path="${containers_config_path[$container_name]}/qBittorrent/${config_file}"
+    local container_name
+    local config_file
+    local config_path
+    local container_id
+    container_name="qbittorrent"
+    config_file="qBittorrent.conf"
 
     # shellcheck disable=SC2154,SC2001
     if [[ ${containers[$container_name]+true} == "true" ]]; then
         info "- ${container_name}"
+        config_source=$(jq -r '.config_source' <<< "${containers[${container_name}]}")
+        config_path="${config_source}/qBittorrent/${config_file}"
+        container_id=$(jq -r '.container_id' <<< "${containers[${container_name}]}")
+
         info "  - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"
         debug "    config_path=${config_path}"
         cp "${config_path}" "${config_path}.dsac_bak"
 
         local container_network
-        container_network=$(docker container inspect "${containers[$container_name]}" | jq '.[0].NetworkSettings.Networks | to_entries[].key' | awk '{gsub("\"",""); print}')
+        container_network=$(docker container inspect "${container_id}" | jq '.[0].NetworkSettings.Networks | to_entries[].key' | awk '{gsub("\"",""); print}')
         debug "    container_network=${container_network}"
         local network_subnet
         network_subnet=$(docker network inspect "${container_network}" | jq '.[0].IPAM.Config[0].Subnet' | awk '{gsub("\"",""); split($0,a,"/"); print a[1]}')
@@ -55,7 +61,7 @@ configure_torrent_downloader() {
         sed -i "s#AuthSubnetWhitelist=.*#AuthSubnetWhitelist=${ip_addresses}#" "${config_path}"
 
         info "  - Restarting ${container_name} to apply changes"
-        docker restart "${containers[$container_name]}" >/dev/null
+        docker restart "${container_id}" >/dev/null
         info "  - Done"
     fi
 }

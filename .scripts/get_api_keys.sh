@@ -13,19 +13,21 @@ get_api_keys() {
         local restricted_user
         local restricted_pass
 
+        info "- ${container_name}"
         case "${container_name}" in
             "hydra2")
-                info "- ${container_name}"
                 config_file="nzbhydra.yml"
-                config_path="${containers_config_path[$container_name]}/${config_file}"
+                config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
+                config_path="${config_path}/${config_file}"
                 API_KEY=$(yq r "${config_path}" main.apiKey)
-                API_KEYS[$container_name]=${API_KEY// /}
+                API_KEY=${API_KEY// /}
+                API_KEYS[$container_name]=${API_KEY}
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
             "nzbget")
-                info "- ${container_name}"
                 config_file="nzbget.conf"
-                config_path="${containers_config_path[$container_name]}/${config_file}"
+                config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
+                config_path="${config_path}/${config_file}"
                 restricted_user=$(grep 'RestrictedUsername=' "${config_path}" | sed -e 's/Restricted.*=\(.*\)/\1/')
                 if [[ ${restricted_user} == "" ]]; then
                     restricted_user="dsac"
@@ -38,20 +40,25 @@ get_api_keys() {
                     # TODO: Move this to the proper place for setting config
                     sed -i "s/RestrictedPassword=.*/RestrictedPassword=${restricted_pass}/" "${config_path}"
                 fi
-                API_KEYS[$container_name]="${restricted_user},${restricted_pass}"
+                API_KEY="${restricted_user},${restricted_pass}"
+                API_KEYS[$container_name]=${API_KEY}
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
             "radarr"|"sonarr"|"lidarr")
-                info "- ${container_name}"
                 config_file="config.xml"
-                config_path="${containers_config_path[$container_name]}/${config_file}"
+                config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
+                config_path="${config_path}/${config_file}"
                 API_KEY=$(grep '<ApiKey>' "${config_path}" | sed -e 's/<ApiKey>\(.*\)<\/ApiKey>/\1/')
-                API_KEYS[$container_name]=${API_KEY// /}
+                API_KEY=${API_KEY// /}
+                API_KEYS[$container_name]=${API_KEY}
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
             *)
-                warning "- No API Key retrieval configured for ${container_name}"
+                warning "  No API Key retrieval configured for ${container_name}"
                 ;;
         esac
+        # shellcheck disable=SC2034
+        containers[$container_name]=$(jq --arg var "${API_KEY}" '.api_key = $var' <<< "${containers[$container_name]}")
+        debug "  containers[$container_name]=${containers[$container_name]}"
     done
 }
