@@ -24,5 +24,6 @@ configure_music_manager() {
 
         run_script "configure_add_indexer" "$container_name" "${db_path}"
         run_script "configure_add_downloader" "$container_name" "${db_path}"
+        info "  - Done"
     fi
 }
