@@ -14,7 +14,6 @@ get_docker_containers() {
         if [[ ${containers[${container_name}]+true} == "true" ]]; then
             warning "- ${container_name} already exists..."
         else
-            # TODO: Convert this to a file, maybe
             info "- Adding ${container_name} to list."
             # shellcheck disable=SC2034
             containers[${container_name}]="{}"
