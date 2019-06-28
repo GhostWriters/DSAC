@@ -18,7 +18,7 @@ configure_apps() {
     run_script 'get_docker_containers'
     run_script 'get_api_keys'
     # TODO: run_script 'configure_usenet_downloader'
-    # TODO: run_script 'configure_torrent_downloader'
+    run_script 'configure_torrent_downloader'
     run_script 'configure_movies_manager'
     run_script 'configure_series_manager'
     run_script 'configure_music_manager'
