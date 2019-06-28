@@ -35,10 +35,13 @@ configure_add_downloader() {
                                             \"password\": \"${nzbget_restricted_password}\",
                                             \"movieCategory\": \"Movies\",
                                             \"TvCategory\": \"Series\",
+                                            \"musicCategory\": \"Music\",
                                             \"recentMoviePriority\": 0,
-                                            \"recentTvPriority\": 0,
                                             \"olderMoviePriority\": 0,
+                                            \"recentTvPriority\": 0,
                                             \"olderTvPriority\": 0,
+                                            \"recentMusicPriority\": 0,
+                                            \"olderMusicPriority\": 0,
                                             \"useSsl\": false,
                                             \"addPaused\": false
                                             }','NzbgetSettings'
@@ -68,6 +71,10 @@ configure_add_downloader() {
                 # Set movieCategory
                 debug "    Setting movieCategory to: Movies"
                 nzbget_settings=$(sed 's/"movieCategory":.*/"movieCategory": "Movies",/' <<< "$nzbget_settings")
+            elif [[ ${container_name} == "lidarr" ]]; then
+                # Set musicCategory
+                debug "    Setting musicCategory to: Music"
+                nzbget_settings=$(sed 's/"musicCategory":.*/"musicCategory": "Music",/' <<< "$nzbget_settings")
             fi
 
             debug "    Updating DB"

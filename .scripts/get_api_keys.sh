@@ -15,15 +15,15 @@ get_api_keys() {
 
         case "${container_name}" in
             "hydra2")
-                info "- Hydra2"
+                info "- ${container_name}"
                 config_file="nzbhydra.yml"
                 config_path="${containers_config_path[$container_name]}/${config_file}"
-                API_KEY=$(grep 'apiKey:' "${config_path}" | sed -e 's/apiKey:.*"\(.*\)"/\1/')
+                API_KEY=$(yq r "${config_path}" main.apiKey)
                 API_KEYS[$container_name]=${API_KEY// /}
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
             "nzbget")
-                info "- NZBget"
+                info "- ${container_name}"
                 config_file="nzbget.conf"
                 config_path="${containers_config_path[$container_name]}/${config_file}"
                 restricted_user=$(grep 'RestrictedUsername=' "${config_path}" | sed -e 's/Restricted.*=\(.*\)/\1/')
@@ -41,16 +41,8 @@ get_api_keys() {
                 API_KEYS[$container_name]="${restricted_user},${restricted_pass}"
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
-            "radarr")
-                info "- Radarr"
-                config_file="config.xml"
-                config_path="${containers_config_path[$container_name]}/${config_file}"
-                API_KEY=$(grep '<ApiKey>' "${config_path}" | sed -e 's/<ApiKey>\(.*\)<\/ApiKey>/\1/')
-                API_KEYS[$container_name]=${API_KEY// /}
-                debug "  ${API_KEYS[$container_name]}"
-                ;;
-            "sonarr")
-                info "- Sonarr"
+            "radarr"|"sonarr"|"lidarr")
+                info "- ${container_name}"
                 config_file="config.xml"
                 config_path="${containers_config_path[$container_name]}/${config_file}"
                 API_KEY=$(grep '<ApiKey>' "${config_path}" | sed -e 's/<ApiKey>\(.*\)<\/ApiKey>/\1/')

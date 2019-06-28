@@ -14,7 +14,7 @@ configure_series_manager() {
 
     # shellcheck disable=SC2154,SC2001
     if [[ ${containers[$container_name]+true} == "true" ]]; then
-        info "- Sonarr"
+        info "- ${container_name}"
         info "  - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"
         debug "    config_path=${config_path}"
         cp "${config_path}" "${config_path}.dsac_bak"

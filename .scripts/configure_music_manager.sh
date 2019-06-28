@@ -2,13 +2,13 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-configure_movies_manager() {
-    info "Configuring Movie Manager(s)"
-    local container_name="radarr"
+configure_music_manager() {
+    info "Configuring Music Manager(s)"
+    local container_name="lidarr"
     local config_file="config.xml"
     # shellcheck disable=SC2154
     local config_path="${containers_config_path[$container_name]}/${config_file}"
-    local db_file="nzbdrone.db"
+    local db_file="lidarr.db"
     # shellcheck disable=SC2154
     local db_path="${containers_config_path[$container_name]}/${db_file}"
 
