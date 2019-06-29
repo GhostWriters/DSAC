@@ -8,12 +8,15 @@ configure_add_downloader() {
     local downloader_configured="false"
 
     info "  - Updating Downloader settings"
+    debug "    container_name=${container_name}"
+    debug "    db_path=${db_path}"
     # shellcheck disable=SC2154,SC2001
-    if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" ]]; then
+    if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
         # Define supported downloaders and their default listening port
         typeset -A downloaders
         downloaders[nzbget]="6789"
         downloaders[qbittorrent]="8080"
+        downloaders[transmission]="9091"
 
         for downloader in "${!downloaders[@]}"; do
             local db_id
@@ -23,8 +26,6 @@ configure_add_downloader() {
             local db_settings
             local port
             local db_settings_new
-            debug "    container_name=${container_name}"
-            debug "    db_path=${db_path}"
 
             if [[ ${containers[${downloader}]+true} == "true" ]]; then
                 if [[ "${downloader}" == "nzbget" ]]; then
@@ -55,9 +56,32 @@ configure_add_downloader() {
                                         \"addPaused\": false
                                     }"
                 elif [[ "${downloader}" == "qbittorrent" ]]; then
+                    info "    - Linking ${container_name} to ${downloader}..."
                     db_name="${downloader} (DSAC)"
                     db_implementation="QBittorrent"
                     db_config_contract="QBittorrentSettings"
+                    port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
+                    db_settings_new="{
+                                        \"host\": \"${LOCAL_IP}\",
+                                        \"port\": ${port},
+                                        \"movieCategory\": \"Movies\",
+                                        \"TvCategory\": \"Series\",
+                                        \"musicCategory\": \"Music\",
+                                        \"recentMoviePriority\": 0,
+                                        \"olderMoviePriority\": 0,
+                                        \"recentTvPriority\": 0,
+                                        \"olderTvPriority\": 0,
+                                        \"recentMusicPriority\": 0,
+                                        \"olderMusicPriority\": 0,
+                                        \"initialState\": 0,
+                                        \"useSsl\": false,
+                                    }"
+                elif [[ "${downloader}" == "transmission" ]]; then
+                    info "    - Linking ${container_name} to ${downloader}..."
+                    db_name="${downloader} (DSAC)"
+                    db_implementation="Transmission"
+                    db_config_contract="TransmissionSettings"
+                    port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
                     db_settings_new="{
                                         \"host\": \"${LOCAL_IP}\",
                                         \"port\": ${port},
@@ -81,7 +105,7 @@ configure_add_downloader() {
                                         WHERE NOT EXISTS(SELECT 1 FROM DownloadClients WHERE name='${db_name}');"
                 debug "      Get ${downloader} DB ID"
                 db_id=$(sqlite3 "${db_path}" "SELECT id FROM DownloadClients WHERE Name='${db_name}'")
-                debug "      NZBget DB ID: ${db_id}"
+                debug "      ${downloader} DB ID: ${db_id}"
                 db_settings=$(sqlite3 "${db_path}" "SELECT Settings FROM DownloadClients WHERE id=$db_id")
                 # Set host
                 debug "      Setting host to: ${LOCAL_IP}"
