@@ -5,16 +5,21 @@ IFS=$'\n\t'
 configure_music_manager() {
     info "Configuring Music Manager(s)"
     local container_name="lidarr"
-    local config_file="config.xml"
     # shellcheck disable=SC2154
-    local config_path="${containers_config_path[$container_name]}/${config_file}"
-    local db_file="lidarr.db"
+    local config_path
     # shellcheck disable=SC2154
-    local db_path="${containers_config_path[$container_name]}/${db_file}"
+    local db_path
+    local config_file
+    local db_file
+    config_file="config.xml"
+    db_file="lidarr.db"
 
     # shellcheck disable=SC2154,SC2001
     if [[ ${containers[$container_name]+true} == "true" ]]; then
         info "- ${container_name}"
+        config_source=$(jq -r '.config_source' <<< "${containers[${container_name}]}")
+        config_path="${config_source}/${config_file}"
+        db_path="${config_source}/${db_file}"
         info "  - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"
         debug "    config_path=${config_path}"
         cp "${config_path}" "${config_path}.dsac_bak"

@@ -84,7 +84,6 @@ configure_add_indexer() {
                     # Set categories
                     debug "      Setting categories to: [${categories}]"
                     hydra2_settings=$(sed 's#"categories":.*,#"categories": ['"${categories}"'],#' <<< "$hydra2_settings")
-                    debug "      hydra2_settings=${hydra2_settings}"
                     #Update the settings for Hydra
                     debug "      Updating DB"
                     sqlite3 "${db_path}" "UPDATE Indexers SET Settings='$hydra2_settings' WHERE id=$hydra2_id"
@@ -120,7 +119,6 @@ configure_add_indexer() {
                     # Set categories
                     debug "      Setting categories to: [${categories}]"
                     hydra2_settings=$(sed 's#"categories":.*,#"categories": ['"${categories}"'],#' <<< "$hydra2_settings")
-                    debug "      hydra2_settings=${hydra2_settings}"
                     #Update the settings for Hydra
                     debug "      Updating DB"
                     sqlite3 "${db_path}" "UPDATE Indexers SET Settings='$hydra2_settings' WHERE id=$hydra2_id"
