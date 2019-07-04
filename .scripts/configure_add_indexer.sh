@@ -7,30 +7,36 @@ configure_add_indexer() {
     local container_name="${1}"
     local db_path="${2}"
     local indexer_configured="false"
+    local hydra2_configured="false"
     debug "    container_name=${container_name}"
     debug "    db_path=${db_path}"
     # Define supported indexers and their default listening port
-    typeset -A indexers
-    indexers[hydra2]="5076"
-    #indexers[jackett]="9117"
+    typeset -A indexer_name
+    typeset -A indexer_port
+    indexer_name[0]="hydra2"
+    indexer_name[1]="jackett"
+    indexer_port[0]="5076"
+    indexer_port[1]="9117"
 
-    for indexer in "${!indexers[@]}"; do
+    for index in "${!indexer_name[@]}"; do
+        local indexer
+        indexer=${indexer_name[$index]}
         if [[ ${containers[${indexer}]+true} == "true" ]]; then
             # shellcheck disable=SC2154,SC2001
             if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
-                if [[ "${indexer}" == "hydra2" ]]; then
+                if [[ "${indexer}" == "hydra2" || ("${indexer}" == "jackett" && ${hydra2_configured} != "true") ]]; then
                     info "    - Linking ${container_name} to ${indexer}..."
-                    local hydra2_id
-                    local hydra2_settings
-                    local hydra2_port
-                    local hydra2_base
-                    local hydra2_url
+                    local indexer_db_id
+                    local indexer_settings
+                    local indexer_port
+                    local indexer_base
+                    local indexer_url
                     local categories
                     local additional_columns
                     local additional_values
-                    hydra2_base="/"
-                    hydra2_port=$(jq -r --arg port "5076" '.ports[$port]' <<< "${containers[hydra2]}")
-                    hydra2_url="http://${LOCAL_IP}:${hydra2_port}${hydra2_base}"
+                    indexer_base="/"
+                    indexer_port=$(jq -r --arg port "${indexer_port[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
+                    indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
 
 
                     if [[ ${container_name} == "radarr" ]]; then
@@ -57,82 +63,75 @@ configure_add_indexer() {
                         additional_values=""
                     fi
 
-                    #NZB Indexer
-                    local hydra2_url_newznab
-                    hydra2_url_newznab=${hydra2_url}
-                    sqlite3 "${db_path}" "INSERT INTO Indexers (Name,Implementation,Settings,ConfigContract,EnableRss${additional_columns})
-                                            SELECT '${indexer} - Usenet (DSAC)','Newznab','{
-                                                    \"baseUrl\": \"${hydra2_url_newznab}\",
-                                                    \"multiLanguages\": [],
-                                                    \"apiKey\": \"${API_KEYS[hydra2]}\",
-                                                    \"categories\": [${categories}],
-                                                    \"animeCategories\": [],
-                                                    \"removeYear\": false,
-                                                    \"searchByTitle\": false }','NewznabSettings',1${additional_values}
-                                            WHERE NOT EXISTS(SELECT 1 FROM Indexers WHERE name='${indexer} - Usenet (DSAC)');"
-                    debug "      Get ${indexer} DB ID"
-                    hydra2_id=$(sqlite3 "${db_path}" "SELECT id FROM Indexers WHERE Name='${indexer} - Usenet (DSAC)'")
-                    debug "      ${indexer} DB ID: ${hydra2_id}"
-                    # Get settings for Hydra
-                    hydra2_settings=$(sqlite3 "${db_path}" "SELECT Settings FROM Indexers WHERE id=$hydra2_id")
-                    # Set Hydra2 API Key
-                    debug "      Setting API Key to: ${API_KEYS[hydra2]}"
-                    hydra2_settings=$(sed 's/"apiKey":.*",/"apiKey": "'"${API_KEYS[hydra2]}"'",/' <<< "$hydra2_settings")
-                    # Set Hydra2 Url
-                    debug "      Setting URL to: ${hydra2_url_newznab}"
-                    hydra2_settings=$(sed 's#"baseUrl":.*",#"baseUrl": "'"${hydra2_url_newznab}"'",#' <<< "$hydra2_settings")
-                    # Set categories
-                    debug "      Setting categories to: [${categories}]"
-                    hydra2_settings=$(sed 's#"categories":.*,#"categories": ['"${categories}"'],#' <<< "$hydra2_settings")
-                    #Update the settings for Hydra
-                    debug "      Updating DB"
-                    sqlite3 "${db_path}" "UPDATE Indexers SET Settings='$hydra2_settings' WHERE id=$hydra2_id"
-
-                    #Torrent Indexer
-                    local hydra2_url_torznab
-                    if [[ ${hydra2_base} == "/" ]]; then
-                        hydra2_url_torznab="${hydra2_url}torznab"
+                    local indexer_type
+                    if [[ "${indexer}" == "hydra2" ]]; then
+                        implementation="Newznab"
+                        config_contract="NewznabSettings"
+                        indexer_type=("torrent" "usenet")
+                    elif [[ "${indexer}" == "jackett" ]]; then
+                        implementation="Torznab"
+                        config_contract="TorznabSettings"
+                        indexer_type=("torrent")
                     else
-                        hydra2_url_torznab="${hydra2_url}/torznab"
+                        implementation="Newznab"
+                        config_contract="NewznabSettings"
+                        indexer_type=("torrent")
                     fi
-                    sqlite3 "${db_path}" "INSERT INTO Indexers (Name,Implementation,Settings,ConfigContract,EnableRss${additional_columns})
-                                            SELECT '${indexer} - Torrents (DSAC)','Torznab','{
-                                                    \"baseUrl\": \"${hydra2_url_torznab}\",
-                                                    \"multiLanguages\": [],
-                                                    \"apiKey\": \"${API_KEYS[hydra2]}\",
-                                                    \"categories\": [${categories}],
-                                                    \"animeCategories\": [],
-                                                    \"removeYear\": false,
-                                                    \"searchByTitle\": false }','TorznabSettings',1${additional_values}
-                                            WHERE NOT EXISTS(SELECT 1 FROM Indexers WHERE name='${indexer} - Torrents (DSAC)');"
-                    debug "      Get ${indexer} DB ID"
-                    hydra2_id=$(sqlite3 "${db_path}" "SELECT id FROM Indexers WHERE Name='${indexer} - Torrents (DSAC)'")
-                    debug "      ${indexer} DB ID: ${hydra2_id}"
-                    # Get settings for Hydra
-                    hydra2_settings=$(sqlite3 "${db_path}" "SELECT Settings FROM Indexers WHERE id=$hydra2_id")
-                    # Set Hydra2 API Key
-                    debug "      Setting API Key to: ${API_KEYS[hydra2]}"
-                    hydra2_settings=$(sed 's/"apiKey":.*",/"apiKey": "'"${API_KEYS[hydra2]}"'",/' <<< "$hydra2_settings")
-                    # Set Hydra2 Url
-                    debug "      Setting URL to: ${hydra2_url_torznab}"
-                    hydra2_settings=$(sed 's#"baseUrl":.*",#"baseUrl": "'"${hydra2_url_torznab}"'",#' <<< "$hydra2_settings")
-                    # Set categories
-                    debug "      Setting categories to: [${categories}]"
-                    hydra2_settings=$(sed 's#"categories":.*,#"categories": ['"${categories}"'],#' <<< "$hydra2_settings")
-                    #Update the settings for Hydra
-                    debug "      Updating DB"
-                    sqlite3 "${db_path}" "UPDATE Indexers SET Settings='$hydra2_settings' WHERE id=$hydra2_id"
+
+                    for type in "${indexer_type[@]}"; do
+                        local indexer_url
+
+                        if [[ "${type}" == "usenet" ]]; then
+                            indexer_name="${indexer} - Usenet (DSAC)"
+                            indexer_url=${indexer_url_base}
+                        elif [[ "${type}" == "torrent" ]]; then
+                            indexer_name="${indexer} - Torrent (DSAC)"
+                            indexer_url=${indexer_url_base}
+                            if [[ ${indexer_url_base} == "/" ]]; then
+                                indexer_url="${indexer_url_base}torznab"
+                            else
+                                indexer_url="${indexer_url_base}/torznab"
+                            fi
+                        else
+                            indexer_name="${indexer} (DSAC)"
+                            indexer_url=${indexer_url_base}
+                        fi
+                        sqlite3 "${db_path}" "INSERT INTO Indexers (Name,Implementation,Settings,ConfigContract,EnableRss${additional_columns})
+                                                SELECT '${indexer_name}','${implementation}','{
+                                                        \"baseUrl\": \"${indexer_url}\",
+                                                        \"multiLanguages\": [],
+                                                        \"apiKey\": \"${API_KEYS[${indexer}]}\",
+                                                        \"categories\": [${categories}],
+                                                        \"animeCategories\": [],
+                                                        \"removeYear\": false,
+                                                        \"searchByTitle\": false }','${config_contract}',1${additional_values}
+                                                WHERE NOT EXISTS(SELECT 1 FROM Indexers WHERE name='${indexer_name}');"
+                        debug "      Get ${indexer} DB ID"
+                        indexer_db_id=$(sqlite3 "${db_path}" "SELECT id FROM Indexers WHERE Name='${indexer_name}'")
+                        debug "      ${indexer} DB ID: ${indexer_db_id}"
+                        # Get settings for indexer
+                        indexer_settings=$(sqlite3 "${db_path}" "SELECT Settings FROM Indexers WHERE id=$indexer_db_id")
+                        # Set indexer API Key
+                        debug "      Setting API Key to: ${API_KEYS[${indexer}]}"
+                        indexer_settings=$(sed 's/"apiKey":.*",/"apiKey": "'"${API_KEYS[${indexer}]}"'",/' <<< "$indexer_settings")
+                        # Set indexer Url
+                        debug "      Setting URL to: ${indexer_url}"
+                        indexer_settings=$(sed 's#"baseUrl":.*",#"baseUrl": "'"${indexer_url}"'",#' <<< "$indexer_settings")
+                        # Set categories
+                        debug "      Setting categories to: [${categories}]"
+                        indexer_settings=$(sed 's#"categories":.*,#"categories": ['"${categories}"'],#' <<< "$indexer_settings")
+                        #Update the settings for indexer
+                        debug "      Updating DB"
+                        sqlite3 "${db_path}" "UPDATE Indexers SET Settings='$indexer_settings' WHERE id=$indexer_db_id"
+                    done
+
+                    if [[ "${indexer}" == "hydra2" ]]; then
+                        hydra2_configured="true"
+                    fi
+
                     indexer_configured="true"
-                #elif [[ "${indexer}" == "jackett" ]]; then
-                #    indexer_configured="true"
                 fi
             fi
-
-            # if [[ ${container_name} == "hydra2" ]]; then
-            #     if [[ ${containers[jackett]+true} == "true" ]]; then
-            #         indexer_configured="true"
-            #     fi
-            # fi
         fi
     done
 
