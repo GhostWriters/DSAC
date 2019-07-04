@@ -53,12 +53,20 @@ get_api_keys() {
                 API_KEYS[$container_name]=${API_KEY}
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
+            "jackett")
+                config_file="ServerConfig.json"
+                config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
+                config_path="${config_path}/Jackett/${config_file}"
+                API_KEY=$(jq -r '.APIKey' "${config_path}")
+                API_KEY=${API_KEY// /}
+                API_KEYS[$container_name]=${API_KEY}
+                debug "  ${API_KEYS[$container_name]}"
+                ;;
             *)
                 warning "  No API Key retrieval configured for ${container_name}"
                 ;;
         esac
         # shellcheck disable=SC2034
         containers[$container_name]=$(jq --arg var "${API_KEY}" '.api_key = $var' <<< "${containers[$container_name]}")
-        debug "  containers[$container_name]=${containers[$container_name]}"
     done
 }
