@@ -45,7 +45,7 @@ get_docker_containers() {
                 port_configured=$(awk '{split($3,a,":"); print a[2]}' <<< "${port_mapping}")
                 containers[${container_name}]=$(jq --arg port1 "${port_original}" --arg port2 "${port_configured}" '.ports[$port1] = $port2' <<< "${containers[${container_name}]}")
             done
-            debug "containers[${container_name}]=${containers[${container_name}]}"
+            #debug "containers[${container_name}]=${containers[${container_name}]}"
         fi
     done < <(sudo docker ps | awk '{if (NR>1) {print $1,$2}}')
 }
