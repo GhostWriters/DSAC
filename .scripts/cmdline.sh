@@ -28,6 +28,7 @@ cmdline() {
     #Reset the positional parameters to the short options
     eval set -- "${LOCAL_ARGS:-}"
 
+    # shellcheck disable=SC2034
     while getopts ":b:c:d:eghipt:u:vx" OPTION; do
         case ${OPTION} in
             d)
