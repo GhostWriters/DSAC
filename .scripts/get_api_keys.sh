@@ -44,7 +44,7 @@ get_api_keys() {
                 API_KEYS[$container_name]=${API_KEY}
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
-            "radarr"|"sonarr"|"lidarr")
+            "radarr" | "sonarr" | "lidarr")
                 config_file="config.xml"
                 config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
                 config_path="${config_path}/${config_file}"
