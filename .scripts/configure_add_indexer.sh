@@ -24,7 +24,7 @@ configure_add_indexer() {
         # shellcheck disable=SC2154,SC2001
         if [[ ${containers[${indexer}]+true} == "true" ]]; then
             if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
-                if [[ "${indexer}" == "hydra2" || ("${indexer}" == "jackett" && ${hydra2_configured} != "true") ]]; then
+                if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
                     info "    - Linking ${container_name} to ${indexer}..."
                     local indexer_db_id
                     local indexer_settings
@@ -37,7 +37,6 @@ configure_add_indexer() {
                     indexer_base="/"
                     indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
                     indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
-
 
                     if [[ ${container_name} == "radarr" ]]; then
                         categories="2000,2010,2020,2030,2035,2040,2045,2050,2060"
@@ -64,11 +63,11 @@ configure_add_indexer() {
                     fi
 
                     local indexer_type
-                    if [[ "${indexer}" == "hydra2" ]]; then
+                    if [[ ${indexer} == "hydra2" ]]; then
                         implementation="Newznab"
                         config_contract="NewznabSettings"
                         indexer_type=("torrent" "usenet")
-                    elif [[ "${indexer}" == "jackett" ]]; then
+                    elif [[ ${indexer} == "jackett" ]]; then
                         implementation="Torznab"
                         config_contract="TorznabSettings"
                         indexer_type=("torrent")
@@ -82,10 +81,10 @@ configure_add_indexer() {
                         local indexer_url
                         local indexer_name
 
-                        if [[ "${type}" == "usenet" ]]; then
+                        if [[ ${type} == "usenet" ]]; then
                             indexer_name="${indexer} - Usenet (DSAC)"
                             indexer_url=${indexer_url_base}
-                        elif [[ "${type}" == "torrent" ]]; then
+                        elif [[ ${type} == "torrent" ]]; then
                             indexer_name="${indexer} - Torrent (DSAC)"
                             indexer_url=${indexer_url_base}
                             if [[ ${indexer_url_base} == "/" ]]; then
@@ -126,7 +125,7 @@ configure_add_indexer() {
                         sqlite3 "${db_path}" "UPDATE Indexers SET Settings='$indexer_settings' WHERE id=$indexer_db_id"
                     done
 
-                    if [[ "${indexer}" == "hydra2" ]]; then
+                    if [[ ${indexer} == "hydra2" ]]; then
                         hydra2_configured="true"
                     fi
 
