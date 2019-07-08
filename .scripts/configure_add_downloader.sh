@@ -28,7 +28,7 @@ configure_add_downloader() {
             local db_settings_new
 
             if [[ ${containers[${downloader}]+true} == "true" ]]; then
-                if [[ "${downloader}" == "nzbget" ]]; then
+                if [[ ${downloader} == "nzbget" ]]; then
                     info "    - Linking ${container_name} to ${downloader}..."
                     local nzbget_restricted_username
                     local nzbget_restricted_password
@@ -55,7 +55,7 @@ configure_add_downloader() {
                                         \"useSsl\": false,
                                         \"addPaused\": false
                                     }"
-                elif [[ "${downloader}" == "qbittorrent" ]]; then
+                elif [[ ${downloader} == "qbittorrent" ]]; then
                     info "    - Linking ${container_name} to ${downloader}..."
                     db_name="${downloader} (DSAC)"
                     db_implementation="QBittorrent"
@@ -76,7 +76,7 @@ configure_add_downloader() {
                                         \"initialState\": 0,
                                         \"useSsl\": false,
                                     }"
-                elif [[ "${downloader}" == "transmission" ]]; then
+                elif [[ ${downloader} == "transmission" ]]; then
                     info "    - Linking ${container_name} to ${downloader}..."
                     db_name="${downloader} (DSAC)"
                     db_implementation="Transmission"
@@ -114,7 +114,7 @@ configure_add_downloader() {
                 debug "      Setting port to: ${port}"
                 db_settings=$(sed 's/"port":.*/"port": "'"${port}"'",/' <<< "$db_settings")
 
-                if [[ "${downloader}" == "nzbget" ]]; then
+                if [[ ${downloader} == "nzbget" ]]; then
                     # Set username
                     debug "      Setting username to: ${nzbget_restricted_username}"
                     db_settings=$(sed 's/"username":.*/"username": "'"${nzbget_restricted_username}"'",/' <<< "$db_settings")
