@@ -11,18 +11,18 @@ configure_add_indexer() {
     debug "    container_name=${container_name}"
     debug "    db_path=${db_path}"
     # Define supported indexers and their default listening port
-    typeset -A indexer_name
+    typeset -A indexer_names
     typeset -A indexer_port
-    indexer_name[0]="hydra2"
-    indexer_name[1]="jackett"
-    indexer_port[0]="5076"
-    indexer_port[1]="9117"
+    indexer_names[0]="hydra2"
+    indexer_names[1]="jackett"
+    indexer_ports[0]="5076"
+    indexer_ports[1]="9117"
 
     for index in "${!indexer_name[@]}"; do
         local indexer
-        indexer=${indexer_name[$index]}
+        indexer=${indexer_names[$index]}
+        # shellcheck disable=SC2154,SC2001
         if [[ ${containers[${indexer}]+true} == "true" ]]; then
-            # shellcheck disable=SC2154,SC2001
             if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
                 if [[ "${indexer}" == "hydra2" || ("${indexer}" == "jackett" && ${hydra2_configured} != "true") ]]; then
                     info "    - Linking ${container_name} to ${indexer}..."
@@ -35,7 +35,7 @@ configure_add_indexer() {
                     local additional_columns
                     local additional_values
                     indexer_base="/"
-                    indexer_port=$(jq -r --arg port "${indexer_port[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
+                    indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
                     indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
 
 
@@ -80,6 +80,7 @@ configure_add_indexer() {
 
                     for type in "${indexer_type[@]}"; do
                         local indexer_url
+                        local indexer_name
 
                         if [[ "${type}" == "usenet" ]]; then
                             indexer_name="${indexer} - Usenet (DSAC)"
