@@ -37,23 +37,23 @@ configure_torrent_downloader() {
         ip_addresses_current=${ip_addresses_current#*=}
         ip_addresses_current=${ip_addresses_current// /}
 
-        IFS="," read -a ip_addresses_current <<< ${ip_addresses_current}
+        IFS="," read -ra ip_addresses_current <<< "${ip_addresses_current}"
         local match
         for ip_current in "${ip_addresses_current[@]}"; do
             match="false"
             for ip_new in "${ip_addresses_new[@]}"; do
-                if [[ "${ip_current}" == "${ip_new}" ]]; then
+                if [[ ${ip_current} == "${ip_new}" ]]; then
                     match="true"
                     break
                 fi
             done
 
-            if [[ "${match}" == "false" ]]; then
+            if [[ ${match} == "false" ]]; then
                 ip_addresses_new+=("${ip_current}")
             fi
         done
-        debug "    ip_addresses_new=${ip_addresses_new[@]}"
-        printf -v ip_addresses "%s," "${ip_addresses_new[@]}" 2>/dev/null
+        debug "    ip_addresses_new=${ip_addresses_new[*]}"
+        printf -v ip_addresses "%s," "${ip_addresses_new[@]}" 2> /dev/null
         debug "    ip_addresses=${ip_addresses}"
         info "  - Enabling authentication bypass for local docker network..."
         sed -i "s/AuthSubnetWhitelistEnabled=.*/AuthSubnetWhitelistEnabled=true/" "${config_path}"
@@ -61,7 +61,7 @@ configure_torrent_downloader() {
         sed -i "s#AuthSubnetWhitelist=.*#AuthSubnetWhitelist=${ip_addresses}#" "${config_path}"
 
         info "  - Restarting ${container_name} to apply changes"
-        docker restart "${container_id}" >/dev/null
+        docker restart "${container_id}" > /dev/null
         info "  - Done"
     fi
 }
