@@ -35,11 +35,6 @@ usage() {
 # Command Line Arguments
 readonly ARGS=("$@")
 
-# Github Token for Travis CI
-if [[ ${CI:-} == true ]] && [[ ${TRAVIS:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS} == true ]]; then
-    readonly GH_HEADER="Authorization: token ${GH_TOKEN}"
-fi
-
 # Script Information
 # https://stackoverflow.com/a/246128/1384186
 get_scriptname() {
@@ -77,12 +72,24 @@ readonly NC='\e[0m'
 # Log Functions
 readonly LOG_FILE="/tmp/dsac-develop.log"
 sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
-info() { echo -e "${NC}$(date +"%F %T") ${BLU}[INFO]${NC}       (develop.sh) $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-warning() { echo -e "${NC}$(date +"%F %T") ${YLW}[WARNING]${NC}    (develop.sh) $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-error() { echo -e "${NC}$(date +"%F %T") ${RED}[ERROR]${NC}      (develop.sh) $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+log() {
+    if [[ -v DEBUG && $DEBUG == 1 ]] || [[ -v VERBOSE && $VERBOSE == 1 ]] || [[ -v DEVMODE && $DEVMODE == 1 ]]; then
+        echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" >&2
+    else
+        echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null
+    fi
+}
+info() { echo -e "${NC}$(date +"%F %T") ${BLU}[INFO]${NC}       $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+warning() { echo -e "${NC}$(date +"%F %T") ${YLW}[WARNING]${NC}    $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+error() { echo -e "${NC}$(date +"%F %T") ${RED}[ERROR]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2; }
 fatal() {
-    echo -e "${NC}$(date +"%F %T") ${RED}[FATAL]${NC}      (develop.sh) $*${NC}" | tee -a "${LOG_FILE}" >&2
+    echo -e "${NC}$(date +"%F %T") ${RED}[FATAL]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
     exit 1
+}
+debug() {
+    if [[ -v DEBUG && $DEBUG == 1 ]] || [[ -v VERBOSE && $VERBOSE == 1 ]] || [[ -v DEVMODE && $DEVMODE == 1 ]]; then
+        echo -e "${NC}$(date +"%F %T") ${GRN}[DEBUG]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
+    fi
 }
 
 # Script Runner Function
@@ -156,6 +163,7 @@ cmdline() {
     #Reset the positional parameters to the short options
     eval set -- "${LOCAL_ARGS:-}"
 
+    # shellcheck disable=SC2034
     while getopts ":bcdefghilprt:u:vx" OPTION; do
         case ${OPTION} in
             f)
