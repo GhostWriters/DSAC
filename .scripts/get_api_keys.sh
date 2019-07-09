@@ -66,7 +66,6 @@ get_api_keys() {
                 warning "  No API Key retrieval configured for ${container_name}"
                 ;;
         esac
-        # shellcheck disable=SC2034
         containers[$container_name]=$(jq --arg var "${API_KEY}" '.api_key = $var' <<< "${containers[$container_name]}")
     done
 }

@@ -2,9 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# shellcheck disable=SC2034
 typeset -A containers
-# shellcheck disable=SC2034
 typeset -A API_KEYS
 
 configure_apps() {

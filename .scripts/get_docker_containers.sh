@@ -15,7 +15,6 @@ get_docker_containers() {
             warning "- ${container_name} already exists..."
         else
             info "- Adding ${container_name} to list."
-            # shellcheck disable=SC2034
             containers[${container_name}]="{}"
             containers[${container_name}]=$(jq --arg var "${container_id}" '.container_id = $var' <<< "${containers[${container_name}]}")
             containers[${container_name}]=$(jq --arg var "${container_image}" '.container_image = $var' <<< "${containers[${container_name}]}")
@@ -31,7 +30,6 @@ get_docker_containers() {
                     config_source=$(jq 'fromjson | .Source' <<< "$i")
                     config_source=${config_source//\"/}
                     debug "  config_source=${config_source}"
-                    # shellcheck disable=SC2034
                     containers[${container_name}]=$(jq --arg var "${config_source}" '.config_source = $var' <<< "${containers[${container_name}]}")
                 fi
             done
