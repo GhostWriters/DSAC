@@ -1,0 +1,22 @@
+# APPNICENAME=Traefik
+# APPDESCRIPTION=Reverse proxy with LetsEncrypt
+services:
+  traefik:
+    container_name: traefik
+    hostname: ${DOCKERHOSTNAME}
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: ${DOCKERLOGGING_MAXFILE}
+        max-size: ${DOCKERLOGGING_MAXSIZE}
+    environment:
+      - PGID=${PGID}
+      - PUID=${PUID}
+      - TZ=${TZ}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/localtime:/etc/localtime:ro
+      - ${DOCKERCONFDIR}/docker/traefik:/etc/traefik
+      - ${DOCKERCONFDIR}/letsencrypt:/etc/letsencrypt
+      - ${DOCKERSHAREDDIR}:/shared

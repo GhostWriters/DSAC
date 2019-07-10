@@ -1,0 +1,15 @@
+services:
+  hydra2:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=hydra2"
+      - "traefik.frontend.rule=Host:${TRAEFIK_URL};PathPrefix:/hydra"
+      - "traefik.port=5076"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
