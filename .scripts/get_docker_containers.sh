@@ -56,5 +56,5 @@ get_docker_containers() {
             #debug "containers[${container_name}]=${containers[${container_name}]}"
             echo "${containers[${container_name}]}" > "${DETECTED_DSACDIR}/.data/${container_name}.json"
         fi
-    done < <(sudo docker ps -aq)
+    done < <(sudo docker ps -q)
 }
