@@ -11,13 +11,13 @@ configure_subtitles_manager() {
     local db_file
     local db_path
     container_name="bazarr"
-    config_file="config/config.ini"
-    db_file="db/bazarr.db"
 
     # shellcheck disable=SC2154,SC2001
     if [[ ${containers[$container_name]+true} == "true" ]]; then
         info "- ${container_name}"
         config_source=$(jq -r '.config_source' <<< "${containers[${container_name}]}")
+        config_file=$(jq -r '.config.file' <<< "${containers[${container_name}]}")
+        db_file=$(jq -r '.config.database' <<< "${containers[${container_name}]}")
         config_path="${config_source}/${config_file}"
         db_path="${config_source}/${db_file}"
         container_id=$(jq -r '.container_id' <<< "${containers[${container_name}]}")

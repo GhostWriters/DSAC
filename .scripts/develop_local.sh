@@ -7,6 +7,8 @@ develop_local() {
     sudo cp -r "${DETECTED_HOMEDIR}/${LOCAL_DIR}/main.sh" "${DETECTED_DSACDIR}/main.sh"
     sudo rm -r "${DETECTED_DSACDIR}/.scripts"
     sudo cp -r "${DETECTED_HOMEDIR}/${LOCAL_DIR}/.scripts" "${DETECTED_DSACDIR}"
+    sudo rm -r "${DETECTED_DSACDIR}/.data"
+    sudo cp -r "${DETECTED_HOMEDIR}/${LOCAL_DIR}/.data" "${DETECTED_DSACDIR}"
     sudo rm -r "${DETECTED_DSACDIR}/.tests"
     sudo cp -r "${DETECTED_HOMEDIR}/${LOCAL_DIR}/.tests" "${DETECTED_DSACDIR}"
     sudo rm -r "${DETECTED_DSACDIR}/compose"

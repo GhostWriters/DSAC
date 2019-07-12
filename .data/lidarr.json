@@ -1,0 +1,10 @@
+{
+  "config": {
+    "file": "config.xml",
+    "database": "lidarr.db"
+  },
+  "ports": {
+    "default": "8686"
+  },
+  "base_url": "/"
+}
