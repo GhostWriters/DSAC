@@ -6,9 +6,11 @@ get_docker_containers() {
     info "Getting docker container information"
     while IFS= read -r line; do
         local container_id=${line}
-        local container_image=$(docker container inspect -f '{{ .Config.Image }}' ${container_id})
-        local container_name=$(docker container inspect -f '{{ .Name }}' ${container_id})
+        local container_image
+        local container_name
         local TEMP
+        container_image=$(docker container inspect -f '{{ .Config.Image }}' ${container_id})
+        container_name=$(docker container inspect -f '{{ .Name }}' ${container_id})
         container_name=${container_name//\//}
 
         if [[ ${containers[${container_name}]+true} == "true" ]]; then
