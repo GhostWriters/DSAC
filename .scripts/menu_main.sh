@@ -14,14 +14,14 @@ menu_main() {
 
     case "${MAINCHOICE}" in
         "Quick Setup ")
-            run_script 'read_manifest'
-            run_script 'run_install_dockstarter'
+            #run_script 'read_manifest'
+            #run_script 'run_install_dockstarter'
             run_script 'run_preconfigured_apps'
             # TODO: run_script 'configure_apps'
             # TODO: run_script 'run_dockstarter'
             ;;
         "Custom Setup ")
-            run_script 'read_manifest'
+            #run_script 'read_manifest'
             run_script 'menu_app_select'
             # TODO: run_script 'configure_apps'
             ;;
