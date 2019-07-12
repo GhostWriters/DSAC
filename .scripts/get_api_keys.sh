@@ -64,8 +64,11 @@ get_api_keys() {
                 ;;
             *)
                 warning "  No API Key retrieval configured for ${container_name}"
+                warning "  ${container_name} is probably not supported by DSAC"
                 ;;
         esac
-        containers[$container_name]=$(jq --arg var "${API_KEY}" '.api_key = $var' <<< "${containers[$container_name]}")
+        if [[ ${API_KEY:-} != "" ]]; then
+            containers[$container_name]=$(jq --arg var "${API_KEY}" '.api_key = $var' <<< "${containers[$container_name]}")
+        fi
     done
 }
