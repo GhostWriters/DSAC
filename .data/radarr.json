@@ -1,0 +1,10 @@
+{
+  "config": {
+    "file": "config.xml",
+    "database": "nzbdrone.db"
+  },
+  "ports": {
+    "default": "7878"
+  },
+  "base_url": "/"
+}

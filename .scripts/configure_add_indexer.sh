@@ -34,7 +34,7 @@ configure_add_indexer() {
                     local categories
                     local additional_columns
                     local additional_values
-                    indexer_base="/"
+                    indexer_base=$(jq -r '.base_url' <<< "${containers[${container_name}]}")
                     indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
                     indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
 

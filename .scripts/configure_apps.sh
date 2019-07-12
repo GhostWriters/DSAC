@@ -17,5 +17,6 @@ configure_apps() {
     #TODO: run_script 'configure_books_manager'
     #TODO: run_script 'configure_comics_manager'
     #TODO: run_script 'configure_media_server'
+    run_script 'configure_subtitles_manager'
     info "Configuration completed!"
 }

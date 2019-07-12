@@ -9,13 +9,13 @@ configure_torrent_downloader() {
     local config_path
     local container_id
     container_name="qbittorrent"
-    config_file="qBittorrent.conf"
 
     # shellcheck disable=SC2154,SC2001
     if [[ ${containers[$container_name]+true} == "true" ]]; then
         info "- ${container_name}"
         config_source=$(jq -r '.config_source' <<< "${containers[${container_name}]}")
-        config_path="${config_source}/qBittorrent/${config_file}"
+        config_file=$(jq -r '.config.file' <<< "${containers[${container_name}]}")
+        config_path="${config_source}/${config_file}"
         container_id=$(jq -r '.container_id' <<< "${containers[${container_name}]}")
 
         info "  - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"

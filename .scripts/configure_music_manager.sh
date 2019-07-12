@@ -11,13 +11,13 @@ configure_music_manager() {
     local db_path
     local config_file
     local db_file
-    config_file="config.xml"
-    db_file="lidarr.db"
 
     # shellcheck disable=SC2154,SC2001
     if [[ ${containers[$container_name]+true} == "true" ]]; then
         info "- ${container_name}"
         config_source=$(jq -r '.config_source' <<< "${containers[${container_name}]}")
+        config_file=$(jq -r '.config.file' <<< "${containers[${container_name}]}")
+        db_file=$(jq -r '.config.database' <<< "${containers[${container_name}]}")
         config_path="${config_source}/${config_file}"
         db_path="${config_source}/${db_file}"
         info "  - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"

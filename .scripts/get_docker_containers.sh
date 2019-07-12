@@ -5,17 +5,23 @@ IFS=$'\n\t'
 get_docker_containers() {
     info "Getting docker container information"
     while IFS= read -r line; do
-        IFS=' ' read -r -a ROW <<< "$line"
-        local container_id=${ROW[0]}
-        local container_image=${ROW[1]}
-        local container_name=${ROW[1]##*/}
+        local container_id=${line}
+        local container_image
+        local container_name
         local TEMP
+        container_image=$(docker container inspect -f '{{ .Config.Image }}' "${container_id}")
+        container_name=$(docker container inspect -f '{{ .Name }}' "${container_id}")
+        container_name=${container_name//\//}
 
         if [[ ${containers[${container_name}]+true} == "true" ]]; then
             warning "- ${container_name} already exists..."
         else
             info "- Adding ${container_name} to list."
-            containers[${container_name}]="{}"
+            if [[ -f "${DETECTED_DSACDIR}/.data/${container_name}.json" ]]; then
+                containers[${container_name}]=$(cat "${DETECTED_DSACDIR}/.data/${container_name}.json")
+            else
+                containers[${container_name}]=$(cat "${DETECTED_DSACDIR}/.data/template.json")
+            fi
             containers[${container_name}]=$(jq --arg var "${container_id}" '.container_id = $var' <<< "${containers[${container_name}]}")
             containers[${container_name}]=$(jq --arg var "${container_image}" '.container_image = $var' <<< "${containers[${container_name}]}")
 
@@ -31,6 +37,7 @@ get_docker_containers() {
                     config_source=${config_source//\"/}
                     debug "  config_source=${config_source}"
                     containers[${container_name}]=$(jq --arg var "${config_source}" '.config_source = $var' <<< "${containers[${container_name}]}")
+                    containers[${container_name}]=$(jq --arg var "${config_source}" '.config.source = $var' <<< "${containers[${container_name}]}")
                 fi
             done
             # Get container ports
@@ -43,7 +50,11 @@ get_docker_containers() {
                 port_configured=$(awk '{split($3,a,":"); print a[2]}' <<< "${port_mapping}")
                 containers[${container_name}]=$(jq --arg port1 "${port_original}" --arg port2 "${port_configured}" '.ports[$port1] = $port2' <<< "${containers[${container_name}]}")
             done
+            if [[ ! -d "${DETECTED_DSACDIR}/.data/" ]]; then
+                mkdir -p "${DETECTED_DSACDIR}/.data/"
+            fi
             #debug "containers[${container_name}]=${containers[${container_name}]}"
+            echo "${containers[${container_name}]}" > "${DETECTED_DSACDIR}/.data/${container_name}.json"
         fi
-    done < <(sudo docker ps | awk '{if (NR>1) {print $1,$2}}')
+    done < <(sudo docker ps -aq)
 }

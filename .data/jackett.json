@@ -1,0 +1,10 @@
+{
+  "config": {
+    "file": "",
+    "database": ""
+  },
+  "ports": {
+    "default": "9117"
+  },
+  "base_url": "/"
+}

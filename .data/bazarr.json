@@ -1,0 +1,10 @@
+{
+  "config": {
+    "file": "config/config.ini",
+    "database": "db/bazarr.db"
+  },
+  "ports": {
+    "default": "6767"
+  },
+  "base_url": "/"
+}

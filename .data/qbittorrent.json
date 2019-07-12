@@ -1,0 +1,9 @@
+{
+  "config": {
+    "file": "qBittorrent/qBittorrent.conf"
+  },
+  "ports": {
+    "default": "8080"
+  },
+  "base_url": "/"
+}
