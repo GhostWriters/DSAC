@@ -225,6 +225,77 @@ configure_add_indexer() {
                     indexer_configured="true"
                 fi
             fi
+
+            if [[ ${container_name} == "mylar" ]]; then
+                if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+                    info "    - Linking ${container_name} to ${indexer}..."
+                    indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
+                    indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
+                    indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
+
+                    local indexer_type
+                    if [[ ${indexer} == "hydra2" ]]; then
+                        indexer_type=("torrent" "usenet")
+                    elif [[ ${indexer} == "jackett" ]]; then
+                        indexer_type=("torrent")
+                    else
+                        fatal "      ${indexer} not supported and this shouldn't have happened..."
+                    fi
+
+                    for type in "${indexer_type[@]}"; do
+                        local indexer_url
+                        local indexer_name
+                        local indexer_section
+                        indexer_section=""
+
+                        if [[ ${type} == "usenet" ]]; then
+                            implementation="Newznab"
+                            indexer_name="${indexer} - Usenet (DSAC)"
+                            indexer_url=${indexer_url_base}
+                        elif [[ ${type} == "torrent" ]]; then
+                            implementation="Torznab"
+                            indexer_name="${indexer} - Torrent (DSAC)"
+                            indexer_url=${indexer_url_base}
+                            if [[ ${indexer_base} == "/" ]]; then
+                                indexer_url="${indexer_url_base}torznab"
+                            else
+                                indexer_url="${indexer_url_base}/torznab"
+                            fi
+                        else
+                            fatal "      ${type} not supported and this shouldn't have happened..."
+                        fi
+                        implementation_lower=$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')
+
+                        indexers=$(crudini --get "${config_path}" "${implementation}" "extra_${implementation_lower}s")
+                        # Name, URL/Host, Verify SSL, API Key, Newznab UID/Torznab Category, Enabled
+                        indexer_setting="${indexer_name}, ${indexer_url}, 0, ${API_KEYS[${indexer}]}, , 1"
+
+                        if [[ ${indexers} == "" ]]; then
+                            crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s" "${indexer_setting}"
+                        elif [[ ${indexers} == *"${indexer_name}"* ]]; then
+                            debug "      indexers=${indexers}"
+                            indexers=${indexers//${indexer_name}, http?://*/*, ?, *, *, [0,1]/${indexer_setting}}
+                            debug "      indexers=${indexers}"
+                            crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s"
+                        else
+                            crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s" "${indexers}, ${indexer_setting}"
+                        fi
+
+                        # Enable to general indexer
+                        if [[ ${type} == "usenet" ]]; then
+                            crudini --set "${config_path}" "${implementation}" $(echo "${implementation}" | tr '[:upper:]' '[:lower:]') true
+                        elif [[ ${type} == "torrent" ]]; then
+                            crudini --set "${config_path}" "${implementation}" enable_$(echo "${implementation}" | tr '[:upper:]' '[:lower:]') true
+                        fi
+                    done
+
+                    if [[ ${indexer} == "hydra2" ]]; then
+                        hydra2_configured="true"
+                    fi
+
+                    indexer_configured="true"
+                fi
+            fi
         fi
     done
 
