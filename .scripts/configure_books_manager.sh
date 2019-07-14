@@ -32,7 +32,7 @@ configure_books_manager() {
         docker stop "${container_id}" > /dev/null
 
         run_script "configure_add_indexer" "$container_name" "${db_path}" "${config_path}"
-        #run_script "configure_add_downloader" "$container_name" "${db_path}" "${config_path}"
+        run_script "configure_add_downloader" "$container_name" "${db_path}" "${config_path}"
 
         info "  - Starting ${container_name} (${container_id})..."
         docker start "${container_id}" > /dev/null

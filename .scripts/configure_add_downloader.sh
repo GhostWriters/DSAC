@@ -6,18 +6,16 @@ configure_add_downloader() {
     local container_name="${1}"
     local db_path="${2}"
     local downloader_configured="false"
-
+    # Define supported downloaders and their default listening port
+    typeset -A downloaders
+    downloaders[nzbget]="6789"
+    downloaders[qbittorrent]="8080"
+    downloaders[transmission]="9091"
     info "  - Updating Downloader settings"
     debug "    container_name=${container_name}"
     debug "    db_path=${db_path}"
     # shellcheck disable=SC2154,SC2001
     if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
-        # Define supported downloaders and their default listening port
-        typeset -A downloaders
-        downloaders[nzbget]="6789"
-        downloaders[qbittorrent]="8080"
-        downloaders[transmission]="9091"
-
         for downloader in "${!downloaders[@]}"; do
             local db_id
             local db_name
@@ -140,6 +138,55 @@ configure_add_downloader() {
                 debug "      Updating DB"
                 sqlite3 "${db_path}" "UPDATE DownloadClients SET Settings='$db_settings' WHERE id=$db_id"
                 downloader_configured="true"
+            fi
+        done
+    fi
+
+    if [[ ${container_name} == "lazylibrarian" ]]; then
+        for downloader in "${!downloaders[@]}"; do
+            local downloader_section
+            local port
+
+            if [[ ${containers[${downloader}]+true} == "true" ]]; then
+                port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
+
+                if [[ ${downloader} == "nzbget" ]]; then
+                    info "    - Linking ${container_name} to ${downloader}..."
+                    local nzbget_restricted_username
+                    local nzbget_restricted_password
+                    nzbget_restricted_username=${API_KEYS[nzbget]%%,*}
+                    nzbget_restricted_password=${API_KEYS[nzbget]#*,}
+                    downloader_section="NZBGet"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_priority 0
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_category Books
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_user "${nzbget_restricted_username}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_pass "${nzbget_restricted_password}"
+                    crudini --set "${config_path}" USENET nzb_downloader_nzbget 1
+                    downloader_configured="true"
+                elif [[ ${downloader} == "qbittorrent" ]]; then
+                    downloader_section="QBITTORRENT"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_base
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_dir
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_label Books
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_user
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_pass
+                    crudini --set "${config_path}" TORRENT tor_downloader_qbittorrent 1
+                    downloader_configured="true"
+                elif [[ ${downloader} == "transmission" ]]; then
+                    downloader_section="TRANSMISSION"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_base
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_dir
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_user
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_pass
+                    crudini --set "${config_path}" TORRENT tor_downloader_transmission 1
+                    downloader_configured="true"
+                fi
             fi
         done
     fi
