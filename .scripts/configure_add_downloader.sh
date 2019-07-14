@@ -5,6 +5,7 @@ IFS=$'\n\t'
 configure_add_downloader() {
     local container_name="${1}"
     local db_path="${2}"
+    local config_path="${3}"
     local downloader_configured="false"
     # Define supported downloaders and their default listening port
     typeset -A downloaders
