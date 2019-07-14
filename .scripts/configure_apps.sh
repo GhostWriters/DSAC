@@ -14,7 +14,7 @@ configure_apps() {
     run_script 'configure_movies_manager'
     run_script 'configure_series_manager'
     run_script 'configure_music_manager'
-    #TODO: run_script 'configure_books_manager'
+    run_script 'configure_books_manager'
     #TODO: run_script 'configure_comics_manager'
     #TODO: run_script 'configure_media_server'
     run_script 'configure_subtitles_manager'
