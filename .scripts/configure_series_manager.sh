@@ -26,8 +26,8 @@ configure_series_manager() {
         debug "    db_path=${db_path}"
         cp "${db_path}" "${db_path}.dsac_bak"
 
-        run_script "configure_add_indexer" "$container_name" "${db_path}"
-        run_script "configure_add_downloader" "$container_name" "${db_path}"
+        run_script "configure_add_indexer" "$container_name" "${db_path}" "${config_path}"
+        run_script "configure_add_downloader" "$container_name" "${db_path}" "${config_path}"
         info "  - Done"
     fi
 }
