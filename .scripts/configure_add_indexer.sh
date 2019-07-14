@@ -171,7 +171,7 @@ configure_add_indexer() {
                             fatal "      ${type} not supported and this shouldn't have happened..."
                         fi
 
-                        for (( i=0; i<=10; i++ )); do
+                        for ((i = 0; i <= 10; i++)); do
                             debug "      Checking ${implementation}${i}..."
                             if [[ $(grep -c "${implementation}${i}" "${config_path}") -gt 0 ]]; then
                                 local indexer_name_check
@@ -181,14 +181,14 @@ configure_add_indexer() {
                                     debug "      - Updating ${indexer_name}..."
                                     break
                                 fi
-                            elif [[ -z "${indexer_section}" ]]; then
+                            elif [[ -z ${indexer_section} ]]; then
                                 indexer_section="${implementation}${i}"
                                 debug "      - Adding ${indexer_name}..."
                                 break
                             fi
                         done
 
-                        if [[ ! -z "${indexer_section}" ]]; then
+                        if [[ -n ${indexer_section} ]]; then
                             crudini --set "${config_path}" "${indexer_section}" comicsearch
                             crudini --set "${config_path}" "${indexer_section}" audiocat 3030
                             crudini --set "${config_path}" "${indexer_section}" extended 1
