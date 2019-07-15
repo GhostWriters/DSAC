@@ -283,9 +283,9 @@ configure_add_indexer() {
 
                         # Enable to general indexer
                         if [[ ${type} == "usenet" ]]; then
-                            crudini --set "${config_path}" "${implementation}" $(echo "${implementation}" | tr '[:upper:]' '[:lower:]') true
+                            crudini --set "${config_path}" "${implementation}" "$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')" "true"
                         elif [[ ${type} == "torrent" ]]; then
-                            crudini --set "${config_path}" "${implementation}" enable_$(echo "${implementation}" | tr '[:upper:]' '[:lower:]') true
+                            crudini --set "${config_path}" "${implementation}" "enable_$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')" "true"
                         fi
                     done
 
