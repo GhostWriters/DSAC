@@ -1,12 +1,10 @@
 {
   "config": {
     "file": "config.ini",
-    "database": "lazylibrarian.db",
-    "source": "/home/matty/.config/appdata/lazylibrarian"
+    "database": "lazylibrarian.db"
   },
   "ports": {
-    "default": "5299",
-    "5299": "5299"
+    "default": "5299"
   },
   "base_url": "/"
 }
