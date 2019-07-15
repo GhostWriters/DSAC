@@ -1,6 +1,7 @@
 {
   "config": {
-    "file": "qBittorrent/qBittorrent.conf"
+    "file": "qBittorrent/qBittorrent.conf",
+    "database": ""
   },
   "ports": {
     "default": "8080"
