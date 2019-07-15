@@ -62,9 +62,11 @@ get_api_keys() {
                 API_KEYS[$container_name]=${API_KEY}
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
+            "portainer" | "heimdall" | "qbittorrent" | "mylar" | "lazylibrarian" | "bazarr")
+                log "  API Key currently not needed"
+                ;;
             *)
-                warning "  No API Key retrieval configured for ${container_name}"
-                warning "  ${container_name} is probably not supported by DSAC"
+                log "  No API Key retrieval configured for ${container_name}"
                 ;;
         esac
         if [[ ${API_KEY:-} != "" ]]; then
