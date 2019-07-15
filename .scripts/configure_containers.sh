@@ -14,6 +14,7 @@ configure_containers() {
     local db_path
 
     mapfile -t app_categories < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/apps.json" | jq 'keys[]')
+    #shellcheck disable=SC2154
     for app_category_index in "${!app_categories[@]}"; do
         app_category=${app_categories[${app_category_index}]//\"/}
         info "- ${app_category} ${app_type}"
@@ -27,7 +28,7 @@ configure_containers() {
                 config_file=$(jq -r '.config.file' <<< "${containers[${app_name}]}")
                 db_file=$(jq -r '.config.database' <<< "${containers[${app_name}]}")
 
-                if [[ ! -z ${config_file} && ${config_file} != "null" ]]; then
+                if [[ -n ${config_file} && ${config_file} != "null" ]]; then
                     config_path="${config_source}/${config_file}"
                     info "    - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"
                     debug "      config_path=${config_path}"
@@ -35,7 +36,7 @@ configure_containers() {
                 else
                     config_path=""
                 fi
-                if [[ ! -z ${db_file} && ${db_file} != "null" ]]; then
+                if [[ -n ${db_file} && ${db_file} != "null" ]]; then
                     db_path="${config_source}/${db_file}"
                     info "    - Backing up the database: ${db_file} >> ${db_file}.dsac_bak"
                     debug "      db_path=${db_path}"
