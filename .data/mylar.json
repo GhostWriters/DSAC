@@ -1,7 +1,7 @@
 {
   "config": {
-    "file": "",
-    "database": ""
+    "file": "mylar/config.ini",
+    "database": "mylar/mylar.db"
   },
   "ports": {
     "default": "8090"

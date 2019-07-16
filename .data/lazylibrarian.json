@@ -1,0 +1,10 @@
+{
+  "config": {
+    "file": "config.ini",
+    "database": "lazylibrarian.db"
+  },
+  "ports": {
+    "default": "5299"
+  },
+  "base_url": "/"
+}
