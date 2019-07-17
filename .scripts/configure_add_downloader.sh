@@ -7,6 +7,8 @@ configure_add_downloader() {
     local db_path="${2}"
     local config_path="${3}"
     local downloader_configured="false"
+    local LOCAL_IP
+    LOCAL_IP=$(run_script 'detect_local_ip')
     # Define supported downloaders and their default listening port
     typeset -A downloaders
     downloaders[nzbget]="6789"

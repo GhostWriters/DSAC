@@ -23,10 +23,13 @@ configure_add_indexer() {
     for index in "${!indexer_names[@]}"; do
         local indexer
         indexer=${indexer_names[$index]}
+
         # shellcheck disable=SC2154,SC2001
         if [[ ${containers[${indexer}]+true} == "true" ]]; then
             local indexer_port
             local indexer_base
+            local LOCAL_IP
+            LOCAL_IP=$(run_script 'detect_local_ip')
             if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
                 if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
                     info "      - Linking ${container_name} to ${indexer}..."

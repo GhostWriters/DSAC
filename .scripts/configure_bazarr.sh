@@ -9,6 +9,8 @@ configure_bazarr() {
 
     # shellcheck disable=SC2154,SC2001
     if [[ ${containers[$container_name]+true} == "true" ]]; then
+        local LOCAL_IP
+        LOCAL_IP=$(run_script 'detect_local_ip')
         if [[ ${containers[sonarr]+true} == "true" ]]; then
             local sonarr_port
             sonarr_port=$(jq -r --arg port 8989 '.ports[$port]' <<< "${containers[sonarr]}")
