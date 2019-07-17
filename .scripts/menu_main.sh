@@ -17,13 +17,13 @@ menu_main() {
             #run_script 'read_manifest'
             #run_script 'run_install_dockstarter'
             run_script 'run_preconfigured_apps'
-            # TODO: run_script 'configure_apps'
-            # TODO: run_script 'run_dockstarter'
+            #TODO: run_script 'configure_apps'
+            #TODO: run_script 'run_dockstarter'
             ;;
         "Custom Setup ")
             #run_script 'read_manifest'
             run_script 'menu_app_select'
-            # TODO: run_script 'configure_apps'
+            #TODO: run_script 'configure_apps'
             ;;
         "Configure Existing Containers ")
             run_script 'configure_apps'
@@ -36,4 +36,8 @@ menu_main() {
             error "Invalid DSAC Option"
             ;;
     esac
+}
+
+test_menu_main() {
+    warning "Travis does not test menu_main."
 }
