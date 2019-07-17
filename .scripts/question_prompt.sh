@@ -3,13 +3,14 @@ set -euo pipefail
 IFS=$'\n\t'
 
 question_prompt() {
-    local DEFAULT
-    DEFAULT=${1:-Y}
-    local QUESTION
-    QUESTION=${2:-}
+    local PROMPT=${1:-}
+    local DEFAULT=${2:-Y}
+    local QUESTION=${3:-}
     local YN
     while true; do
-        if [[ ${PROMPT:-} == "CLI" ]]; then
+        if [[ ${CI:-} == true ]]; then
+            YN=${DEFAULT}
+        elif [[ ${PROMPT:-} == "CLI" ]]; then
             info "${QUESTION}"
             read -rp "[Yn]" YN
         elif [[ ${PROMPT:-} == "GUI" ]]; then
@@ -20,7 +21,7 @@ question_prompt() {
             local ANSWER
             set +e
             ANSWER=$(
-                eval whiptail --fb --clear --title "DockSTARTer" "${WHIPTAIL_DEFAULT:-}" --yesno \""${QUESTION}"\" 0 0 3>&1 1>&2 2>&3
+                eval whiptail --fb --clear --title "DockSTARTer App Config" "${WHIPTAIL_DEFAULT:-}" --yesno \""${QUESTION}"\" 0 0 3>&1 1>&2 2>&3
                 echo $?
             )
             set -e
@@ -44,4 +45,8 @@ question_prompt() {
                 ;;
         esac
     done
+}
+
+test_question_prompt() {
+    run_script 'question_prompt'
 }

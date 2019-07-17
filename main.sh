@@ -22,7 +22,7 @@ IFS=$'\n\t'
 #/      debug
 #/
 usage() {
-    grep '^#/' "${SCRIPTNAME}" | cut -c4- || echo "Failed to display usage information."
+    grep --color=never -Po '^#/\K.*' "${SCRIPTNAME}" || echo "Failed to display usage information."
     exit
 }
 
@@ -30,25 +30,26 @@ usage() {
 readonly ARGS=("$@")
 
 # Github Token for Travis CI
-if [[ ${CI:-} == true ]] && [[ ${TRAVIS:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS} == true ]]; then
+if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == true ]]; then
     readonly GH_HEADER="Authorization: token ${GH_TOKEN}"
+    echo "${GH_HEADER}" > /dev/null 2>&1 || true # Ridiculous workaround for SC2034 where the variable is used in other files called by this script
 fi
 
 # Script Information
-# https://stackoverflow.com/a/246128/1384186
+# https://stackoverflow.com/questions/59895/get-the-source-directory-of-a-bash-script-from-within-the-script-itself/246128#246128
 get_scriptname() {
-    local SOURCE
-    local DIR
-    SOURCE="${BASH_SOURCE[0]:-$0}" # https://stackoverflow.com/questions/35006457/choosing-between-0-and-bash-source
+    # https://stackoverflow.com/questions/35006457/choosing-between-0-and-bash-source/35006505#35006505
+    local SOURCE=${BASH_SOURCE[0]:-$0}
     while [[ -L ${SOURCE} ]]; do # resolve ${SOURCE} until the file is no longer a symlink
-        DIR="$(cd -P "$(dirname "${SOURCE}")" > /dev/null && pwd)"
-        SOURCE="$(readlink "${SOURCE}")"
+        local DIR
+        DIR=$(cd -P "$(dirname "${SOURCE}")" > /dev/null 2>&1 && pwd)
+        SOURCE=$(readlink "${SOURCE}")
         [[ ${SOURCE} != /* ]] && SOURCE="${DIR}/${SOURCE}" # if ${SOURCE} was a relative symlink, we need to resolve it relative to the path where the symlink file was located
     done
     echo "${SOURCE}"
 }
-readonly SCRIPTNAME="$(get_scriptname)"
-readonly SCRIPTPATH="$(cd -P "$(dirname "${SCRIPTNAME}")" > /dev/null && pwd)"
+readonly SCRIPTPATH=$(cd -P "$(dirname "$(get_scriptname)")" > /dev/null 2>&1 && pwd)
+readonly SCRIPTNAME="${SCRIPTPATH}/$(basename "$(get_scriptname)")"
 
 # User/Group Information
 readonly DETECTED_PUID=${SUDO_UID:-$UID}
@@ -63,17 +64,25 @@ readonly DETECTED_DSDIR=$(eval echo "~${DETECTED_UNAME}/.docker" 2> /dev/null ||
 # DSAC Information
 readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null || true)
 
-# Other Information
-readonly NIC=$(ip -o -4 route show to default | head -1 | awk '{print $5}')
-readonly LOCAL_IP=$(ifconfig "${NIC}" | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*')
+# Terminal Colors
+if [[ ${CI:-} == true ]] || [[ -t 1 ]]; then
+    # Reference for colornumbers used by most terminals can be found here: https://jonasjacek.github.io/colors/
+    # The actual color depends on the color scheme set by the current terminal-emulator
+    # For capabilities, see terminfo(5)
+    if [[ $(tput colors) -ge 8 ]]; then
+        BLU=$(tput setaf 4)
+        GRN=$(tput setaf 2)
+        RED=$(tput setaf 1)
+        YLW=$(tput setaf 3)
+        NC=$(tput sgr0)
+    fi
+fi
+readonly BLU=${BLU:-}
+readonly GRN=${GRN:-}
+readonly RED=${RED:-}
+readonly YLW=${YLW:-}
+readonly NC=${NC:-}
 
-# Colors
-# https://misc.flogisoft.com/bash/tip_colors_and_formatting
-readonly BLU='\e[34m'
-readonly GRN='\e[32m'
-readonly RED='\e[31m'
-readonly YLW='\e[33m'
-readonly NC='\e[0m'
 
 # Log Functions
 readonly LOG_FILE="/tmp/dockstarterappconfig.log"
@@ -100,16 +109,32 @@ debug() {
     fi
 }
 
+# Repo Exists Function
+repo_exists() {
+    if [[ -d ${SCRIPTPATH}/.git ]] && [[ -d ${SCRIPTPATH}/.scripts ]]; then
+        return
+    else
+        return 1
+    fi
+}
+
+# Root Check Function
+root_check() {
+    if [[ ${DETECTED_PUID} == "0" ]] || [[ ${DETECTED_HOMEDIR} == "/root" ]]; then
+        fatal "Running as root is not supported. Please run as a standard user with sudo."
+    fi
+}
+
 # Script Runner Function
 run_script() {
-    local SCRIPTSNAME="${1:-}"
+    local SCRIPTSNAME=${1:-}
     shift
-    if [[ -f ${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh ]]; then
+    if [[ -f ${SCRIPTPATH}/.scripts/${SCRIPTSNAME}.sh ]]; then
         # shellcheck source=/dev/null
-        source "${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh"
+        source "${SCRIPTPATH}/.scripts/${SCRIPTSNAME}.sh"
         ${SCRIPTSNAME} "$@"
     else
-        fatal "${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh not found."
+        fatal "${SCRIPTPATH}/.scripts/${SCRIPTSNAME}.sh not found."
     fi
 }
 
@@ -126,28 +151,29 @@ run_test() {
     fi
 }
 
-# Version functions
+# Version Functions
 # https://stackoverflow.com/questions/4023830/how-to-compare-two-strings-in-dot-separated-version-format-in-bash#comment92693604_4024263
 vergte() { printf '%s\n%s' "${2}" "${1}" | sort -C -V; }
-vergt() { ! verlte "${1}" "${2}"; }
+vergt() { ! vergte "${2}" "${1}"; }
 verlte() { printf '%s\n%s' "${1}" "${2}" | sort -C -V; }
 verlt() { ! verlte "${2}" "${1}"; }
 
-# Root Check
-root_check() {
-    if [[ ${DETECTED_PUID} == "0" ]] || [[ ${DETECTED_HOMEDIR} == "/root" ]]; then
-        fatal "Running as root is not supported. Please run as a standard user with sudo."
-    fi
-}
-
 # Cleanup Function
 cleanup() {
-    if [[ ${SCRIPTPATH} == "${DETECTED_DSACDIR}" ]]; then
-        chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
+    local -ri EXIT_CODE=$?
+
+    if repo_exists; then
+        sudo chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "ds must be executable."
     fi
-    if [[ ${CI:-} == true ]] && [[ ${TRAVIS:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS} == false ]]; then
+    if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == false ]]; then
         warning "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
     fi
+
+    if [[ ${EXIT_CODE} -ne 0 ]]; then
+        error "DockSTARTer App Config did not finish running successfully."
+    fi
+    exit ${EXIT_CODE}
+    trap - 0 1 2 3 6 14 15
 }
 trap 'cleanup' 0 1 2 3 6 14 15
 
@@ -159,34 +185,51 @@ main() {
         fatal "Unsupported architecture."
     fi
     # Terminal Check
-    if [[ -n ${PS1:-} ]] || [[ ${-} == *"i"* ]]; then
+    if [[ -t 1 ]]; then
         root_check
     fi
-    if [[ ${CI:-} != true ]] && [[ ${TRAVIS:-} != true ]] && [[ -z ${ARGS[*]:-} ]]; then
-        root_check
-        if [[ ! -d ${DETECTED_DSACDIR}/.git ]]; then
+    local PROMPT
+    local DS_COMMAND
+    DSAC_COMMAND=$(command -v dsac || true)
+    if [[ -L ${DSAC_COMMAND} ]]; then
+        local DSAC_SYMLINK
+        DSAC_SYMLINK=$(readlink -f "${DSAC_COMMAND}")
+        if [[ ${SCRIPTNAME} != "${DSAC_SYMLINK}" ]]; then
+            if repo_exists; then
+                if [[ ${PROMPT:-} != "GUI" ]]; then
+                    PROMPT="CLI"
+                fi
+                if run_script 'question_prompt' "${PROMPT:-}" N "DockSTARTer App Config installation found at ${DSAC_SYMLINK} location. Would you like to run ${SCRIPTNAME} instead?"; then
+                    run_script 'symlink_dsac'
+                    DSAC_COMMAND=$(command -v dsac || true)
+                    DSAC_SYMLINK=$(readlink -f "${DSAC_COMMAND}")
+                fi
+                unset PROMPT
+            fi
+            warning "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
+            exec sudo bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
+        fi
+    else
+        if ! repo_exists; then
             warning "Attempting to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
-            git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR}/.dsac location."
+            # Anti Sudo Check
+            if [[ ${EUID} -eq 0 ]]; then
+                fatal "Using sudo during cloning on first run is not supported."
+            fi
+            git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${${DETECTED_DSACDIR}} location."
             info "Performing first run install."
-            (sudo bash "${DETECTED_DSACDIR}/main.sh" "-i") || fatal "Failed first run install, please reboot and try again."
-            exit
-        elif [[ ${SCRIPTPATH} != "${DETECTED_DSACDIR}" ]]; then
-            (sudo bash "${DETECTED_DSACDIR}/main.sh" "-u") || true
-            warning "Attempting to run DockSTARTer App Config from ${DETECTED_DSACDIR} location."
-            (sudo bash "${DETECTED_DSACDIR}/main.sh") || true
-            exit
+            exec sudo bash "${DETECTED_DSACDIR}/main.sh" "-i"
         fi
     fi
     # Sudo Check
-    if [[ ${EUID} != "0" ]]; then
-        (sudo bash "${SCRIPTNAME:-}" "${ARGS[@]:-}") || true
-        exit
+    if [[ ${EUID} -ne 0 ]]; then
+        exec sudo bash "${SCRIPTNAME}" "${ARGS[@]:-}"
     fi
     run_script 'symlink_dsac'
     # shellcheck source=/dev/null
     source "${SCRIPTPATH}/.scripts/cmdline.sh"
     cmdline "${ARGS[@]:-}"
-    readonly PROMPT="menu"
+    PROMPT="GUI"
     run_script 'menu_main'
 }
 main
