@@ -83,7 +83,6 @@ readonly RED=${RED:-}
 readonly YLW=${YLW:-}
 readonly NC=${NC:-}
 
-
 # Log Functions
 readonly LOG_FILE="/tmp/dockstarterappconfig.log"
 #Save current log if not empty and rotate logs
