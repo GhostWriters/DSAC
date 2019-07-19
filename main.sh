@@ -216,7 +216,7 @@ main() {
             if [[ ${EUID} -eq 0 ]]; then
                 fatal "Using sudo during cloning on first run is not supported."
             fi
-            git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${${DETECTED_DSACDIR}} location."
+            git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
             info "Performing first run install."
             exec sudo bash "${DETECTED_DSACDIR}/main.sh" "-i"
         fi
