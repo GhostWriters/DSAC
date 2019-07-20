@@ -1,0 +1,15 @@
+{
+    "downloaders": {
+        "usenet": ["nzbget"],
+        "torrent": ["qbittorrent","transmission"]
+    },
+    "managers": {
+        "books": ["lazylibrarian"],
+        "comics": ["mylar"],
+        "movies": ["radarr"],
+        "music": ["lidarr"],
+        "series": ["sonarr"],
+        "subtitles": ["bazarr"]
+    },
+    "indexers": ["hydra2", "jackett"]
+}

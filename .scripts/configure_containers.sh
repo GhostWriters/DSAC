@@ -13,12 +13,12 @@ configure_containers() {
     local db_file
     local db_path
 
-    mapfile -t app_categories < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/apps.json" | jq 'keys[]')
+    mapfile -t app_categories < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'keys[]')
     #shellcheck disable=SC2154
     for app_category_index in "${!app_categories[@]}"; do
         app_category=${app_categories[${app_category_index}]//\"/}
         info "- ${app_category} ${app_type}"
-        mapfile -t apps < <(jq ".${app_type}.${app_category}" "${DETECTED_DSACDIR}/.data/apps.json" | jq 'values[]')
+        mapfile -t apps < <(jq ".${app_type}.${app_category}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'values[]')
         for app_index in "${!apps[@]}"; do
             app_name=${apps[${app_index}]//\"/}
             if [[ ${containers[$app_name]+true} == "true" ]]; then
@@ -30,17 +30,17 @@ configure_containers() {
 
                 if [[ -n ${config_file} && ${config_file} != "null" ]]; then
                     config_path="${config_source}/${config_file}"
-                    info "    - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"
-                    debug "      config_path=${config_path}"
-                    cp "${config_path}" "${config_path}.dsac_bak"
+                    # info "    - Backing up the config file: ${config_file} >> ${config_file}.dsac_bak"
+                    # debug "      config_path=${config_path}"
+                    # cp "${config_path}" "${config_path}.dsac_bak"
                 else
                     config_path=""
                 fi
                 if [[ -n ${db_file} && ${db_file} != "null" ]]; then
                     db_path="${config_source}/${db_file}"
-                    info "    - Backing up the database: ${db_file} >> ${db_file}.dsac_bak"
-                    debug "      db_path=${db_path}"
-                    cp "${db_path}" "${db_path}.dsac_bak"
+                    # info "    - Backing up the database: ${db_file} >> ${db_file}.dsac_bak"
+                    # debug "      db_path=${db_path}"
+                    # cp "${db_path}" "${db_path}.dsac_bak"
                 else
                     db_path=""
                 fi

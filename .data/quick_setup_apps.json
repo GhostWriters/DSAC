@@ -1,11 +1,11 @@
 {
     "downloaders": {
         "usenet": ["nzbget"],
-        "torrent": ["qbittorrent","transmission"]
+        "torrent": ["qbittorrent"]
     },
     "managers": {
         "books": ["lazylibrarian"],
-        "comics": ["mylarr"],
+        "comics": ["mylar"],
         "movies": ["radarr"],
         "music": ["lidarr"],
         "series": ["sonarr"],
