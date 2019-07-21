@@ -5,8 +5,8 @@ IFS=$'\n\t'
 menu_main() {
     local MAINOPTS
     MAINOPTS=()
-    MAINOPTS+=("Quick Setup Configurations " "= Select one or many pre-configured server types")
-    # TODO: Revisit - MAINOPTS+=("Custom Setup " "= Full user input with no pre-selected apps; uses DockSTARTer")
+    MAINOPTS+=("Quick Setup Configurations " "= Select one or many pre-configured server types; uses DockSTARTer")
+    MAINOPTS+=("Custom Setup " "= Full user input with no pre-selected apps; uses DockSTARTer")
     MAINOPTS+=("Configure Existing Containers " "= DSAC will detect and configure supported apps in your Docker Containers")
     MAINOPTS+=("Install/Update DockSTARTer " "= DSAC will Install/Update DockSTARTer for you")
 
@@ -24,10 +24,15 @@ menu_main() {
             run_script 'configure_apps'
             ;;
         "Custom Setup ")
-            run_script 'menu_custom_setup' || run_script 'menu_main'
-            run_script 'run_dockstarter' install
-            run_script 'run_dockstarter' install-dependecies
-            run_script 'run_dockstarter' apps
+            #run_script 'run_dockstarter' install
+            #run_script 'run_dockstarter' install-dependecies
+            run_script 'read_manifest'
+            run_script 'menu_custom_app_select' || run_script 'menu_main'
+            run_script 'run_dockstarter' compose
+            run_script 'run_dockstarter' backup
+            info "Generating configure_apps.json file."
+            cp "${SCRIPTPATH}/data/supported_apps.json" "${SCRIPTPATH}/data/configure_apps.json"
+            info "Generation of configure_apps.json complete."
             run_script 'configure_apps'
             ;;
         "Configure Existing Containers ")
