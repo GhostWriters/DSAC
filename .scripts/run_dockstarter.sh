@@ -37,7 +37,6 @@ run_dockstarter() {
                     NOW=$(date +%s%3N)
                     TIME_DIFF=$((${NOW}-${containers_check[${container_id}]}))
                     TIME_DIFF=$((${TIME_DIFF}/60000))
-                    debug "TIME_DIFF=${TIME_DIFF}"
                     if [[ ${TIME_DIFF} -ge 1 ]]; then
                         containers_check[${container_id}]="ready"
                     else
@@ -66,6 +65,7 @@ run_dockstarter() {
                     app=${apps[${app_index}]^^}
                     debug "    - ${app}"
                     (ds -a ${app})
+                    run_script 'ds_env_set' "${APPNAME}_ENABLED" true
                 done
             else
                 for app_category_index in "${!app_categories[@]}"; do
@@ -76,6 +76,7 @@ run_dockstarter() {
                         app=${apps[${app_index}]^^}
                         debug "    - ${app}"
                         (ds -a ${app})
+                        run_script 'ds_env_set' "${APPNAME}_ENABLED" true
                     done
                 done
             fi
