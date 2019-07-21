@@ -1,7 +1,7 @@
 "application"|"description"|"ds_supported"|"dsac_supported"|"dsac_quicksetup"|"selected"|"session_id"|"run_count"|"ds_var_dir"|"dsac_var_dir"|"step_count"|"project_url"|"svr_url"|"svr_port"
 "AirdcPP"|"Client for Advanced Direct Connect and Direct Connect networks"||||||||||||
 "Airsonic"|"Web-based media streamer providing ubiquitious access to your music"||||||||||||
-"Bazarr"|"Companion to Sonarr to manage and download subtitles"||||||||||||
+"Bazarr"|"Companion to Sonarr to manage and download subtitles"||true|true|||||||||
 "CalibreWeb"|"Web app for browsing, reading and downloading eBooks"||||||||||||
 "CloudCMD"|"A web file manager with console and editor"||||||||||||
 "CloudFlareDDNS"|"Free service which will point a DNS to an IP of your choice"||||||||||||
@@ -25,7 +25,7 @@
 "Hydra2"|"Meta search for NZB indexers"||true|true|||||||||
 "InfluxDB"|"Time series database for recording metrics, events, and analytics"||||||||||||
 "Jackett"|"API Support for your favorite private trackers"||true|true|||||||||
-"LazyLibrarian"|"Book PVR Client"||||||||||||
+"LazyLibrarian"|"Book PVR Client"||true|true|||||||||
 "LetsEncrypt"|"Certificate authority that provides free X.509 certificates"||||||||||||
 "Lidarr"|"Music download manager for Usenet and BitTorrent users"||true|true|||||||||
 "Logarr"|"Self-hosted, single-page, log consolidation tool"||||||||||||
@@ -36,23 +36,23 @@
 "Medusa"|"Automatic Video Library Manager for TV Shows"||||||||||||
 "Monitorr"|"Webfront to live display the status of any webapp or service"||||||||||||
 "Muximux"|"A lightweight way to manage your HTPC"||||||||||||
-"Mylar"|"Comic book PVR client"||||||||||||
+"Mylar"|"Comic book PVR client"||true|true|||||||||
 "netdata"|"Distributed real-time performance and health monitoring"||||||||||||
 "Nextcloud"|"Gives you access to all your files wherever you are"||||||||||||
-"NZBGet"|"NZB Newsgrabber / Downloader "||||||||||||
+"NZBGet"|"NZB Newsgrabber / Downloader "||true|true|||||||||
 "NZBGetVPN"|"NZBGet, OpenVPN and Privoxy"||||||||||||
-"Ombi"|"Allow your users to Request Movies, TV Shows and Albums"||true|true|||||||||
+"Ombi"|"Allow your users to Request Movies, TV Shows and Albums"||||||||||||
 "OpenVPNAS"|"Secure network tunneling VPN"||||||||||||
 "Organizr"|"HTPC/Homelab Services Organizer"||||||||||||
-"Ouroboros"|"Automatically update running Docker containers"||||||||||||
+"Ouroboros"|"Automatically update running Docker containers"||true|true|||||||||
 "phpMyAdmin"|"A web interface for MySQL and MariaDB"||||||||||||
 "PiHole"|"A black hole for internet advertisements"||||||||||||
-"Plex"|"Organizes all of your video, music and photo collections"||true|true|||||||||
+"Plex"|"Organizes all of your video, music and photo collections"||||||||||||
 "PlexRequests"|"Automated way for users to request new content for Plex"||||||||||||
 "Portainer"|"Simple management UI for Docker"||true|true|||||||||
 "PortainerAgent"|"An agent used to manage all the resources in a Swarm cluster"||||||||||||
 "pyLoad"|"Python Download Manager alternative to JDownloader"||||||||||||
-"qBittorrent"|"Cross-platform free and open-source BitTorrent client"||||||||||||
+"qBittorrent"|"Cross-platform free and open-source BitTorrent client"||true|true|||||||||
 "qBittorrentVPN"|"qBittorrent, OpenVPN and Privoxy"||||||||||||
 "Radarr"|"Automatically download movies via Usenet and BitTorrent"||true|true|||||||||
 "rTorrentVPN"|"rTorrent, Flood or ruTorrent WebUI, OpenVPN and Privoxy"||||||||||||
@@ -64,11 +64,11 @@
 "smokeping"|"Free service which will point a DNS to an IP of your choice"||||||||||||
 "Sonarr"|"Smart TV show PVR via Usenet and BitTorrent"||true|true|||||||||
 "Syncthing"|"Open-source peer-to-peer file synchronization "||||||||||||
-"Tautulli"|"Monitoring and tracking tool for Plex Media Server"||true|true|||||||||
+"Tautulli"|"Monitoring and tracking tool for Plex Media Server"||||||||||||
 "Telegraf"|"Agent for collecting metrics and writing them to InfluxDB or other outputs"||||||||||||
 "TheLounge"|"Web IRC client that you host on your own server"||||||||||||
-"Traefik"|"Reverse proxy with LetsEncrypt"||true|true|||||||||
-"Transmission"|"Fast, easy, and free BitTorrent client "||||||||||||
+"Traefik"|"Reverse proxy with LetsEncrypt"||||||||||||
+"Transmission"|"Fast, easy, and free BitTorrent client "||true||||||||||
 "TransmissionVPN"|"Transmission, WebUI and OpenVPN"||||||||||||
 "TTRSS"|"News feed (RSS/Atom) reader and aggregator"||||||||||||
 "Tvheadend"|"TV streaming server and recorder"||||||||||||
@@ -76,4 +76,4 @@
 "Unifi"|"Controller software for wireless networks"||||||||||||
 "varken"|"Standalone command-line utility to aggregate data from the Plex ecosystem into InfluxDB"||||||||||||
 "vsftpd"|"Probably the most secure and fastest FTP server for UNIX-like systems"||||||||||||
-"Watchtower"|"Automatically update running Docker containers"||true|true|||||||||
+"Watchtower"|"Automatically update running Docker containers"||||||||||||
