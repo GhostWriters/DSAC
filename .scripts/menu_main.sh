@@ -24,8 +24,8 @@ menu_main() {
             run_script 'configure_apps'
             ;;
         "Custom Setup ")
-            #run_script 'run_dockstarter' install
-            #run_script 'run_dockstarter' install-dependecies
+            run_script 'run_dockstarter' install
+            run_script 'run_dockstarter' install-dependecies
             run_script 'read_manifest'
             run_script 'menu_custom_app_select' || run_script 'menu_main'
             run_script 'run_dockstarter' compose
