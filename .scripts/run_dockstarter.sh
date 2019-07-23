@@ -16,17 +16,18 @@ run_dockstarter() {
     elif [[ ${ACTION} == "install-dependecies" ]]; then
         (ds -i)
     elif [[ ${ACTION} == "backup" ]]; then
-        (ds -b ${2:-med})
+        (ds -b "${2:-med}")
     elif [[ ${ACTION} == "compose" ]]; then
         local WAIT_TIME=1
         local i=0
-        local indicators=("\\" "|" "/" "-")
+        #shellcheck disable=SC1003
+        local indicators=('\' '|' '/' '-')
         typeset -A containers_check
         (ds -c up)
         info "Waiting for containers to be running for ${WAIT_TIME} minute(s)..."
         while true; do
             local not_ready="false"
-            modulo=$(( $i%4 ))
+            modulo=$((i % 4))
             echo -en "\r${indicators[${modulo}]}"
             while IFS= read -r line; do
                 local container_id=${line}
@@ -35,8 +36,8 @@ run_dockstarter() {
                 fi
                 if [[ ${containers_check[${container_id}]} != "ready" ]]; then
                     NOW=$(date +%s%3N)
-                    TIME_DIFF=$((${NOW}-${containers_check[${container_id}]}))
-                    TIME_DIFF=$((${TIME_DIFF}/60000))
+                    TIME_DIFF=$((NOW - containers_check[${container_id}]))
+                    TIME_DIFF=$((TIME_DIFF / 60000))
                     if [[ ${TIME_DIFF} -ge 1 ]]; then
                         containers_check[${container_id}]="ready"
                     else
@@ -49,7 +50,7 @@ run_dockstarter() {
                 break
             fi
             sleep 1s
-            i=$(($i+1))
+            i=$((i + 1))
         done
     elif [[ ${ACTION} == "apps" ]]; then
         info "Adding apps to DS"
@@ -64,7 +65,7 @@ run_dockstarter() {
                 for app_index in "${!apps[@]}"; do
                     app=${apps[${app_index}]^^}
                     debug "    - ${app}"
-                    (ds -a ${app})
+                    (ds -a "${app}")
                     run_script 'ds_env_set' "${APPNAME}_ENABLED" true
                 done
             else
@@ -75,7 +76,7 @@ run_dockstarter() {
                     for app_index in "${!apps[@]}"; do
                         app=${apps[${app_index}]^^}
                         debug "    - ${app}"
-                        (ds -a ${app})
+                        (ds -a "${app}")
                         run_script 'ds_env_set' "${APPNAME}_ENABLED" true
                     done
                 done
