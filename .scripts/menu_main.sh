@@ -31,13 +31,13 @@ menu_main() {
             run_script 'run_dockstarter' compose
             run_script 'run_dockstarter' backup
             info "Generating configure_apps.json file."
-            cp "${SCRIPTPATH}/data/supported_apps.json" "${SCRIPTPATH}/data/configure_apps.json"
+            cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
             info "Generation of configure_apps.json complete."
             run_script 'configure_apps'
             ;;
         "Configure Existing Containers ")
             info "Generating configure_apps.json file."
-            cp "${SCRIPTPATH}/data/supported_apps.json" "${SCRIPTPATH}/data/configure_apps.json"
+            cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
             info "Generation of configure_apps.json complete."
             run_script 'configure_apps'
             ;;
