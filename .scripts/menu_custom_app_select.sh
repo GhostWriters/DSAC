@@ -22,7 +22,7 @@ menu_custom_app_select() {
                     else
                         APPONOFF="off"
                     fi
-                    if [[ $(grep "${APPNAME}_DSAC_SUPPORTED=TRUE$" < "${DETECTED_DSACDIR}/.data/dsac_apps") ]]; then
+                    if grep -q "${APPNAME}_DSAC_SUPPORTED=TRUE$" "${DETECTED_DSACDIR}/.data/dsac_apps"; then
                         APPDESCRIPTION="(DSAC Supported) ${APPDESCRIPTION}"
                     fi
                     APPLIST+=("${APPNICENAME}" "${APPDESCRIPTION}" "${APPONOFF}")
@@ -50,7 +50,7 @@ menu_custom_app_select() {
         while IFS= read -r line; do
             local APPNAME=${line^^}
             debug "APPNAME=${APPNAME}"
-            (ds -a ${APPNAME})
+            (ds -a "${APPNAME}")
             run_script 'ds_env_set' "${APPNAME}_ENABLED" true
         done < <(echo "${SELECTEDAPPS}")
 

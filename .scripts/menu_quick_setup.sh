@@ -44,6 +44,7 @@ menu_quick_setup() {
                         ;;
                     *)
                         warning "${CONFIGNAME} not supported"
+                        ;;
                 esac
             done < <(echo "${SELECTEDAPPS}")
             VALUES=$(jq ".downloaders" "${DETECTED_DSACDIR}/.data/quick_setup_apps.json")

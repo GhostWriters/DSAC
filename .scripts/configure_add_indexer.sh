@@ -176,6 +176,7 @@ configure_add_indexer() {
 
                         for ((i = 0; i <= 10; i++)); do
                             debug "        Checking ${implementation}${i}..."
+                            #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
                             if [[ $(grep -c "${implementation}${i}" "${config_path}") -gt 0 ]]; then
                                 local indexer_name_check
                                 indexer_name_check=$(crudini --get "${config_path}" "${implementation}${i}" dispname)
