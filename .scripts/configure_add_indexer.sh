@@ -313,7 +313,7 @@ configure_add_indexer() {
                             IFS="," read -ra provider_order_list <<< "${provider_order}"
                             for provider in "${provider_order_list[@]}"; do
                                 local re='^[0-9]+$'
-                                if [[ ${provider} =~ ${re} ]] ; then
+                                if [[ ${provider} =~ ${re} ]]; then
                                     debug "          provider:${provider}"
                                     index=${provider}
                                 fi
