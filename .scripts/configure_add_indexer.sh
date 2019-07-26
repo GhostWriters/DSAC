@@ -249,13 +249,18 @@ configure_add_indexer() {
                     for type in "${indexer_type[@]}"; do
                         local indexer_url
                         local indexer_name
-                        local indexer_section
-                        indexer_section=""
+                        local indexer_section=""
+                        local indexer_setting
+                        local indexer_regex
 
+                        debug "        ${type}"
                         if [[ ${type} == "usenet" ]]; then
                             implementation="Newznab"
                             indexer_name="${indexer} - Usenet (DSAC)"
                             indexer_url=${indexer_url_base}
+                            # Name, URL/Host, Verify SSL, API Key, Newznab UID, Enabled
+                            indexer_setting="${indexer_name}, ${indexer_url}, 0, ${API_KEYS[${indexer}]}, , 1"
+                            indexer_regex="${indexer_name}, http?://*/*, ?, *, *, [0,1],"
                         elif [[ ${type} == "torrent" ]]; then
                             implementation="Torznab"
                             indexer_name="${indexer} - Torrent (DSAC)"
@@ -265,31 +270,59 @@ configure_add_indexer() {
                             else
                                 indexer_url="${indexer_url_base}/torznab"
                             fi
+                            # Name, URL/Host, Verify SSL, Torznab Category, Enabled
+                            indexer_setting="${indexer_name}, ${indexer_url}, ${API_KEYS[${indexer}]}, , 1"
+                            indexer_regex="${indexer_name}, http?://*/*, ?, *, [0,1],"
                         else
                             fatal "        ${type} not supported and this shouldn't have happened..."
                         fi
                         implementation_lower=$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')
 
                         indexers=$(crudini --get "${config_path}" "${implementation}" "extra_${implementation_lower}s")
-                        # Name, URL/Host, Verify SSL, API Key, Newznab UID/Torznab Category, Enabled
-                        indexer_setting="${indexer_name}, ${indexer_url}, 0, ${API_KEYS[${indexer}]}, , 1"
 
                         if [[ ${indexers} == "" ]]; then
+                            debug "        Adding first ${implementation}"
                             crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s" "${indexer_setting}"
                         elif [[ ${indexers} == *"${indexer_name}"* ]]; then
+                            debug "        Updating ${implementation}"
                             debug "        indexers=${indexers}"
-                            indexers=${indexers//${indexer_name}, http?://*/*, ?, *, *, [0,1]/${indexer_setting}}
+                            indexers=${indexers//${indexer_regex}/${indexer_setting}}
                             debug "        indexers=${indexers}"
                             crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s"
                         else
+                            debug "        Adding additional ${implementation}"
                             crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s" "${indexers}, ${indexer_setting}"
                         fi
 
                         # Enable to general indexer
                         if [[ ${type} == "usenet" ]]; then
-                            crudini --set "${config_path}" "${implementation}" "$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')" "true"
+                            crudini --set "${config_path}" "${implementation}" "${implementation_lower}" "true"
                         elif [[ ${type} == "torrent" ]]; then
-                            crudini --set "${config_path}" "${implementation}" "enable_$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')" "true"
+                            crudini --set "${config_path}" "${implementation}" "enable_${implementation_lower}" "true"
+                        fi
+
+                        provider_order=$(crudini --get "${config_path}" "Providers" "provider_order")
+                        debug "        Providers:${provider_order}"
+                        if [[ ${provider_order} == "" || ${provider_order} == "0," ]]; then
+                            debug "        Adding first provider to list"
+                            crudini --set "${config_path}" "Providers" "provider_order" "0, ${indexer_name}"
+                        elif [[ ${provider_order} == *"${indexer_name}"* ]]; then
+                            debug "        Provider already exists in list"
+                        else
+                            debug "        Adding provider to list"
+                            IFS="," read -ra provider_order_list <<< "${provider_order}"
+                            for provider in "${provider_order_list[@]}"; do
+                                local re='^[0-9]+$'
+                                if [[ ${provider} =~ ${re} ]] ; then
+                                    debug "          provider:${provider}"
+                                    index=${provider}
+                                fi
+                            done
+                            index=$((index + 1))
+                            debug "          index:${index}"
+                            provider_order="${provider_order}, ${index}, ${indexer_name}"
+                            crudini --set "${config_path}" "Providers" "provider_order" "${provider_order}"
+                            debug "        Providers:${provider_order}"
                         fi
                     done
 
