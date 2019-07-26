@@ -11,5 +11,6 @@
         "series": ["sonarr"],
         "subtitles": ["bazarr"]
     },
-    "indexers": ["hydra2", "jackett"]
+    "indexers": ["hydra2", "jackett"],
+    "others": ["ourobouros", "portainer"]
 }

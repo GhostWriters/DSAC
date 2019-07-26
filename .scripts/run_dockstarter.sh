@@ -60,7 +60,7 @@ run_dockstarter() {
             info "- ${app_type}"
             mapfile -t app_categories < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'keys[]')
             #shellcheck disable=SC2154
-            if [[ ${app_type} == "indexers" ]]; then
+            if [[ ${app_type} == "indexers" || ${app_type} == "others" ]]; then
                 mapfile -t apps < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'values[]')
                 for app_index in "${!apps[@]}"; do
                     app=${apps[${app_index}]^^}
