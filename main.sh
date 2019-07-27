@@ -28,6 +28,84 @@ usage() {
 
 # Command Line Arguments
 readonly ARGS=("$@")
+cmdline() {
+    # http://www.kfirlavi.com/blog/2012/11/14/defensive-bash-programming/
+    # http://kirk.webfinish.com/2009/10/bash-shell-script-to-use-getopts-with-gnu-style-long-positional-parameters/
+    local ARG=
+    local LOCAL_ARGS
+    for ARG; do
+        local DELIM=""
+        case "${ARG}" in
+            #translate --gnu-long-options to -g (short options)
+            --help) LOCAL_ARGS="${LOCAL_ARGS:-}-h " ;;
+            --install) LOCAL_ARGS="${LOCAL_ARGS:-}-i " ;;
+            --test) LOCAL_ARGS="${LOCAL_ARGS:-}-t " ;;
+            --update) LOCAL_ARGS="${LOCAL_ARGS:-}-u " ;;
+            --verbose) LOCAL_ARGS="${LOCAL_ARGS:-}-v " ;;
+            --debug) LOCAL_ARGS="${LOCAL_ARGS:-}-x " ;;
+            #pass through anything else
+            *)
+                [[ ${ARG:0:1} == "-" ]] || DELIM='"'
+                LOCAL_ARGS="${LOCAL_ARGS:-}${DELIM}${ARG}${DELIM} "
+                ;;
+        esac
+    done
+
+    #Reset the positional parameters to the short options
+    eval set -- "${LOCAL_ARGS:-}"
+
+    while getopts ":b:c:deghipt:u:vx" OPTION; do
+        case ${OPTION} in
+            d)
+                readonly DEBUG=1
+                ;;
+            h)
+                usage
+                exit
+                ;;
+            i)
+                readonly INSTALL=true
+                exit
+                ;;
+            t)
+                readonly TEST=${OPTARG}
+                exit
+                ;;
+            u)
+                readonly UPDATE=${OPTARG}
+                exit
+                ;;
+            v)
+                readonly VERBOSE=1
+                ;;
+            x)
+                readonly DEBUG=1
+                set -x
+                ;;
+            :)
+                case ${OPTARG} in
+                    u)
+                        readonly UPDATE=true
+                        exit
+                        ;;
+                    *)
+                        echo "${OPTARG} requires an option."
+                        exit 1
+                        ;;
+                esac
+                ;;
+            *)
+                usage
+                exit
+                ;;
+        esac
+    done
+    return 0
+}
+cmdline "${ARGS[@]:-}"
+if [[ -n ${DEBUG:-} ]] && [[ -n ${VERBOSE:-} ]]; then
+    readonly TRACE=1
+fi
 
 # Github Token for Travis CI
 if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == true ]]; then
@@ -163,11 +241,13 @@ run_test() {
     local TESTSNAME="${1:-}"
     shift
     if [[ -f ${SCRIPTPATH}/.tests/${TESTSNAME}.sh ]]; then
+        notice "Testing ${TESTSNAME}."
         # shellcheck source=/dev/null
-        source "${SCRIPTPATH}/.tests/${TESTSNAME}.sh"
-        ${TESTSNAME} "$@"
+        source "${SCRIPTPATH}/.tests/${TESTSNAME}.sh" #TODO: Replace with 'source "${SCRIPTPATH}/.scripts/${TESTSNAME}.sh"'
+        ${TESTSNAME} "$@" #TODO: Replace with 'eval "test_${TESTSNAME}" "$@" || fatal "Failed to run ${TESTSNAME}."'
+        notice "Completed testing ${TESTSNAME}."
     else
-        fatal "${SCRIPTPATH}/.tests/${TESTSNAME}.sh not found."
+        fatal "${SCRIPTPATH}/.tests/${TESTSNAME}.sh not found." #TODO: Replace with 'fatal "Test function in ${SCRIPTPATH}/.scripts/${TESTSNAME}.sh not found."'
     fi
 }
 
@@ -208,6 +288,7 @@ main() {
     if [[ -t 1 ]]; then
         root_check
     fi
+    # Repo Check
     local PROMPT
     local DS_COMMAND
     DSAC_COMMAND=$(command -v dsac || true)
@@ -245,10 +326,26 @@ main() {
     if [[ ${EUID} -ne 0 ]]; then
         exec sudo bash "${SCRIPTNAME}" "${ARGS[@]:-}"
     fi
+    # Create Symlink
     run_script 'symlink_dsac'
-    # shellcheck source=/dev/null
-    source "${SCRIPTPATH}/.scripts/cmdline.sh"
-    cmdline "${ARGS[@]:-}"
+    # Execute CLI Argument Functions
+    if [[ -n ${INSTALL:-} ]]; then
+        run_script 'run_install'
+        exit
+    fi
+    if [[ -n ${TEST:-} ]]; then
+        run_test "${TEST}"
+        exit
+    fi
+    if [[ -n ${UPDATE:-} ]]; then
+        if [[ ${UPDATE} == true ]]; then
+            run_script 'update_self'
+        else
+            run_script 'update_self' "${UPDATE}"
+        fi
+        exit
+    fi
+    # Run Menus
     PROMPT="GUI"
     run_script 'menu_main'
 }

@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 configure_containers() {
-    notice "Configuring Containers"
+    info "Configuring ${1} Containers"
     local app_type=${1}
     local app_category
     local app_name

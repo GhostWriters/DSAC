@@ -54,7 +54,7 @@ get_docker_containers() {
                 if [[ ! -d "${DETECTED_DSACDIR}/.data/" ]]; then
                     mkdir -p "${DETECTED_DSACDIR}/.data/"
                 fi
-                debug "containers[${container_name}]=${containers[${container_name}]}"
+                #debug "containers[${container_name}]=${containers[${container_name}]}"
                 echo "${containers[${container_name}]}" > "${DETECTED_DSACDIR}/.data/${container_name}.json"
             fi
         done < <(sudo docker ps -q)
