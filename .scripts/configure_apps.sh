@@ -11,5 +11,6 @@ configure_apps() {
     run_script 'get_api_keys'
     run_script 'configure_containers' 'downloaders'
     run_script 'configure_containers' 'managers'
+    run_script 'configure_containers' 'indexers'
     notice "Configuration completed!"
 }
