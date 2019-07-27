@@ -50,7 +50,7 @@ configure_add_indexer() {
                         categories="3000,3010,3020,3030,3040"
                     else
                         categories=""
-                        warning "      No categories configured for ${container_name}"
+                        warn "      No categories configured for ${container_name}"
                     fi
                     debug "        container_name=${container_name}"
                     debug "        categories=${categories}"
@@ -337,6 +337,6 @@ configure_add_indexer() {
     done
 
     if [[ ${indexer_configured} != "true" ]]; then
-        warning "      No Indexers to configure."
+        warn "      No Indexers to configure."
     fi
 }

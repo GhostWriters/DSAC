@@ -43,7 +43,7 @@ menu_quick_setup() {
                         CONFIGJSON=$(jq ".managers.music = ${VALUES}" <<< "${CONFIGJSON}")
                         ;;
                     *)
-                        warning "${CONFIGNAME} not supported"
+                        warn "${CONFIGNAME} not supported"
                         ;;
                 esac
             done < <(echo "${SELECTEDAPPS}")
@@ -59,5 +59,5 @@ menu_quick_setup() {
 }
 
 test_menu_quick_setup() {
-    warning "Travis does not test menu_main."
+    warn "Travis does not test menu_main."
 }

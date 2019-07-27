@@ -21,7 +21,7 @@ set_permissions() {
             ;;
         *)
             # TODO: Consider adding a prompt to confirm setting permissions
-            warning "Setting permissions for ${CH_PATH} outside of ${DETECTED_HOMEDIR} may be unsafe."
+            warn "Setting permissions for ${CH_PATH} outside of ${DETECTED_HOMEDIR} may be unsafe."
             ;;
     esac
     local CH_PUID

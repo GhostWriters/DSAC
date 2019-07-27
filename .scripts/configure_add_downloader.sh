@@ -240,6 +240,6 @@ configure_add_downloader() {
     fi
 
     if [[ ${downloader_configured} != "true" ]]; then
-        warning "      No Downloaders to configure."
+        warn "      No Downloaders to configure."
     fi
 }

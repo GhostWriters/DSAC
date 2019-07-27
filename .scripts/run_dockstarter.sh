@@ -7,10 +7,10 @@ run_dockstarter() {
 
     if [[ ${ACTION} == "install" ]]; then
         if [[ ! -d ${DETECTED_HOMEDIR}/.docker/.git ]]; then
-            info "Installing DockSTARTer..."
+            notice "Installing DockSTARTer..."
             (bash -c "$(curl -fsSL https://get.dockstarter.com)")
         else
-            info "Updating DockSTARTer..."
+            notice "Updating DockSTARTer..."
             (ds -u)
         fi
     elif [[ ${ACTION} == "install-dependecies" ]]; then
@@ -24,7 +24,7 @@ run_dockstarter() {
         local indicators=('\' '|' '/' '-')
         typeset -A containers_check
         (ds -c up)
-        info "Waiting for containers to be running for ${WAIT_TIME} minute(s)..."
+        notice "Waiting for containers to be running for ${WAIT_TIME} minute(s)..."
         while true; do
             local not_ready="false"
             modulo=$((i % 4))
@@ -53,7 +53,7 @@ run_dockstarter() {
             i=$((i + 1))
         done
     elif [[ ${ACTION} == "apps" ]]; then
-        info "Adding apps to DS"
+        notice "Adding apps to DS"
         mapfile -t app_types < <(jq 'keys[]' "${DETECTED_DSACDIR}/.data/configure_apps.json")
         for app_type_index in "${!app_types[@]}"; do
             app_type=${app_types[${app_type_index}]//\"/}
@@ -82,6 +82,6 @@ run_dockstarter() {
                 done
             fi
         done
-        info "Adding apps to DS completed"
+        notice "Adding apps to DS completed"
     fi
 }

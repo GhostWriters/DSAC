@@ -63,10 +63,10 @@ get_api_keys() {
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
             "portainer" | "heimdall" | "qbittorrent" | "mylar" | "lazylibrarian" | "bazarr")
-                log "  API Key currently not needed"
+                trace "  API Key currently not needed"
                 ;;
             *)
-                log "  No API Key retrieval configured for ${container_name}"
+                trace "  No API Key retrieval configured"
                 ;;
         esac
         if [[ ${API_KEY:-} != "" ]]; then

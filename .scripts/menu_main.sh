@@ -58,5 +58,5 @@ menu_main() {
 }
 
 test_menu_main() {
-    warning "Travis does not test menu_main."
+    warn "Travis does not test menu_main."
 }

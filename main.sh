@@ -66,22 +66,39 @@ readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null ||
 
 # Terminal Colors
 if [[ ${CI:-} == true ]] || [[ -t 1 ]]; then
-    # Reference for colornumbers used by most terminals can be found here: https://jonasjacek.github.io/colors/
-    # The actual color depends on the color scheme set by the current terminal-emulator
-    # For capabilities, see terminfo(5)
+    # http://linuxcommand.org/lc3_adv_tput.php
     if [[ $(tput colors) -ge 8 ]]; then
-        BLU=$(tput setaf 4)
-        GRN=$(tput setaf 2)
-        RED=$(tput setaf 1)
-        YLW=$(tput setaf 3)
-        NC=$(tput sgr0)
+        # B = Blue
+        # C = Cyan
+        # G = Green
+        # K = Black
+        # M = Magenta
+        # R = Red
+        # W = White
+        # Y = Yellow
+        declare -Agr B=(
+            [B]=$(tput setab 4)
+            [C]=$(tput setab 6)
+            [G]=$(tput setab 2)
+            [K]=$(tput setab 0)
+            [M]=$(tput setab 5)
+            [R]=$(tput setab 1)
+            [W]=$(tput setab 7)
+            [Y]=$(tput setab 3)
+        )
+        declare -Agr F=(
+            [B]=$(tput setaf 4)
+            [C]=$(tput setaf 6)
+            [G]=$(tput setaf 2)
+            [K]=$(tput setaf 0)
+            [M]=$(tput setaf 5)
+            [R]=$(tput setaf 1)
+            [W]=$(tput setaf 7)
+            [Y]=$(tput setaf 3)
+        )
+        readonly NC=$(tput sgr0)
     fi
 fi
-readonly BLU=${BLU:-}
-readonly GRN=${GRN:-}
-readonly RED=${RED:-}
-readonly YLW=${YLW:-}
-readonly NC=${NC:-}
 
 # Log Functions
 readonly LOG_FILE="/tmp/dockstarterappconfig.log"
@@ -89,23 +106,27 @@ readonly LOG_FILE="/tmp/dockstarterappconfig.log"
 savelog -n -C -l -t "$LOG_FILE"
 sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
 log() {
-    if [[ -v DEBUG && $DEBUG == 1 ]] || [[ -v VERBOSE && $VERBOSE == 1 ]] || [[ -v DEVMODE && $DEVMODE == 1 ]]; then
-        echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" >&2
+    if [[ -n ${DEBUG:-} ]] || [[ -n ${VERBOSE:-} ]] || [[ -n ${TRACE:-} ]]; then
+        echo -e "${NC}$(date +"%F %T") ${F[B]:-}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" >&2
     else
-        echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null
+        echo -e "${NC}$(date +"%F %T") ${F[B]:-}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null
     fi
 }
-info() { echo -e "${NC}$(date +"%F %T") ${BLU}[INFO]${NC}       $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-warning() { echo -e "${NC}$(date +"%F %T") ${YLW}[WARNING]${NC}    $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-error() { echo -e "${NC}$(date +"%F %T") ${RED}[ERROR]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+trace() { if [[ -n ${TRACE:-} ]]; then
+    echo -e "${NC:-}$(date +"%F %T") ${F[B]:-}[TRACE ]${NC:-}   $*${NC:-}" | tee -a "${LOG_FILE}" >&2
+fi; }
+debug() { if [[ -n ${DEBUG:-} ]]; then
+    echo -e "${NC:-}$(date +"%F %T") ${F[B]:-}[DEBUG ]${NC:-}   $*${NC:-}" | tee -a "${LOG_FILE}" >&2
+fi; }
+info() { if [[ -n ${VERBOSE:-} ]]; then
+    echo -e "${NC:-}$(date +"%F %T") ${F[B]:-}[INFO  ]${NC:-}   $*${NC:-}" | tee -a "${LOG_FILE}" >&2
+fi; }
+notice() { echo -e "${NC:-}$(date +"%F %T") ${F[G]:-}[NOTICE]${NC:-}   $*${NC:-}" | tee -a "${LOG_FILE}" >&2; }
+warn() { echo -e "${NC:-}$(date +"%F %T") ${F[Y]:-}[WARN  ]${NC:-}   $*${NC:-}" | tee -a "${LOG_FILE}" >&2; }
+error() { echo -e "${NC:-}$(date +"%F %T") ${F[R]:-}[ERROR ]${NC:-}   $*${NC:-}" | tee -a "${LOG_FILE}" >&2; }
 fatal() {
-    echo -e "${NC}$(date +"%F %T") ${RED}[FATAL]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
+    echo -e "${NC:-}$(date +"%F %T") ${B[R]:-}${F[W]:-}[FATAL ]${NC:-}   $*${NC:-}" | tee -a "${LOG_FILE}" >&2
     exit 1
-}
-debug() {
-    if [[ -v DEBUG && $DEBUG == 1 ]] || [[ -v VERBOSE && $VERBOSE == 1 ]] || [[ -v DEVMODE && $DEVMODE == 1 ]]; then
-        echo -e "${NC}$(date +"%F %T") ${GRN}[DEBUG]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
-    fi
 }
 
 # Repo Exists Function
@@ -165,7 +186,7 @@ cleanup() {
         sudo chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "ds must be executable."
     fi
     if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == false ]]; then
-        warning "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
+        warn "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
     fi
 
     if [[ ${EXIT_CODE} -ne 0 ]]; then
@@ -205,12 +226,12 @@ main() {
                 fi
                 unset PROMPT
             fi
-            warning "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
+            warn "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
             exec sudo bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
         fi
     else
         if ! repo_exists; then
-            warning "Attempting to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
+            warn "Attempting to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
             # Anti Sudo Check
             if [[ ${EUID} -eq 0 ]]; then
                 fatal "Using sudo during cloning on first run is not supported."
