@@ -244,7 +244,7 @@ run_test() {
         notice "Testing ${TESTSNAME}."
         # shellcheck source=/dev/null
         source "${SCRIPTPATH}/.tests/${TESTSNAME}.sh" #TODO: Replace with 'source "${SCRIPTPATH}/.scripts/${TESTSNAME}.sh"'
-        ${TESTSNAME} "$@" #TODO: Replace with 'eval "test_${TESTSNAME}" "$@" || fatal "Failed to run ${TESTSNAME}."'
+        ${TESTSNAME} "$@"                             #TODO: Replace with 'eval "test_${TESTSNAME}" "$@" || fatal "Failed to run ${TESTSNAME}."'
         notice "Completed testing ${TESTSNAME}."
     else
         fatal "${SCRIPTPATH}/.tests/${TESTSNAME}.sh not found." #TODO: Replace with 'fatal "Test function in ${SCRIPTPATH}/.scripts/${TESTSNAME}.sh not found."'
