@@ -13,14 +13,21 @@ configure_hydra2() {
         LOCAL_IP=$(run_script 'detect_local_ip')
         if [[ ${containers[jackett]+true} == "true" ]]; then
             # Get trackers from Jackett CONFIG_PATH/Indexers/*.json
+            local jackett_config_source
             jackett_config_source=$(jq -r '.config_source' <<< "${containers[jackett]}")
+            local jackett_config_file
             jackett_config_file=$(jq -r '.config.file' <<< "${containers[jackett]}")
+            local jackett_config_path
             jackett_config_path="${jackett_config_source}/${jackett_config_file}"
+            local jackett_indexers_path
             jackett_indexers_path="/home/matty/.config/appdata/jackett/Jackett/Indexers"
+            local jackett_base
             jackett_base=$(jq -r '.base_url' <<< "${containers[jackett]}")
+            local jackett_port
             jackett_port=$(jq -r '.ports["9117"]' <<< "${containers[jackett]}")
+            local jackett_url_base
             jackett_url_base="http://${LOCAL_IP}:${jackett_port}${jackett_base}"
-            #${jackett_config_source}/Jackett/Indexers/*.json
+
             if [[ -d "${jackett_indexers_path}" ]]; then
                 for file in ${jackett_indexers_path}/*.json; do
                     debug "       Processing $file file..."
@@ -30,7 +37,7 @@ configure_hydra2() {
                     debug "       tracker=${tracker}"
                     # Get indexers from Hydra2
                     hydra_indexer_name="Jackett - ${tracker} (DSAC)"
-                    debug "       Checking for '${hydra_indexer_name} in Hydra2 indexers list'"
+                    debug "       Checking for '${hydra_indexer_name}' in Hydra2 indexers list"
                     if ! yq-go r "${config_path}" "indexers[*].name" | grep -q "${hydra_indexer_name}"; then
                         debug "       - Not found..."
                         hydra_indexer_host="${jackett_url_base}/api/v2.0/indexers/${tracker}/results/torznab/"

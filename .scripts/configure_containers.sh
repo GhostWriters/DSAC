@@ -53,11 +53,11 @@ configure_containers() {
                 info "    - Stopping ${app_name} (${container_id}) to apply changes..."
                 #docker stop "${container_id}" > /dev/null || error "       Unable to stop container..."
 
-                if [[ ${app_name} == "bazarr" ||  ${app_name} == "hydra2" ]]; then
+                if [[ ${app_name} == "bazarr" || ${app_name} == "hydra2" ]]; then
                     run_script "configure_${app_name}" "${app_name}" "${db_path}" "${config_path}"
                 elif [[ ${app_category} == "usenet" || ${app_category} == "torrent" ]]; then
                     run_script "configure_${app_category}_downloader" "${app_name}" "${db_path}" "${config_path}"
-                elif [[ ${app_type} == "indexers" || ${app_name} == "couchpotato" ]]; then
+                elif [[ ${app_type} == "indexers" ]]; then
                     debug "    - Not doing anything with ${app_name} right now..."
                 else
                     run_script "configure_add_indexer" "${app_name}" "${db_path}" "${config_path}"
