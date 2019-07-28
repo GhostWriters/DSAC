@@ -16,6 +16,9 @@ menu_custom_app_select() {
                     APPNICENAME=$(run_script 'ds_yml_get' "${APPNAME}" "services.${FILENAME}.labels[com.dockstarter.appinfo.nicename]" || echo "${APPNAME}")
                     local APPDESCRIPTION
                     APPDESCRIPTION=$(run_script 'ds_yml_get' "${APPNAME}" "services.${FILENAME}.labels[com.dockstarter.appinfo.description]" || echo "! Missing description !")
+                    if echo "${APPDESCRIPTION}" | grep -q '(DEPRECATED)'; then
+                        continue
+                    fi
                     local APPONOFF
                     if [[ $(run_script 'ds_env_get' "${APPNAME}_ENABLED") == true ]]; then
                         APPONOFF="on"
