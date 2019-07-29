@@ -28,8 +28,8 @@ configure_hydra2() {
             local jackett_url_base
             jackett_url_base="http://${LOCAL_IP}:${jackett_port}${jackett_base}"
 
-            if [[ -d "${jackett_indexers_path}" ]]; then
-                for file in ${jackett_indexers_path}/*.json; do
+            if [[ -d ${jackett_indexers_path} ]]; then
+                for file in "${jackett_indexers_path}"/*.json; do
                     debug "       Processing $file file..."
                     local tracker
                     tracker=${file##*/}
@@ -46,7 +46,7 @@ configure_hydra2() {
                         mkdir -p "${DETECTED_DSACDIR}/.tmp/"
                         touch "${HITMP}" || error "Unable to create temporary Hydra2 indexer file."
                         sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${HITMP}" > /dev/null 2>&1 || true # This line should always use sudo
-                        if [[ -f "${HITMP}" ]]; then
+                        if [[ -f ${HITMP} ]]; then
                             cat "${DETECTED_DSACDIR}/.data/hydra2_indexer_defaults.yml" > "${HITMP}"
                             yq-go w "${HITMP}" "indexers[0].name" "TEST" -i
                             yq-go w "${HITMP}" "indexers[0].apiKey" "\"${API_KEYS[jackett]}\"" -i
