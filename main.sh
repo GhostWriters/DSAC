@@ -205,11 +205,9 @@ readonly NC=$(tcolor NC)
 
 # Log Functions
 readonly LOG_FILE="/tmp/dockstarterappconfig.log"
-#Save current log if not empty and rotate logs
-savelog -n -C -l -t "$LOG_FILE"
 sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
 log() {
-    if [[ -n ${DEBUG:-} ]] || [[ -n ${VERBOSE:-} ]] || [[ -n ${TRACE:-} ]]; then
+    if [[ -n ${DEBUG:-} ]] || [[ -n ${TRACE:-} ]]; then
         echo -e "${NC}$(date +"%F %T") ${F[B]}[LOG   ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
     else
         echo -e "${NC}$(date +"%F %T") ${F[B]}[LOG   ]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null
@@ -289,7 +287,7 @@ cleanup() {
 
     if repo_exists; then
         info "Setting executable permission on ${SCRIPTNAME}"
-        sudo chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "ds must be executable."
+        sudo chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
     fi
     if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == false ]]; then
         warn "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
@@ -305,6 +303,8 @@ trap 'cleanup' 0 1 2 3 6 14 15
 
 # Main Function
 main() {
+    #Save current log if not empty and rotate logs
+    savelog -n -C -l -t "${LOG_FILE}" > "${LOG_FILE}"
     # Arch Check
     readonly ARCH=$(uname -m)
     if [[ ${ARCH} != "aarch64" ]] && [[ ${ARCH} != "armv7l" ]] && [[ ${ARCH} != "x86_64" ]]; then
