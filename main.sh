@@ -304,7 +304,7 @@ trap 'cleanup' 0 1 2 3 6 14 15
 # Main Function
 main() {
     #Save current log if not empty and rotate logs
-    savelog -n -C -l -t "${LOG_FILE}" > "${LOG_FILE}"
+    savelog -n -C -l -t "${LOG_FILE}" > /dev/null
     # Arch Check
     readonly ARCH=$(uname -m)
     if [[ ${ARCH} != "aarch64" ]] && [[ ${ARCH} != "armv7l" ]] && [[ ${ARCH} != "x86_64" ]]; then
