@@ -26,21 +26,31 @@ configure_add_indexer() {
 
         # shellcheck disable=SC2154,SC2001
         if [[ ${containers[${indexer}]+true} == "true" ]]; then
-            local indexer_port
-            local indexer_base
-            local LOCAL_IP
-            LOCAL_IP=$(run_script 'detect_local_ip')
-            if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
-                if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+            if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+                local indexer_port
+                local indexer_base
+                local indexer_type
+                local LOCAL_IP
+                LOCAL_IP=$(run_script 'detect_local_ip')
+                indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
+                indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
+                indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
+
+                if [[ ${indexer} == "hydra2" ]]; then
+                    indexer_type=("torrent" "usenet")
+                elif [[ ${indexer} == "jackett" ]]; then
+                    indexer_type=("torrent")
+                else
+                    fatal "        ${indexer} not supported and this shouldn't have happened..."
+                fi
+
+                if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
                     info "      - Linking ${container_name} to ${indexer}..."
                     local indexer_db_id
                     local indexer_settings
                     local categories
                     local additional_columns
                     local additional_values
-                    indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
-                    indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
-                    indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
 
                     if [[ ${container_name} == "radarr" ]]; then
                         categories="2000,2010,2020,2030,2035,2040,2045,2050,2060"
@@ -64,15 +74,6 @@ configure_add_indexer() {
                     else
                         additional_columns=""
                         additional_values=""
-                    fi
-
-                    local indexer_type
-                    if [[ ${indexer} == "hydra2" ]]; then
-                        indexer_type=("torrent" "usenet")
-                    elif [[ ${indexer} == "jackett" ]]; then
-                        indexer_type=("torrent")
-                    else
-                        indexer_type=("torrent")
                     fi
 
                     for type in "${indexer_type[@]}"; do
@@ -133,24 +134,9 @@ configure_add_indexer() {
 
                     indexer_configured="true"
                 fi
-            fi
 
-            if [[ ${container_name} == "lazylibrarian" ]]; then
-                if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+                if [[ ${container_name} == "lazylibrarian" ]]; then
                     info "      - Linking ${container_name} to ${indexer}..."
-                    indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
-                    indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
-                    indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
-
-                    local indexer_type
-                    if [[ ${indexer} == "hydra2" ]]; then
-                        indexer_type=("torrent" "usenet")
-                    elif [[ ${indexer} == "jackett" ]]; then
-                        indexer_type=("torrent")
-                    else
-                        fatal "        ${indexer} not supported and this shouldn't have happened..."
-                    fi
-
                     for type in "${indexer_type[@]}"; do
                         local indexer_url
                         local indexer_name
@@ -228,24 +214,9 @@ configure_add_indexer() {
 
                     indexer_configured="true"
                 fi
-            fi
 
-            if [[ ${container_name} == "mylar" ]]; then
-                if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+                if [[ ${container_name} == "mylar" ]]; then
                     info "      - Linking ${container_name} to ${indexer}..."
-                    indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
-                    indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
-                    indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
-
-                    local indexer_type
-                    if [[ ${indexer} == "hydra2" ]]; then
-                        indexer_type=("torrent" "usenet")
-                    elif [[ ${indexer} == "jackett" ]]; then
-                        indexer_type=("torrent")
-                    else
-                        fatal "        ${indexer} not supported and this shouldn't have happened..."
-                    fi
-
                     for type in "${indexer_type[@]}"; do
                         local indexer_url
                         local indexer_name
