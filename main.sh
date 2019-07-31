@@ -374,5 +374,6 @@ main() {
     # Run Menus
     PROMPT="GUI"
     run_script 'menu_main'
+    notice "DockStarter App Config has finished."
 }
 main
