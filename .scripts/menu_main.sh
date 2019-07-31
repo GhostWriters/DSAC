@@ -11,7 +11,11 @@ menu_main() {
     MAINOPTS+=("Install/Update DockSTARTer " "= DSAC will Install/Update DockSTARTer for you")
 
     local MAINCHOICE
-    MAINCHOICE=$(whiptail --fb --clear --title "DockSTARTer App Config" --cancel-button "Exit" --menu "What would you like to do?" 0 0 0 "${MAINOPTS[@]}" 3>&1 1>&2 2>&3 || echo "Cancel")
+    if [[ ${CI:-} == true ]]; then
+        MAINCHOICE="Cancel"
+    else
+        MAINCHOICE=$(whiptail --fb --clear --title "DockSTARTer App Config (DSAC)" --cancel-button "Exit" --menu "What would you like to do?" 0 0 0 "${MAINOPTS[@]}" 3>&1 1>&2 2>&3 || echo "Cancel")
+    fi
 
     case "${MAINCHOICE}" in
         "Quick Setup Configurations ")
@@ -48,11 +52,11 @@ menu_main() {
             run_script 'update_self' || run_script 'menu_main'
             ;;
         "Cancel")
-            info "Returning to Main Menu."
-            return 1
+            notice "Exiting DockSTARTer App Config."
+            return
             ;;
         *)
-            error "Invalid DSAC Option"
+            error "Invalid DSAC Menu Option"
             ;;
     esac
 }
