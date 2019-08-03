@@ -51,7 +51,7 @@ configure_containers() {
                 fi
 
                 info "    - Stopping ${app_name} (${container_id}) to apply changes..."
-                #docker stop "${container_id}" > /dev/null || error "       Unable to stop container..."
+                docker stop "${container_id}" > /dev/null || error "       Unable to stop container..."
 
                 if [[ ${app_name} == "bazarr" || ${app_name} == "hydra2" ]]; then
                     run_script "configure_${app_name}" "${app_name}" "${db_path}" "${config_path}"
@@ -65,7 +65,7 @@ configure_containers() {
                 fi
 
                 info "    - Starting ${app_name} (${container_id})..."
-                #docker start "${container_id}" > /dev/null || error "       Unable to start container..."
+                docker start "${container_id}" > /dev/null || error "       Unable to start container..."
                 info "  - Done configuring ${app_name}"
             fi
         done
