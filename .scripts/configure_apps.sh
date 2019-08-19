@@ -6,10 +6,11 @@ typeset -A containers
 typeset -A API_KEYS
 
 configure_apps() {
-    info "Configuring supported applications"
+    notice "Configuring supported applications"
     run_script 'get_docker_containers'
     run_script 'get_api_keys'
     run_script 'configure_containers' 'downloaders'
     run_script 'configure_containers' 'managers'
-    info "Configuration completed!"
+    run_script 'configure_containers' 'indexers'
+    notice "Configuration completed!"
 }

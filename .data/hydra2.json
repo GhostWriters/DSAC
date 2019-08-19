@@ -1,6 +1,6 @@
 {
   "config": {
-    "file": "",
+    "file": "nzbhydra.yml",
     "database": ""
   },
   "ports": {

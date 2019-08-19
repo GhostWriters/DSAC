@@ -271,8 +271,9 @@ develop() {
                 info "Updating DSAC from repo"
                 (sudo dsac -u "${BRANCH:-origin/master}")
             fi
-            #Update DSAC from local
+            #Update DSAC from development repo and then from local files
             if [[ -n ${LOCAL:-} ]]; then
+                (sudo dsac -u "origin/development")
                 run_script 'develop_local' "${LOCAL_DIR}"
             fi
             #Run tests

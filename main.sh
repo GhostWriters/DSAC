@@ -16,18 +16,96 @@ IFS=$'\n\t'
 #/      update DockSTARTer to the latest stable commits
 #/  -u --update <branch>
 #/      update DockSTARTer to the latest commits from the specified branch
-##/ -v --verbose
-##/     verbose
+#/ -v --verbose
+#/     verbose
 #/  -x --debug
 #/      debug
 #/
 usage() {
-    grep --color=never -Po '^#/\K.*' "${SCRIPTNAME}" || echo "Failed to display usage information."
+    grep --color=never -Po '^#/\K.*' "${BASH_SOURCE[0]:-$0}" || echo "Failed to display usage information."
     exit
 }
 
 # Command Line Arguments
 readonly ARGS=("$@")
+cmdline() {
+    # http://www.kfirlavi.com/blog/2012/11/14/defensive-bash-programming/
+    # http://kirk.webfinish.com/2009/10/bash-shell-script-to-use-getopts-with-gnu-style-long-positional-parameters/
+    local ARG=
+    local LOCAL_ARGS
+    for ARG; do
+        local DELIM=""
+        case "${ARG}" in
+            #translate --gnu-long-options to -g (short options)
+            --help) LOCAL_ARGS="${LOCAL_ARGS:-}-h " ;;
+            --install) LOCAL_ARGS="${LOCAL_ARGS:-}-i " ;;
+            --test) LOCAL_ARGS="${LOCAL_ARGS:-}-t " ;;
+            --update) LOCAL_ARGS="${LOCAL_ARGS:-}-u " ;;
+            --verbose) LOCAL_ARGS="${LOCAL_ARGS:-}-v " ;;
+            --debug) LOCAL_ARGS="${LOCAL_ARGS:-}-x " ;;
+            #pass through anything else
+            *)
+                [[ ${ARG:0:1} == "-" ]] || DELIM='"'
+                LOCAL_ARGS="${LOCAL_ARGS:-}${DELIM}${ARG}${DELIM} "
+                ;;
+        esac
+    done
+
+    #Reset the positional parameters to the short options
+    eval set -- "${LOCAL_ARGS:-}"
+
+    while getopts ":b:c:deghipt:u:vx" OPTION; do
+        case ${OPTION} in
+            d)
+                readonly DEBUG=1
+                ;;
+            h)
+                usage
+                exit
+                ;;
+            i)
+                readonly INSTALL=true
+                exit
+                ;;
+            t)
+                readonly TEST=${OPTARG}
+                exit
+                ;;
+            u)
+                readonly UPDATE=${OPTARG}
+                exit
+                ;;
+            v)
+                readonly VERBOSE=1
+                ;;
+            x)
+                readonly DEBUG=1
+                set -x
+                ;;
+            :)
+                case ${OPTARG} in
+                    u)
+                        readonly UPDATE=true
+                        exit
+                        ;;
+                    *)
+                        echo "${OPTARG} requires an option."
+                        exit 1
+                        ;;
+                esac
+                ;;
+            *)
+                usage
+                exit
+                ;;
+        esac
+    done
+    return 0
+}
+cmdline "${ARGS[@]:-}"
+if [[ -n ${DEBUG:-} ]] && [[ -n ${VERBOSE:-} ]]; then
+    readonly TRACE=1
+fi
 
 # Github Token for Travis CI
 if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == true ]]; then
@@ -66,46 +144,90 @@ readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null ||
 
 # Terminal Colors
 if [[ ${CI:-} == true ]] || [[ -t 1 ]]; then
-    # Reference for colornumbers used by most terminals can be found here: https://jonasjacek.github.io/colors/
-    # The actual color depends on the color scheme set by the current terminal-emulator
-    # For capabilities, see terminfo(5)
-    if [[ $(tput colors) -ge 8 ]]; then
-        BLU=$(tput setaf 4)
-        GRN=$(tput setaf 2)
-        RED=$(tput setaf 1)
-        YLW=$(tput setaf 3)
-        NC=$(tput sgr0)
-    fi
+    readonly SCRIPTTERM=true
 fi
-readonly BLU=${BLU:-}
-readonly GRN=${GRN:-}
-readonly RED=${RED:-}
-readonly YLW=${YLW:-}
-readonly NC=${NC:-}
+tcolor() {
+    if [[ -n ${SCRIPTTERM:-} ]]; then
+        # http://linuxcommand.org/lc3_adv_tput.php
+        local BF=${1:-}
+        local CAP
+        case ${BF} in
+            [Bb]) CAP=setab ;;
+            [Ff]) CAP=setaf ;;
+            [Nn][Cc]) CAP=sgr0 ;;
+            *) return ;;
+        esac
+        local COLOR_IN=${2:-}
+        local VAL
+        if [[ ${CAP} != "sgr0" ]]; then
+            case ${COLOR_IN} in
+                [Bb4]) VAL=4 ;; # Blue
+                [Cc6]) VAL=6 ;; # Cyan
+                [Gg2]) VAL=2 ;; # Green
+                [Kk0]) VAL=0 ;; # Black
+                [Mm5]) VAL=5 ;; # Magenta
+                [Rr1]) VAL=1 ;; # Red
+                [Ww7]) VAL=7 ;; # White
+                [Yy3]) VAL=3 ;; # Yellow
+                *) return ;;
+            esac
+        fi
+        local COLOR_OUT
+        if [[ $(tput colors) -ge 8 ]]; then
+            COLOR_OUT=$(eval tput ${CAP:-} ${VAL:-})
+        fi
+        echo "${COLOR_OUT:-}"
+    else
+        return
+    fi
+}
+declare -Agr B=(
+    [B]=$(tcolor B B)
+    [C]=$(tcolor B C)
+    [G]=$(tcolor B G)
+    [K]=$(tcolor B K)
+    [M]=$(tcolor B M)
+    [R]=$(tcolor B R)
+    [W]=$(tcolor B W)
+    [Y]=$(tcolor B Y)
+)
+declare -Agr F=(
+    [B]=$(tcolor F B)
+    [C]=$(tcolor F C)
+    [G]=$(tcolor F G)
+    [K]=$(tcolor F K)
+    [M]=$(tcolor F M)
+    [R]=$(tcolor F R)
+    [W]=$(tcolor F W)
+    [Y]=$(tcolor F Y)
+)
+readonly NC=$(tcolor NC)
 
 # Log Functions
 readonly LOG_FILE="/tmp/dockstarterappconfig.log"
-#Save current log if not empty and rotate logs
-savelog -n -C -l -t "$LOG_FILE"
 sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
 log() {
-    if [[ -v DEBUG && $DEBUG == 1 ]] || [[ -v VERBOSE && $VERBOSE == 1 ]] || [[ -v DEVMODE && $DEVMODE == 1 ]]; then
-        echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" >&2
+    if [[ -n ${DEBUG:-} ]] || [[ -n ${TRACE:-} ]]; then
+        echo -e "${NC}$(date +"%F %T") ${F[B]}[LOG   ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
     else
-        echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null
+        echo -e "${NC}$(date +"%F %T") ${F[B]}[LOG   ]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null
     fi
 }
-info() { echo -e "${NC}$(date +"%F %T") ${BLU}[INFO]${NC}       $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-warning() { echo -e "${NC}$(date +"%F %T") ${YLW}[WARNING]${NC}    $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-error() { echo -e "${NC}$(date +"%F %T") ${RED}[ERROR]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+trace() { if [[ -n ${TRACE:-} ]]; then
+    echo -e "${NC}$(date +"%F %T") ${F[B]}[TRACE ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
+fi; }
+debug() { if [[ -n ${DEBUG:-} ]]; then
+    echo -e "${NC}$(date +"%F %T") ${F[B]}[DEBUG ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
+fi; }
+info() { if [[ -n ${VERBOSE:-} ]]; then
+    echo -e "${NC}$(date +"%F %T") ${F[B]}[INFO  ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
+fi; }
+notice() { echo -e "${NC}$(date +"%F %T") ${F[G]}[NOTICE]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+warn() { echo -e "${NC}$(date +"%F %T") ${F[Y]}[WARN  ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+error() { echo -e "${NC}$(date +"%F %T") ${F[R]}[ERROR ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2; }
 fatal() {
-    echo -e "${NC}$(date +"%F %T") ${RED}[FATAL]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
+    echo -e "${NC}$(date +"%F %T") ${B[R]}${F[W]}[FATAL ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
     exit 1
-}
-debug() {
-    if [[ -v DEBUG && $DEBUG == 1 ]] || [[ -v VERBOSE && $VERBOSE == 1 ]] || [[ -v DEVMODE && $DEVMODE == 1 ]]; then
-        echo -e "${NC}$(date +"%F %T") ${GRN}[DEBUG]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
-    fi
 }
 
 # Repo Exists Function
@@ -142,11 +264,13 @@ run_test() {
     local TESTSNAME="${1:-}"
     shift
     if [[ -f ${SCRIPTPATH}/.tests/${TESTSNAME}.sh ]]; then
+        notice "Testing ${TESTSNAME}."
         # shellcheck source=/dev/null
-        source "${SCRIPTPATH}/.tests/${TESTSNAME}.sh"
-        ${TESTSNAME} "$@"
+        source "${SCRIPTPATH}/.tests/${TESTSNAME}.sh" #TODO: Replace with 'source "${SCRIPTPATH}/.scripts/${TESTSNAME}.sh"'
+        ${TESTSNAME} "$@"                             #TODO: Replace with 'eval "test_${TESTSNAME}" "$@" || fatal "Failed to run ${TESTSNAME}."'
+        notice "Completed testing ${TESTSNAME}."
     else
-        fatal "${SCRIPTPATH}/.tests/${TESTSNAME}.sh not found."
+        fatal "${SCRIPTPATH}/.tests/${TESTSNAME}.sh not found." #TODO: Replace with 'fatal "Test function in ${SCRIPTPATH}/.scripts/${TESTSNAME}.sh not found."'
     fi
 }
 
@@ -162,10 +286,11 @@ cleanup() {
     local -ri EXIT_CODE=$?
 
     if repo_exists; then
-        sudo chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "ds must be executable."
+        info "Setting executable permission on ${SCRIPTNAME}"
+        sudo chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
     fi
     if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == false ]]; then
-        warning "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
+        warn "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
     fi
 
     if [[ ${EXIT_CODE} -ne 0 ]]; then
@@ -178,6 +303,8 @@ trap 'cleanup' 0 1 2 3 6 14 15
 
 # Main Function
 main() {
+    #Save current log if not empty and rotate logs
+    savelog -n -C -l -t "${LOG_FILE}" > /dev/null
     # Arch Check
     readonly ARCH=$(uname -m)
     if [[ ${ARCH} != "aarch64" ]] && [[ ${ARCH} != "armv7l" ]] && [[ ${ARCH} != "x86_64" ]]; then
@@ -187,6 +314,7 @@ main() {
     if [[ -t 1 ]]; then
         root_check
     fi
+    # Repo Check
     local PROMPT
     local DS_COMMAND
     DSAC_COMMAND=$(command -v dsac || true)
@@ -205,12 +333,12 @@ main() {
                 fi
                 unset PROMPT
             fi
-            warning "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
+            warn "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
             exec sudo bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
         fi
     else
         if ! repo_exists; then
-            warning "Attempting to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
+            warn "Attempting to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
             # Anti Sudo Check
             if [[ ${EUID} -eq 0 ]]; then
                 fatal "Using sudo during cloning on first run is not supported."
@@ -224,11 +352,28 @@ main() {
     if [[ ${EUID} -ne 0 ]]; then
         exec sudo bash "${SCRIPTNAME}" "${ARGS[@]:-}"
     fi
+    # Create Symlink
     run_script 'symlink_dsac'
-    # shellcheck source=/dev/null
-    source "${SCRIPTPATH}/.scripts/cmdline.sh"
-    cmdline "${ARGS[@]:-}"
+    # Execute CLI Argument Functions
+    if [[ -n ${INSTALL:-} ]]; then
+        run_script 'run_install'
+        exit
+    fi
+    if [[ -n ${TEST:-} ]]; then
+        run_test "${TEST}"
+        exit
+    fi
+    if [[ -n ${UPDATE:-} ]]; then
+        if [[ ${UPDATE} == true ]]; then
+            run_script 'update_self'
+        else
+            run_script 'update_self' "${UPDATE}"
+        fi
+        exit
+    fi
+    # Run Menus
     PROMPT="GUI"
     run_script 'menu_main'
+    notice "DockStarter App Config has finished."
 }
 main

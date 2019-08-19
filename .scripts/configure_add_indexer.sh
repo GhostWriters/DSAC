@@ -26,21 +26,31 @@ configure_add_indexer() {
 
         # shellcheck disable=SC2154,SC2001
         if [[ ${containers[${indexer}]+true} == "true" ]]; then
-            local indexer_port
-            local indexer_base
-            local LOCAL_IP
-            LOCAL_IP=$(run_script 'detect_local_ip')
-            if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
-                if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+            if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+                local indexer_port
+                local indexer_base
+                local indexer_type
+                local LOCAL_IP
+                LOCAL_IP=$(run_script 'detect_local_ip')
+                indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
+                indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
+                indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
+
+                if [[ ${indexer} == "hydra2" ]]; then
+                    indexer_type=("torrent" "usenet")
+                elif [[ ${indexer} == "jackett" ]]; then
+                    indexer_type=("torrent")
+                else
+                    fatal "        ${indexer} not supported and this shouldn't have happened..."
+                fi
+
+                if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
                     info "      - Linking ${container_name} to ${indexer}..."
                     local indexer_db_id
                     local indexer_settings
                     local categories
                     local additional_columns
                     local additional_values
-                    indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
-                    indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
-                    indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
 
                     if [[ ${container_name} == "radarr" ]]; then
                         categories="2000,2010,2020,2030,2035,2040,2045,2050,2060"
@@ -50,7 +60,7 @@ configure_add_indexer() {
                         categories="3000,3010,3020,3030,3040"
                     else
                         categories=""
-                        warning "      No categories configured for ${container_name}"
+                        warn "      No categories configured for ${container_name}"
                     fi
                     debug "        container_name=${container_name}"
                     debug "        categories=${categories}"
@@ -64,15 +74,6 @@ configure_add_indexer() {
                     else
                         additional_columns=""
                         additional_values=""
-                    fi
-
-                    local indexer_type
-                    if [[ ${indexer} == "hydra2" ]]; then
-                        indexer_type=("torrent" "usenet")
-                    elif [[ ${indexer} == "jackett" ]]; then
-                        indexer_type=("torrent")
-                    else
-                        indexer_type=("torrent")
                     fi
 
                     for type in "${indexer_type[@]}"; do
@@ -133,24 +134,9 @@ configure_add_indexer() {
 
                     indexer_configured="true"
                 fi
-            fi
 
-            if [[ ${container_name} == "lazylibrarian" ]]; then
-                if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+                if [[ ${container_name} == "lazylibrarian" ]]; then
                     info "      - Linking ${container_name} to ${indexer}..."
-                    indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
-                    indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
-                    indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
-
-                    local indexer_type
-                    if [[ ${indexer} == "hydra2" ]]; then
-                        indexer_type=("torrent" "usenet")
-                    elif [[ ${indexer} == "jackett" ]]; then
-                        indexer_type=("torrent")
-                    else
-                        fatal "        ${indexer} not supported and this shouldn't have happened..."
-                    fi
-
                     for type in "${indexer_type[@]}"; do
                         local indexer_url
                         local indexer_name
@@ -176,6 +162,7 @@ configure_add_indexer() {
 
                         for ((i = 0; i <= 10; i++)); do
                             debug "        Checking ${implementation}${i}..."
+                            #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
                             if [[ $(grep -c "${implementation}${i}" "${config_path}") -gt 0 ]]; then
                                 local indexer_name_check
                                 indexer_name_check=$(crudini --get "${config_path}" "${implementation}${i}" dispname)
@@ -227,34 +214,24 @@ configure_add_indexer() {
 
                     indexer_configured="true"
                 fi
-            fi
 
-            if [[ ${container_name} == "mylar" ]]; then
-                if [[ ${indexer} == "hydra2" || (${indexer} == "jackett" && ${hydra2_configured} != "true") ]]; then
+                if [[ ${container_name} == "mylar" ]]; then
                     info "      - Linking ${container_name} to ${indexer}..."
-                    indexer_base=$(jq -r '.base_url' <<< "${containers[${indexer}]}")
-                    indexer_port=$(jq -r --arg port "${indexer_ports[$index]}" '.ports[$port]' <<< "${containers[${indexer}]}")
-                    indexer_url_base="http://${LOCAL_IP}:${indexer_port}${indexer_base}"
-
-                    local indexer_type
-                    if [[ ${indexer} == "hydra2" ]]; then
-                        indexer_type=("torrent" "usenet")
-                    elif [[ ${indexer} == "jackett" ]]; then
-                        indexer_type=("torrent")
-                    else
-                        fatal "        ${indexer} not supported and this shouldn't have happened..."
-                    fi
-
                     for type in "${indexer_type[@]}"; do
                         local indexer_url
                         local indexer_name
-                        local indexer_section
-                        indexer_section=""
+                        local indexer_section=""
+                        local indexer_setting
+                        local indexer_regex
 
+                        debug "        ${type}"
                         if [[ ${type} == "usenet" ]]; then
                             implementation="Newznab"
                             indexer_name="${indexer} - Usenet (DSAC)"
                             indexer_url=${indexer_url_base}
+                            # Name, URL/Host, Verify SSL, API Key, Newznab UID, Enabled
+                            indexer_setting="${indexer_name}, ${indexer_url}, 0, ${API_KEYS[${indexer}]}, , 1"
+                            indexer_regex="${indexer_name}, http?://*/*, ?, *, *, [0,1],"
                         elif [[ ${type} == "torrent" ]]; then
                             implementation="Torznab"
                             indexer_name="${indexer} - Torrent (DSAC)"
@@ -264,31 +241,59 @@ configure_add_indexer() {
                             else
                                 indexer_url="${indexer_url_base}/torznab"
                             fi
+                            # Name, URL/Host, Verify SSL, Torznab Category, Enabled
+                            indexer_setting="${indexer_name}, ${indexer_url}, ${API_KEYS[${indexer}]}, , 1"
+                            indexer_regex="${indexer_name}, http?://*/*, ?, *, [0,1],"
                         else
                             fatal "        ${type} not supported and this shouldn't have happened..."
                         fi
                         implementation_lower=$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')
 
                         indexers=$(crudini --get "${config_path}" "${implementation}" "extra_${implementation_lower}s")
-                        # Name, URL/Host, Verify SSL, API Key, Newznab UID/Torznab Category, Enabled
-                        indexer_setting="${indexer_name}, ${indexer_url}, 0, ${API_KEYS[${indexer}]}, , 1"
 
                         if [[ ${indexers} == "" ]]; then
+                            debug "        Adding first ${implementation}"
                             crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s" "${indexer_setting}"
                         elif [[ ${indexers} == *"${indexer_name}"* ]]; then
+                            debug "        Updating ${implementation}"
                             debug "        indexers=${indexers}"
-                            indexers=${indexers//${indexer_name}, http?://*/*, ?, *, *, [0,1]/${indexer_setting}}
+                            indexers=${indexers//${indexer_regex}/${indexer_setting}}
                             debug "        indexers=${indexers}"
                             crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s"
                         else
+                            debug "        Adding additional ${implementation}"
                             crudini --set "${config_path}" "${implementation}" "extra_${implementation_lower}s" "${indexers}, ${indexer_setting}"
                         fi
 
                         # Enable to general indexer
                         if [[ ${type} == "usenet" ]]; then
-                            crudini --set "${config_path}" "${implementation}" "$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')" "true"
+                            crudini --set "${config_path}" "${implementation}" "${implementation_lower}" "true"
                         elif [[ ${type} == "torrent" ]]; then
-                            crudini --set "${config_path}" "${implementation}" "enable_$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')" "true"
+                            crudini --set "${config_path}" "${implementation}" "enable_${implementation_lower}" "true"
+                        fi
+
+                        provider_order=$(crudini --get "${config_path}" "Providers" "provider_order")
+                        debug "        Providers:${provider_order}"
+                        if [[ ${provider_order} == "" || ${provider_order} == "0," ]]; then
+                            debug "        Adding first provider to list"
+                            crudini --set "${config_path}" "Providers" "provider_order" "0, ${indexer_name}"
+                        elif [[ ${provider_order} == *"${indexer_name}"* ]]; then
+                            debug "        Provider already exists in list"
+                        else
+                            debug "        Adding provider to list"
+                            IFS="," read -ra provider_order_list <<< "${provider_order}"
+                            for provider in "${provider_order_list[@]}"; do
+                                local re='^[0-9]+$'
+                                if [[ ${provider} =~ ${re} ]]; then
+                                    debug "          provider:${provider}"
+                                    index=${provider}
+                                fi
+                            done
+                            index=$((index + 1))
+                            debug "          index:${index}"
+                            provider_order="${provider_order}, ${index}, ${indexer_name}"
+                            crudini --set "${config_path}" "Providers" "provider_order" "${provider_order}"
+                            debug "        Providers:${provider_order}"
                         fi
                     done
 
@@ -303,6 +308,6 @@ configure_add_indexer() {
     done
 
     if [[ ${indexer_configured} != "true" ]]; then
-        warning "      No Indexers to configure."
+        warn "      No Indexers to configure."
     fi
 }

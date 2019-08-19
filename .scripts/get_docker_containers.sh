@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 get_docker_containers() {
     if [[ $(docker ps -q | wc -l) -gt 1 ]]; then
-        info "Getting docker container information"
+        notice "Getting docker container information"
         while IFS= read -r line; do
             local container_id=${line}
             local container_image
@@ -15,7 +15,7 @@ get_docker_containers() {
             container_name=${container_name//\//}
 
             if [[ ${containers[${container_name}]+true} == "true" ]]; then
-                warning "- ${container_name} already exists..."
+                info "- ${container_name} already exists..."
             else
                 info "- Adding ${container_name} to list."
                 if [[ -f "${DETECTED_DSACDIR}/.data/${container_name}.json" ]]; then
@@ -54,7 +54,7 @@ get_docker_containers() {
                 if [[ ! -d "${DETECTED_DSACDIR}/.data/" ]]; then
                     mkdir -p "${DETECTED_DSACDIR}/.data/"
                 fi
-                debug "containers[${container_name}]=${containers[${container_name}]}"
+                #debug "containers[${container_name}]=${containers[${container_name}]}"
                 echo "${containers[${container_name}]}" > "${DETECTED_DSACDIR}/.data/${container_name}.json"
             fi
         done < <(sudo docker ps -q)

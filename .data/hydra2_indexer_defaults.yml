@@ -1,0 +1,451 @@
+indexers:
+  -
+    allCapsChecked: false
+    apiKey: DSAC_API_KEY_REPLACE
+    backend: NEWZNAB
+    categoryMapping:
+      anime: 100029
+      audiobook: 3030
+      comic: 8020
+      ebook: 8010
+      magazine: 8030
+      categories:
+        -
+          id: 100029
+          name: Anime
+          subCategories: []
+        -
+          id: 100028
+          name: Appz/Packs
+          subCategories: []
+        -
+          id: 100042
+          name: "Audio Books"
+          subCategories: []
+        -
+          id: 100020
+          name: Books
+          subCategories: []
+        -
+          id: 100030
+          name: Documentary
+          subCategories: []
+        -
+          id: 100047
+          name: Fonts
+          subCategories: []
+        -
+          id: 100043
+          name: Mac
+          subCategories: []
+        -
+          id: 100096
+          name: Movie/4K
+          subCategories: []
+        -
+          id: 100025
+          name: Movies/480p
+          subCategories: []
+        -
+          id: 100011
+          name: Movies/Bluray
+          subCategories: []
+        -
+          id: 100005
+          name: Movies/Bluray-Full
+          subCategories: []
+        -
+          id: 100003
+          name: Movies/DVD-R
+          subCategories: []
+        -
+          id: 100021
+          name: Movies/MP4
+          subCategories: []
+        -
+          id: 100022
+          name: Movies/Non-English
+          subCategories: []
+        -
+          id: 100013
+          name: Movies/Packs
+          subCategories: []
+        -
+          id: 100044
+          name: Movies/SD/x264
+          subCategories: []
+        -
+          id: 100048
+          name: Movies/x265
+          subCategories: []
+        -
+          id: 100001
+          name: Movies/XviD
+          subCategories: []
+        -
+          id: 100017
+          name: Music/Audio
+          subCategories: []
+        -
+          id: 100027
+          name: Music/Flac
+          subCategories: []
+        -
+          id: 100023
+          name: Music/Non-English
+          subCategories: []
+        -
+          id: 100041
+          name: Music/Packs
+          subCategories: []
+        -
+          id: 100016
+          name: Music/Video
+          subCategories: []
+        -
+          id: 100004
+          name: PC/Games
+          subCategories: []
+        -
+          id: 100045
+          name: Podcast
+          subCategories: []
+        -
+          id: 100018
+          name: PS3
+          subCategories: []
+        -
+          id: 100008
+          name: PSP
+          subCategories: []
+        -
+          id: 100024
+          name: TV/480p
+          subCategories: []
+        -
+          id: 100032
+          name: TV/Bluray
+          subCategories: []
+        -
+          id: 100031
+          name: TV/DVD-R
+          subCategories: []
+        -
+          id: 100033
+          name: TV/DVD-Rip
+          subCategories: []
+        -
+          id: 100046
+          name: TV/Mobile
+          subCategories: []
+        -
+          id: 100014
+          name: TV/Packs
+          subCategories: []
+        -
+          id: 100026
+          name: TV/SD/x264
+          subCategories: []
+        -
+          id: 100007
+          name: TV/x264
+          subCategories: []
+        -
+          id: 100034
+          name: TV/x265
+          subCategories: []
+        -
+          id: 100002
+          name: TV/XviD
+          subCategories: []
+        -
+          id: 100010
+          name: Wii
+          subCategories: []
+        -
+          id: 100009
+          name: Xbox-360
+          subCategories: []
+        -
+          id: 100006
+          name: XXX/Movies
+          subCategories: []
+        -
+          id: 100015
+          name: XXX/Packs
+          subCategories: []
+        -
+          id: 1020
+          name: Console/PSP
+          subCategories: []
+        -
+          id: 1030
+          name: Console/Wii
+          subCategories: []
+        -
+          id: 1050
+          name: "Console/Xbox 360"
+          subCategories: []
+        -
+          id: 1080
+          name: Console/PS3
+          subCategories: []
+        -
+          id: 2000
+          name: Movies
+          subCategories:
+            -
+              id: 2010
+              name: Movies/Foreign
+            -
+              id: 2020
+              name: Movies/Other
+            -
+              id: 2030
+              name: Movies/SD
+            -
+              id: 2040
+              name: Movies/HD
+            -
+              id: 2045
+              name: Movies/UHD
+            -
+              id: 2050
+              name: Movies/3D
+            -
+              id: 2060
+              name: Movies/BluRay
+            -
+              id: 2070
+              name: Movies/DVD
+            -
+              id: 2080
+              name: Movies/WEBDL
+        -
+          id: 2010
+          name: Movies/Foreign
+          subCategories: []
+        -
+          id: 2030
+          name: Movies/SD
+          subCategories: []
+        -
+          id: 2045
+          name: Movies/UHD
+          subCategories: []
+        -
+          id: 2060
+          name: Movies/BluRay
+          subCategories: []
+        -
+          id: 2070
+          name: Movies/DVD
+          subCategories: []
+        -
+          id: 3000
+          name: Audio
+          subCategories:
+            -
+              id: 3010
+              name: Audio/MP3
+            -
+              id: 3020
+              name: Audio/Video
+            -
+              id: 3030
+              name: Audio/Audiobook
+            -
+              id: 3040
+              name: Audio/Lossless
+            -
+              id: 3050
+              name: Audio/Other
+            -
+              id: 3060
+              name: Audio/Foreign
+        -
+          id: 3020
+          name: Audio/Video
+          subCategories: []
+        -
+          id: 3030
+          name: Audio/Audiobook
+          subCategories: []
+        -
+          id: 3050
+          name: Audio/Other
+          subCategories: []
+        -
+          id: 3060
+          name: Audio/Foreign
+          subCategories: []
+        -
+          id: 4000
+          name: PC
+          subCategories:
+            -
+              id: 4010
+              name: PC/0day
+            -
+              id: 4020
+              name: PC/ISO
+            -
+              id: 4030
+              name: PC/Mac
+            -
+              id: 4040
+              name: PC/Phone-Other
+            -
+              id: 4050
+              name: PC/Games
+            -
+              id: 4060
+              name: PC/Phone-IOS
+            -
+              id: 4070
+              name: PC/Phone-Android
+        -
+          id: 4030
+          name: PC/Mac
+          subCategories: []
+        -
+          id: 4050
+          name: PC/Games
+          subCategories: []
+        -
+          id: 5000
+          name: TV
+          subCategories:
+            -
+              id: 5010
+              name: TV/WEB-DL
+            -
+              id: 5020
+              name: TV/FOREIGN
+            -
+              id: 5030
+              name: TV/SD
+            -
+              id: 5040
+              name: TV/HD
+            -
+              id: 5045
+              name: TV/UHD
+            -
+              id: 5050
+              name: TV/OTHER
+            -
+              id: 5060
+              name: TV/Sport
+            -
+              id: 5070
+              name: TV/Anime
+            -
+              id: 5080
+              name: TV/Documentary
+        -
+          id: 5030
+          name: TV/SD
+          subCategories: []
+        -
+          id: 5040
+          name: TV/HD
+          subCategories: []
+        -
+          id: 5045
+          name: TV/UHD
+          subCategories: []
+        -
+          id: 5070
+          name: TV/Anime
+          subCategories: []
+        -
+          id: 5080
+          name: TV/Documentary
+          subCategories: []
+        -
+          id: 6000
+          name: XXX
+          subCategories:
+            -
+              id: 6010
+              name: XXX/DVD
+            -
+              id: 6020
+              name: XXX/WMV
+            -
+              id: 6030
+              name: XXX/XviD
+            -
+              id: 6040
+              name: XXX/x264
+            -
+              id: 6050
+              name: XXX/Other
+            -
+              id: 6060
+              name: XXX/Imageset
+            -
+              id: 6070
+              name: XXX/Packs
+        -
+          id: 6070
+          name: XXX/Packs
+          subCategories: []
+        -
+          id: 7000
+          name: Other
+          subCategories:
+            -
+              id: 7010
+              name: Other/Misc
+            -
+              id: 7020
+              name: Other/Hashed
+        -
+          id: 8000
+          name: Books
+          subCategories:
+            -
+              id: 8010
+              name: Books/Ebook
+            -
+              id: 8020
+              name: Books/Comics
+            -
+              id: 8030
+              name: Books/Magazines
+            -
+              id: 8040
+              name: Books/Technical
+            -
+              id: 8050
+              name: Books/Other
+            -
+              id: 8060
+              name: Books/Foreign
+    configComplete: false
+    disabledLevel: 0
+    disabledUntil: ~
+    downloadLimit: ~
+    enabledCategories: []
+    enabledForSearchSource: BOTH
+    generalMinSize: ~
+    hitLimit: ~
+    hitLimitResetTime: 0
+    host: "http://DSAC_HOSTPORT_REPLACE/api/v2.0/indexers/DSAC_PROVIDER_REPLACE/results/torznab/"
+    lastError: ~
+    loadLimitOnRandom: ~
+    name: DSAC_PROVIDER_REPLACE
+    password: ~
+    preselect: true
+    schedule: []
+    score: DSAC_PROVIDER_PRIORITY_REPLACE
+    searchModuleType: TORZNAB
+    showOnSearch: true
+    state: DISABLED_SYSTEM
+    supportedSearchIds: []
+    supportedSearchTypes: []
+    timeout: ~
+    userAgent: ~
+    username: ~

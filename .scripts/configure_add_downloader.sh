@@ -194,7 +194,52 @@ configure_add_downloader() {
         done
     fi
 
+    if [[ ${container_name} == "mylar" ]]; then
+        for downloader in "${!downloaders[@]}"; do
+            local downloader_section
+            local port
+
+            if [[ ${containers[${downloader}]+true} == "true" ]]; then
+                info "      - Linking ${container_name} to ${downloader}..."
+                port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
+
+                if [[ ${downloader} == "nzbget" ]]; then
+                    local nzbget_restricted_username
+                    local nzbget_restricted_password
+                    nzbget_restricted_username=${API_KEYS[nzbget]%%,*}
+                    nzbget_restricted_password=${API_KEYS[nzbget]#*,}
+                    downloader_section="NZBGet"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_priority Default
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_category Books
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_user "${nzbget_restricted_username}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_pass "${nzbget_restricted_password}"
+                    downloader_configured="true"
+                elif [[ ${downloader} == "qbittorrent" ]]; then
+                    downloader_section="qBittorrent"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}:${port}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_label Books
+                    crudini --set "${config_path}" "Torrents" "enable_torrents" "True"
+                    if [[ $(crudini --set "${config_path}" "Torrents" "minseeds") -eq 0 ]]; then
+                        crudini --set "${config_path}" "Torrents" "minseeds" "1"
+                    fi
+                    downloader_configured="true"
+                elif [[ ${downloader} == "transmission" ]]; then
+                    downloader_section="Transmission"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
+                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
+                    crudini --set "${config_path}" "Torrents" "enable_torrents" "True"
+                    if [[ $(crudini --set "${config_path}" "Torrents" "minseeds") -eq 0 ]]; then
+                        crudini --set "${config_path}" "Torrents" "minseeds" "1"
+                    fi
+                    downloader_configured="true"
+                fi
+            fi
+        done
+    fi
+
     if [[ ${downloader_configured} != "true" ]]; then
-        warning "      No Downloaders to configure."
+        warn "      No Downloaders to configure."
     fi
 }

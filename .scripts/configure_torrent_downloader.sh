@@ -20,6 +20,7 @@ configure_torrent_downloader() {
         debug "    ip_addresses_new=${ip_addresses_new[*]}"
 
         local ip_addresses_current
+        #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
         if [[ $(grep -c "AuthSubnetWhitelist=" "${config_path}") -gt 0 ]]; then
             ip_addresses_current="$(grep "AuthSubnetWhitelist=" "${config_path}")"
             ip_addresses_current=${ip_addresses_current#*=}
@@ -48,7 +49,8 @@ configure_torrent_downloader() {
         debug "    ip_addresses_new=${ip_addresses_new[*]}"
         printf -v ip_addresses "%s," "${ip_addresses_new[@]}" 2> /dev/null
         debug "    ip_addresses=${ip_addresses}"
-        info "  - Adding docker network to the list..."
+        info "    - Adding docker network to the list..."
+        #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
         if [[ $(grep -c "AuthSubnetWhitelist=" "${config_path}") -gt 0 ]]; then
             debug "    Updating AuthSubnetWhitelist"
             sed -i "s#AuthSubnetWhitelist=.*#AuthSubnetWhitelist=${ip_addresses}#" "${config_path}"
@@ -56,7 +58,8 @@ configure_torrent_downloader() {
             debug "    Adding AuthSubnetWhitelist"
             echo "WebUI\AuthSubnetWhitelist=${ip_addresses}" >> "${config_path}"
         fi
-        info "  - Enabling authentication bypass for local docker network..."
+        info "    - Enabling authentication bypass for local docker network..."
+        #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
         if [[ $(grep -c "AuthSubnetWhitelistEnabled=" "${config_path}") -gt 0 ]]; then
             debug "    Updating AuthSubnetWhitelistEnabled"
             sed -i "s/AuthSubnetWhitelistEnabled=.*/AuthSubnetWhitelistEnabled=true/" "${config_path}"

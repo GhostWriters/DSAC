@@ -19,7 +19,7 @@ get_api_keys() {
                 config_file="nzbhydra.yml"
                 config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
                 config_path="${config_path}/${config_file}"
-                API_KEY=$(yq r "${config_path}" main.apiKey)
+                API_KEY=$(yq-go r "${config_path}" "main.apiKey")
                 API_KEY=${API_KEY// /}
                 API_KEYS[$container_name]=${API_KEY}
                 debug "  ${API_KEYS[$container_name]}"
@@ -62,11 +62,11 @@ get_api_keys() {
                 API_KEYS[$container_name]=${API_KEY}
                 debug "  ${API_KEYS[$container_name]}"
                 ;;
-            "portainer" | "heimdall" | "qbittorrent" | "mylar" | "lazylibrarian" | "bazarr")
-                log "  API Key currently not needed"
+            "portainer" | "heimdall" | "qbittorrent" | "mylar" | "lazylibrarian" | "bazarr" | "couchpotato")
+                trace "  API Key currently not needed"
                 ;;
             *)
-                log "  No API Key retrieval configured for ${container_name}"
+                trace "  No API Key retrieval configured"
                 ;;
         esac
         if [[ ${API_KEY:-} != "" ]]; then

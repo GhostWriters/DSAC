@@ -5,7 +5,7 @@
     },
     "managers": {
         "books": ["lazylibrarian"],
-        "comics": ["mylarr"],
+        "comics": ["mylar"],
         "movies": ["radarr"],
         "music": ["lidarr"],
         "series": ["sonarr"],
