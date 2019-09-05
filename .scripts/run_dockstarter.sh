@@ -66,6 +66,7 @@ run_dockstarter() {
                     app=${apps[${app_index}]^^}
                     debug "    - ${app}"
                     (ds -a "${app}")
+                    APPNAME=${app^^}
                     run_script 'ds_env_set' "${APPNAME}_ENABLED" true
                 done
             else
@@ -77,6 +78,7 @@ run_dockstarter() {
                         app=${apps[${app_index}]^^}
                         debug "    - ${app}"
                         (ds -a "${app}")
+                        APPNAME=${app^^}
                         run_script 'ds_env_set' "${APPNAME}_ENABLED" true
                     done
                 done
