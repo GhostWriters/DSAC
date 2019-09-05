@@ -54,7 +54,7 @@ cmdline() {
     #Reset the positional parameters to the short options
     eval set -- "${LOCAL_ARGS:-}"
 
-    while getopts ":b:c:deghipt:u:vx" OPTION; do
+    while getopts ":dhit:u:vx" OPTION; do
         case ${OPTION} in
             d)
                 readonly DEBUG=1
@@ -69,7 +69,6 @@ cmdline() {
                 ;;
             t)
                 readonly TEST=${OPTARG}
-                exit
                 ;;
             u)
                 readonly UPDATE=${OPTARG}
@@ -316,7 +315,7 @@ main() {
     fi
     # Repo Check
     local PROMPT
-    local DS_COMMAND
+    local DSAC_COMMAND
     DSAC_COMMAND=$(command -v dsac || true)
     if [[ -L ${DSAC_COMMAND} ]]; then
         local DSAC_SYMLINK
@@ -334,6 +333,8 @@ main() {
                 unset PROMPT
             fi
             warn "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
+            sudo bash "${DSAC_SYMLINK}" -vu
+            sudo bash "${DSAC_SYMLINK}" -vi
             exec sudo bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
         fi
     else
