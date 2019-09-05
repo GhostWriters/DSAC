@@ -333,6 +333,8 @@ main() {
                 unset PROMPT
             fi
             warn "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
+            sudo bash "${DSAC_SYMLINK}" -vu
+            sudo bash "${DSAC_SYMLINK}" -vi
             exec sudo bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
         fi
     else
