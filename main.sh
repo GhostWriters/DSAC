@@ -69,7 +69,6 @@ cmdline() {
                 ;;
             t)
                 readonly TEST=${OPTARG}
-                exit
                 ;;
             u)
                 readonly UPDATE=${OPTARG}
@@ -316,7 +315,7 @@ main() {
     fi
     # Repo Check
     local PROMPT
-    local DS_COMMAND
+    local DSAC_COMMAND
     DSAC_COMMAND=$(command -v dsac || true)
     if [[ -L ${DSAC_COMMAND} ]]; then
         local DSAC_SYMLINK
