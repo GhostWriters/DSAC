@@ -65,10 +65,10 @@ cmdline() {
                 ;;
             i)
                 readonly INSTALL=true
-                exit
                 ;;
             t)
                 readonly TEST=${OPTARG}
+                exit
                 ;;
             u)
                 readonly UPDATE=${OPTARG}
