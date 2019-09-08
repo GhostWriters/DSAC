@@ -9,7 +9,7 @@ run_dockstarter() {
         if [[ ! -d ${DETECTED_HOMEDIR}/.docker/.git ]]; then
             notice "Installing DockSTARTer..."
             # This is a gross hack...
-            (sudo -u ${DETECTED_UNAME} sudo -u ${DETECTED_UNAME} bash -c "$(curl -fsSL https://get.dockstarter.com)")
+            (sudo -u "${DETECTED_UNAME}" sudo -u "${DETECTED_UNAME}" bash -c "$(curl -fsSL https://get.dockstarter.com)")
         else
             notice "Updating DockSTARTer..."
             (ds -u)
