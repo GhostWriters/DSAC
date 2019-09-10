@@ -12,7 +12,7 @@ question_prompt() {
             YN=${DEFAULT}
         elif [[ ${PROMPT:-} == "CLI" ]]; then
             notice "${QUESTION}"
-            read -rp "[Yn]" YN
+            read -rp "[Yn]" YN < /dev/tty
         elif [[ ${PROMPT:-} == "GUI" ]]; then
             local WHIPTAIL_DEFAULT
             if [[ ${DEFAULT} == "N" ]]; then
@@ -35,7 +35,7 @@ question_prompt() {
         fi
         case ${YN} in
             [Yy]*)
-                break
+                return
                 ;;
             [Nn]*)
                 return 1

@@ -68,11 +68,9 @@ cmdline() {
                 ;;
             t)
                 readonly TEST=${OPTARG}
-                exit
                 ;;
             u)
                 readonly UPDATE=${OPTARG}
-                exit
                 ;;
             v)
                 readonly VERBOSE=1
@@ -85,7 +83,6 @@ cmdline() {
                 case ${OPTARG} in
                     u)
                         readonly UPDATE=true
-                        exit
                         ;;
                     *)
                         echo "${OPTARG} requires an option."
