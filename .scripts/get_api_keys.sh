@@ -17,7 +17,7 @@ get_api_keys() {
         case "${container_name}" in
             "hydra2")
                 config_file="nzbhydra.yml"
-                config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
+                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
                 config_path="${config_path}/${config_file}"
                 API_KEY=$(yq-go r "${config_path}" "main.apiKey")
                 API_KEY=${API_KEY// /}
@@ -26,7 +26,7 @@ get_api_keys() {
                 ;;
             "nzbget")
                 config_file="nzbget.conf"
-                config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
+                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
                 config_path="${config_path}/${config_file}"
                 restricted_user=$(grep 'RestrictedUsername=' "${config_path}" | sed -e 's/Restricted.*=\(.*\)/\1/')
                 if [[ ${restricted_user} == "" ]]; then
@@ -46,7 +46,7 @@ get_api_keys() {
                 ;;
             "radarr" | "sonarr" | "lidarr")
                 config_file="config.xml"
-                config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
+                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
                 config_path="${config_path}/${config_file}"
                 API_KEY=$(grep '<ApiKey>' "${config_path}" | sed -e 's/<ApiKey>\(.*\)<\/ApiKey>/\1/')
                 API_KEY=${API_KEY// /}
@@ -55,7 +55,7 @@ get_api_keys() {
                 ;;
             "jackett")
                 config_file="ServerConfig.json"
-                config_path=$(jq -r '.config_source' <<< "${containers[$container_name]}")
+                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
                 config_path="${config_path}/Jackett/${config_file}"
                 API_KEY=$(jq -r '.APIKey' "${config_path}")
                 API_KEY=${API_KEY// /}

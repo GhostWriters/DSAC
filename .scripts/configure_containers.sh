@@ -29,7 +29,7 @@ configure_containers() {
             if [[ ${containers[$app_name]+true} == "true" ]]; then
                 info "  - ${app_name}"
                 container_id=$(jq -r '.container_id' <<< "${containers[${app_name}]}")
-                config_source=$(jq -r '.config_source' <<< "${containers[${app_name}]}")
+                config_source=$(jq -r '.config.source' <<< "${containers[${app_name}]}")
                 config_file=$(jq -r '.config.file' <<< "${containers[${app_name}]}")
                 db_file=$(jq -r '.config.database' <<< "${containers[${app_name}]}")
 

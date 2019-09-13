@@ -37,7 +37,6 @@ get_docker_containers() {
                         config_source=$(jq 'fromjson | .Source' <<< "$i")
                         config_source=${config_source//\"/}
                         debug "  config_source=${config_source}"
-                        containers[${container_name}]=$(jq --arg var "${config_source}" '.config_source = $var' <<< "${containers[${container_name}]}")
                         containers[${container_name}]=$(jq --arg var "${config_source}" '.config.source = $var' <<< "${containers[${container_name}]}")
                     fi
                 done
