@@ -67,7 +67,7 @@ run_dockstarter() {
                 mapfile -t apps < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'values[]')
                 for app_index in "${!apps[@]}"; do
                     app=${apps[${app_index}]^^}
-                    app=${app//\"}
+                    app=${app//\"/}
                     debug "    - ${app}"
                     debug "      Creating app vars"
                     (ds -a "${app}")
@@ -81,7 +81,7 @@ run_dockstarter() {
                     mapfile -t apps < <(jq ".${app_type}.${app_category}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'values[]')
                     for app_index in "${!apps[@]}"; do
                         app=${apps[${app_index}]^^}
-                        app=${app//\"}
+                        app=${app//\"/}
                         debug "    - ${app}"
                         debug "      Creating app vars"
                         (ds -a "${app}")
