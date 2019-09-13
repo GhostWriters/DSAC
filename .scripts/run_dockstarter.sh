@@ -9,7 +9,7 @@ run_dockstarter() {
         if [[ ! -d ${DETECTED_HOMEDIR}/.docker/.git ]]; then
             notice "Installing DockSTARTer..."
             git clone https://github.com/GhostWriters/DockSTARTer "${DETECTED_DSDIR}"
-            bash ${DETECTED_DSDIR}/main.sh -vi
+            bash "${DETECTED_DSDIR}/main.sh" -vi
         else
             notice "Updating DockSTARTer..."
             (ds -u)
@@ -84,7 +84,7 @@ run_dockstarter() {
                         app=${app//\"}
                         debug "    - ${app}"
                         debug "      Creating app vars"
-                        (ds -a ${app})
+                        (ds -a "${app}")
                         debug "      Setting env"
                         run_script 'ds_env_set' "${app}_ENABLED" true
                     done
