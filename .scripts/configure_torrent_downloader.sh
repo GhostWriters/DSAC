@@ -3,17 +3,21 @@ set -euo pipefail
 IFS=$'\n\t'
 
 configure_torrent_downloader() {
-    local container_name
-    container_name="qbittorrent"
+    local app_name="qbittorrent"
 
     # shellcheck disable=SC2154,SC2001
-    if [[ ${containers[$container_name]+true} == "true" ]]; then
-        local container_network
-        container_network=$(docker container inspect "${container_id}" | jq '.[0].NetworkSettings.Networks | to_entries[].key' | awk '{gsub("\"",""); print}')
-        debug "    container_network=${container_network}"
-        local network_subnet
-        network_subnet=$(docker network inspect "${container_network}" | jq '.[0].IPAM.Config[0].Subnet' | awk '{gsub("\"",""); split($0,a,"/"); print a[1]}')
-        debug "    network_subnet=${network_subnet}"
+    if [[ ${containers[${app_name}]+true} == "true" ]]; then
+        local is_docker
+        is_docker=$(jq -r '.is_docker' <<< "${containers[${app_name}]}")
+
+        if [[ ${is_docker} == true ]]; then
+            local container_network
+            container_network=$(docker container inspect "${container_id}" | jq '.[0].NetworkSettings.Networks | to_entries[].key' | awk '{gsub("\"",""); print}')
+            debug "    container_network=${container_network}"
+            local network_subnet
+            network_subnet=$(docker network inspect "${container_network}" | jq '.[0].IPAM.Config[0].Subnet' | awk '{gsub("\"",""); split($0,a,"/"); print a[1]}')
+            debug "    network_subnet=${network_subnet}"
+        fi
 
         local ip_addresses_new
         ip_addresses_new=("${network_subnet}/24")
