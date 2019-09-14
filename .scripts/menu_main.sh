@@ -25,7 +25,7 @@ menu_main() {
             run_script 'run_dockstarter' apps
             run_script 'run_dockstarter' compose
             run_script 'run_dockstarter' backup
-            run_script 'configure_apps'
+            run_script 'configure_supported_apps'
             ;;
         "Custom Setup ")
             run_script 'run_dockstarter' install
@@ -37,13 +37,13 @@ menu_main() {
             info "Generating configure_apps.json file."
             cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
             info "Generation of configure_apps.json complete."
-            run_script 'configure_apps'
+            run_script 'configure_supported_apps'
             ;;
         "Configure Existing Containers ")
             info "Generating configure_apps.json file."
             cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
             info "Generation of configure_apps.json complete."
-            run_script 'configure_apps'
+            run_script 'configure_supported_apps'
             ;;
         "Install/Update DockSTARTer ")
             run_script 'run_dockstarter' install || run_script 'menu_main'

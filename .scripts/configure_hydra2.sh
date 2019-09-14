@@ -14,7 +14,7 @@ configure_hydra2() {
         if [[ ${containers[jackett]+true} == "true" ]]; then
             # Get trackers from Jackett CONFIG_PATH/Indexers/*.json
             local jackett_config_source
-            jackett_config_source=$(jq -r '.config_source' <<< "${containers[jackett]}")
+            jackett_config_source=$(jq -r '.config.source' <<< "${containers[jackett]}")
             local jackett_config_file
             jackett_config_file=$(jq -r '.config.file' <<< "${containers[jackett]}")
             local jackett_config_path

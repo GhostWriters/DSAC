@@ -25,6 +25,7 @@ get_docker_containers() {
                 fi
                 containers[${container_name}]=$(jq --arg var "${container_id}" '.container_id = $var' <<< "${containers[${container_name}]}")
                 containers[${container_name}]=$(jq --arg var "${container_image}" '.container_image = $var' <<< "${containers[${container_name}]}")
+                containers[${container_name}]=$(jq '.is_docker = "true"' <<< "${containers[${container_name}]}")
 
                 # Get container config path
                 info "  Getting ${container_name} config path."
@@ -37,7 +38,6 @@ get_docker_containers() {
                         config_source=$(jq 'fromjson | .Source' <<< "$i")
                         config_source=${config_source//\"/}
                         debug "  config_source=${config_source}"
-                        containers[${container_name}]=$(jq --arg var "${config_source}" '.config_source = $var' <<< "${containers[${container_name}]}")
                         containers[${container_name}]=$(jq --arg var "${config_source}" '.config.source = $var' <<< "${containers[${container_name}]}")
                     fi
                 done

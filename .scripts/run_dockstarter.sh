@@ -8,8 +8,8 @@ run_dockstarter() {
     if [[ ${ACTION} == "install" ]]; then
         if [[ ! -d ${DETECTED_HOMEDIR}/.docker/.git ]]; then
             notice "Installing DockSTARTer..."
-            # This is a gross hack...
-            (sudo -u "${DETECTED_UNAME}" sudo -u "${DETECTED_UNAME}" bash -c "$(curl -fsSL https://get.dockstarter.com)")
+            git clone https://github.com/GhostWriters/DockSTARTer "${DETECTED_DSDIR}"
+            bash "${DETECTED_DSDIR}/main.sh" -vi
         else
             notice "Updating DockSTARTer..."
             (ds -u)
@@ -54,6 +54,8 @@ run_dockstarter() {
             i=$((i + 1))
         done
     elif [[ ${ACTION} == "apps" ]]; then
+        notice "Updating DS .env"
+        (ds -e)
         notice "Adding apps to DS"
         mapfile -t app_types < <(jq 'keys[]' "${DETECTED_DSACDIR}/.data/configure_apps.json")
         for app_type_index in "${!app_types[@]}"; do
@@ -65,10 +67,12 @@ run_dockstarter() {
                 mapfile -t apps < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'values[]')
                 for app_index in "${!apps[@]}"; do
                     app=${apps[${app_index}]^^}
+                    app=${app//\"/}
                     debug "    - ${app}"
+                    debug "      Creating app vars"
                     (ds -a "${app}")
-                    APPNAME=${app^^}
-                    run_script 'ds_env_set' "${APPNAME}_ENABLED" true
+                    debug "      Setting env"
+                    run_script 'ds_env_set' "${app}_ENABLED" true
                 done
             else
                 for app_category_index in "${!app_categories[@]}"; do
@@ -77,10 +81,12 @@ run_dockstarter() {
                     mapfile -t apps < <(jq ".${app_type}.${app_category}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'values[]')
                     for app_index in "${!apps[@]}"; do
                         app=${apps[${app_index}]^^}
+                        app=${app//\"/}
                         debug "    - ${app}"
+                        debug "      Creating app vars"
                         (ds -a "${app}")
-                        APPNAME=${app^^}
-                        run_script 'ds_env_set' "${APPNAME}_ENABLED" true
+                        debug "      Setting env"
+                        run_script 'ds_env_set' "${app}_ENABLED" true
                     done
                 done
             fi

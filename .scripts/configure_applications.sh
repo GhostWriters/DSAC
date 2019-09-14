@@ -2,8 +2,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-configure_containers() {
-    info "Configuring ${1} Containers"
+configure_applications() {
+    info "Configuring ${1} applications"
     local app_type=${1}
     local app_category
     local app_name
@@ -12,6 +12,7 @@ configure_containers() {
     local config_path
     local db_file
     local db_path
+    local is_docker
 
     mapfile -t app_categories < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'keys[]')
     #shellcheck disable=SC2154
@@ -26,12 +27,13 @@ configure_containers() {
         fi
         for app_index in "${!apps[@]}"; do
             app_name=${apps[${app_index}]//\"/}
-            if [[ ${containers[$app_name]+true} == "true" ]]; then
+            if [[ ${containers[${app_name}]+true} == "true" ]]; then
                 info "  - ${app_name}"
                 container_id=$(jq -r '.container_id' <<< "${containers[${app_name}]}")
-                config_source=$(jq -r '.config_source' <<< "${containers[${app_name}]}")
+                config_source=$(jq -r '.config.source' <<< "${containers[${app_name}]}")
                 config_file=$(jq -r '.config.file' <<< "${containers[${app_name}]}")
                 db_file=$(jq -r '.config.database' <<< "${containers[${app_name}]}")
+                is_docker=$(jq -r '.is_docker' <<< "${containers[${app_name}]}")
 
                 if [[ -n ${config_file} && ${config_file} != "null" ]]; then
                     config_path="${config_source}/${config_file}"
@@ -50,8 +52,10 @@ configure_containers() {
                     db_path=""
                 fi
 
-                info "    - Stopping ${app_name} (${container_id}) to apply changes..."
-                docker stop "${container_id}" > /dev/null || error "       Unable to stop container..."
+                if [[ ${is_docker} == "true" ]]; then
+                    info "    - Stopping ${app_name} (${container_id}) to apply changes..."
+                    docker stop "${container_id}" > /dev/null || error "       Unable to stop container..."
+                fi
 
                 if [[ ${app_name} == "bazarr" || ${app_name} == "hydra2" ]]; then
                     run_script "configure_${app_name}" "${app_name}" "${db_path}" "${config_path}"
@@ -64,8 +68,10 @@ configure_containers() {
                     run_script "configure_add_downloader" "${app_name}" "${db_path}" "${config_path}"
                 fi
 
-                info "    - Starting ${app_name} (${container_id})..."
-                docker start "${container_id}" > /dev/null || error "       Unable to start container..."
+                if [[ ${is_docker} == "true" ]]; then
+                    info "    - Starting ${app_name} (${container_id})..."
+                    docker start "${container_id}" > /dev/null || error "       Unable to start container..."
+                fi
                 info "  - Done configuring ${app_name}"
             fi
         done
