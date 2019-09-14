@@ -25,6 +25,7 @@ get_docker_containers() {
                 fi
                 containers[${container_name}]=$(jq --arg var "${container_id}" '.container_id = $var' <<< "${containers[${container_name}]}")
                 containers[${container_name}]=$(jq --arg var "${container_image}" '.container_image = $var' <<< "${containers[${container_name}]}")
+                containers[${container_name}]=$(jq '.is_docker = "true"' <<< "${containers[${container_name}]}")
 
                 # Get container config path
                 info "  Getting ${container_name} config path."
