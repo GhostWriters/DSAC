@@ -8,6 +8,7 @@ menu_main() {
     MAINOPTS+=("Quick Setup Configurations " "= Select one or many pre-configured server types; uses DockSTARTer")
     MAINOPTS+=("Custom Setup " "= Full user input with no pre-selected apps; uses DockSTARTer")
     MAINOPTS+=("Configure Existing Containers " "= DSAC will detect and configure supported apps in your Docker Containers")
+    MAINOPTS+=("Connect Existing Containers to Remote Applications " "= DSAC will connect supported containers to remote applications")
     MAINOPTS+=("Install/Update DockSTARTer " "= DSAC will Install/Update DockSTARTer for you")
 
     local MAINCHOICE
@@ -44,6 +45,12 @@ menu_main() {
             cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
             info "Generation of configure_apps.json complete."
             run_script 'configure_supported_apps'
+            ;;
+        "Connect Existing Containers to Remote Applications ")
+            info "Generating configure_apps.json file."
+            cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
+            info "Generation of configure_apps.json complete."
+            run_script 'get_remote_application_info'
             ;;
         "Install/Update DockSTARTer ")
             run_script 'run_dockstarter' install || run_script 'menu_main'
