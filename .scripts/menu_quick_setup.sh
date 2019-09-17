@@ -54,6 +54,13 @@ menu_quick_setup() {
 
             echo "${CONFIGJSON}" > "${DETECTED_DSACDIR}/.data/configure_apps.json"
             info "Generation of configure_apps.yml complete."
+
+            run_script 'run_dockstarter' install
+            run_script 'run_dockstarter' install-dependecies
+            run_script 'run_dockstarter' apps
+            run_script 'run_dockstarter' compose
+            run_script 'run_dockstarter' backup
+            run_script 'configure_supported_apps'
         fi
     fi
 }

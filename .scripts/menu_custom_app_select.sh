@@ -3,6 +3,9 @@ set -euo pipefail
 IFS=$'\n\t'
 
 menu_custom_app_select() {
+    run_script 'run_dockstarter' install
+    run_script 'run_dockstarter' install-dependecies
+    run_script 'read_manifest'
     run_script 'install_yq'
     local APPLIST=()
 
@@ -58,6 +61,12 @@ menu_custom_app_select() {
         done < <(echo "${SELECTEDAPPS}")
 
         (ds -r)
+        run_script 'run_dockstarter' compose
+        run_script 'run_dockstarter' backup
+        info "Generating configure_apps.json file."
+        cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
+        info "Generation of configure_apps.json complete."
+        run_script 'configure_supported_apps'
     fi
 }
 
