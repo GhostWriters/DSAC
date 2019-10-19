@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 configure_bazarr() {
     local container_name=${1}
-    local db_path=${2}
+    # local db_path=${2}
     local config_path=${3}
 
     # shellcheck disable=SC2154,SC2001
