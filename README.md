@@ -1,6 +1,6 @@
 # <!-- Home -->
 
-[![DSAC](https://github.com/GhostWriters/DSAC/raw/master/.github/logo.png)](https://appstarter.net)
+[![DSAC](https://github.com/GhostWriters/DSAC/raw/master/.github/logo.png)](https://dsac.dockstarter.net)
 
 [![Discord chat](https://img.shields.io/discord/477959324183035936.svg?style=flat-square&color=607D8B&logo=discord)](https://discord.gg/YFyJpmH) 
 [![GitHub contributors](https://img.shields.io/github/contributors/GhostWriters/DSAC.svg?style=flat-square&color=607D8B)](https://github.com/GhostWriters/DockSTARTer/graphs/contributors) 
