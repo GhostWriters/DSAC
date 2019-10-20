@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 configure_hydra2() {
     local container_name=${1}
-    local db_path=${2}
+    # local db_path=${2}
     local config_path=${3}
 
     # shellcheck disable=SC2154,SC2001
@@ -13,14 +13,14 @@ configure_hydra2() {
         LOCAL_IP=$(run_script 'detect_local_ip')
         if [[ ${containers[jackett]+true} == "true" ]]; then
             # Get trackers from Jackett CONFIG_PATH/Indexers/*.json
-            local jackett_config_source
-            jackett_config_source=$(jq -r '.config.source' <<< "${containers[jackett]}")
-            local jackett_config_file
-            jackett_config_file=$(jq -r '.config.file' <<< "${containers[jackett]}")
-            local jackett_config_path
-            jackett_config_path="${jackett_config_source}/${jackett_config_file}"
+            # local jackett_config_source
+            # jackett_config_source=$(jq -r '.config.source' <<< "${containers[jackett]}")
+            # local jackett_config_file
+            # jackett_config_file=$(jq -r '.config.file' <<< "${containers[jackett]}")
+            # local jackett_config_path
+            # jackett_config_path="${jackett_config_source}/${jackett_config_file}"
             local jackett_indexers_path
-            jackett_indexers_path="/home/matty/.config/appdata/jackett/Jackett/Indexers"
+            jackett_indexers_path="${DETECTED_HOMEDIR}/.config/appdata/jackett/Jackett/Indexers"
             local jackett_base
             jackett_base=$(jq -r '.base_url' <<< "${containers[jackett]}")
             local jackett_port
