@@ -243,3 +243,7 @@ configure_add_downloader() {
         warn "      No Downloaders to configure."
     fi
 }
+
+test_configure_add_downloader() {
+    warn "CI does not test this script"
+}

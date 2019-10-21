@@ -71,5 +71,5 @@ menu_custom_app_select() {
 }
 
 test_menu_custom_app_select() {
-    warn "Travis does not test menu_ds_app_select."
+    warn "CI does not test menu_ds_app_select."
 }

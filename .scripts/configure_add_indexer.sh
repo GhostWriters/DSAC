@@ -311,3 +311,7 @@ configure_add_indexer() {
         warn "      No Indexers to configure."
     fi
 }
+
+test_configure_add_indexer() {
+    warn "CI does not test this script"
+}

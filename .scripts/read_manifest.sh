@@ -33,3 +33,7 @@ read_manifest() {
 }
 
 IFS=$'\n\t'
+
+test_read_manifest() {
+    warn "CI does not test this script"
+}

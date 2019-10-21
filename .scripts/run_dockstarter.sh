@@ -94,3 +94,7 @@ run_dockstarter() {
         notice "Adding apps to DS completed"
     fi
 }
+
+test_run_dockstarter() {
+    warn "Test not configured yet."
+}

@@ -16,3 +16,7 @@ configure_supported_apps() {
     run_script 'configure_applications' 'indexers'
     notice "Configuration completed!"
 }
+
+test_configure_supported_apps() {
+    warn "Test not configured yet."
+}

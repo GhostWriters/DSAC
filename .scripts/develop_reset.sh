@@ -12,3 +12,7 @@ develop_reset() {
         sudo rm -r .docker
     fi
 }
+
+test_develop_reset() {
+    warn "CI does not test this script"
+}

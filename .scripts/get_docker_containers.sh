@@ -63,3 +63,7 @@ get_docker_containers() {
         exit
     fi
 }
+
+test_get_docker_containers() {
+    warn "CI does not test this script"
+}
