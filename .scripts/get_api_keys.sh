@@ -74,3 +74,7 @@ get_api_keys() {
         fi
     done
 }
+
+test_get_api_keys() {
+    warn "CI does not test this script"
+}

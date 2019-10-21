@@ -64,5 +64,5 @@ menu_quick_setup() {
 }
 
 test_menu_quick_setup() {
-    warn "Travis does not test menu_main."
+    warn "CI does not test menu_main."
 }

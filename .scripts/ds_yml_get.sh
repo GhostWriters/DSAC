@@ -11,5 +11,6 @@ ds_yml_get() {
 }
 
 test_ds_yml_get() {
+    run_script 'run_dockstarter' install
     run_script 'ds_yml_get' PORTAINER "services.portainer.labels[com.dockstarter.appinfo.nicename]"
 }

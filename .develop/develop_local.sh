@@ -36,3 +36,7 @@ develop_local() {
         sudo cp -r "${DETECTED_HOMEDIR}/${LOCAL_DIR}/compose" "${DETECTED_DSACDIR}"
     fi
 }
+
+test_develop_local() {
+    warn "CI does not test this script"
+}

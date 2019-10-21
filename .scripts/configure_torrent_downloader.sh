@@ -73,3 +73,7 @@ configure_torrent_downloader() {
         fi
     fi
 }
+
+test_configure_torrent_downloader() {
+    warn "CI does not test this script"
+}

@@ -30,3 +30,7 @@ configure_bazarr() {
         fi
     fi
 }
+
+test_configure_bazarr() {
+    warn "CI does not test this script"
+}

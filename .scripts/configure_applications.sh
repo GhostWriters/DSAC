@@ -83,3 +83,7 @@ configure_applications() {
         fi
     done
 }
+
+test_configure_applications() {
+    warn "Test not configured yet."
+}

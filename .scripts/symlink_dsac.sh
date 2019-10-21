@@ -25,3 +25,7 @@ symlink_dsac() {
         chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
     fi
 }
+
+test_symlink_dsac() {
+    warn "CI does not test this script"
+}

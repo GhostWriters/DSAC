@@ -96,7 +96,11 @@ debug() {
 run_script() {
     local SCRIPTSNAME="${1:-}"
     shift
-    if [[ -f ${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh ]]; then
+    if [[ -f ${DETECTED_DSACDIR}/.develop/${SCRIPTSNAME}.sh ]]; then
+        # shellcheck source=/dev/null
+        source "${DETECTED_DSACDIR}/.develop/${SCRIPTSNAME}.sh"
+        ${SCRIPTSNAME} "$@"
+    elif [[ -f ${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh ]]; then
         # shellcheck source=/dev/null
         source "${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh"
         ${SCRIPTSNAME} "$@"

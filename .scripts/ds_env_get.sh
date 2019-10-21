@@ -8,5 +8,6 @@ ds_env_get() {
 }
 
 test_ds_env_get() {
+    run_script 'run_dockstarter' install
     run_script 'ds_env_get' DOCKERCONFDIR
 }

@@ -20,5 +20,5 @@ test_ds_env_set() {
     # run_script 'ds_env_set' PORTAINER_ENABLED false
     # run_script 'ds_env_set' PORTAINER_ENABLED
     # run_script 'appvars_purge' PORTAINER
-    warn "ds_env_set not currently configured."
+    warn "Test not configured yet."
 }

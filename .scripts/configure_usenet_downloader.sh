@@ -27,3 +27,7 @@ configure_usenet_downloader() {
         fi
     fi
 }
+
+test_configure_usenet_downloader() {
+    warn "CI does not test this script"
+}

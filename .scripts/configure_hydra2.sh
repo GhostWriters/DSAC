@@ -66,3 +66,7 @@ configure_hydra2() {
         fi
     fi
 }
+
+test_configure_hydra2() {
+    warn "CI does not test this script"
+}
