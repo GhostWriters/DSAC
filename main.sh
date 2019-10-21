@@ -133,6 +133,7 @@ readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 
 # DS Information
+# shellcheck disable=SC2034
 readonly DETECTED_DSDIR=$(eval echo "~${DETECTED_UNAME}/.docker" 2> /dev/null || true)
 
 # DSAC Information

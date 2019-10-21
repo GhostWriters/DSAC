@@ -22,8 +22,6 @@ menu_quick_setup() {
             while IFS= read -r line; do
                 local CONFIGNAME
                 CONFIGNAME=${line}
-                local VALUES_SERIES
-                local VALUES_MOVIES
                 debug "CONFIGNAME=${CONFIGNAME}"
                 case "${CONFIGNAME}" in
                     "TV Series & Movies")
