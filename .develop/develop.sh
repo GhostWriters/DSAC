@@ -300,7 +300,3 @@ develop() {
     fi
 }
 develop
-
-test_develop() {
-    warn "CI does not test this script"
-}
