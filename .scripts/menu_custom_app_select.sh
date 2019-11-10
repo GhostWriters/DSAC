@@ -16,14 +16,14 @@ menu_custom_app_select() {
             if [[ -f ${DETECTED_DSDIR}/compose/.apps/${FILENAME}/${FILENAME}.yml ]]; then
                 if [[ -f ${DETECTED_DSDIR}/compose/.apps/${FILENAME}/${FILENAME}.${ARCH}.yml ]]; then
                     local APPNICENAME
-                    APPNICENAME=$(run_script 'ds_yml_get' "${APPNAME}" "services.${FILENAME}.labels[com.dockstarter.appinfo.nicename]" || echo "${APPNAME}")
+                    APPNICENAME=$(ds --yml_get="${APPNAME}","services.${FILENAME}.labels[com.dockstarter.appinfo.nicename]" || echo "${APPNAME}")
                     local APPDESCRIPTION
-                    APPDESCRIPTION=$(run_script 'ds_yml_get' "${APPNAME}" "services.${FILENAME}.labels[com.dockstarter.appinfo.description]" || echo "! Missing description !")
+                    APPDESCRIPTION=$(ds --yml_get="${APPNAME}","services.${FILENAME}.labels[com.dockstarter.appinfo.description]" || echo "! Missing description !")
                     if echo "${APPDESCRIPTION}" | grep -q '(DEPRECATED)'; then
                         continue
                     fi
                     local APPONOFF
-                    if [[ $(run_script 'ds_env_get' "${APPNAME}_ENABLED") == true ]]; then
+                    if [[ $(ds --env_get="${APPNAME}_ENABLED") == true ]]; then
                         APPONOFF="on"
                     else
                         APPONOFF="off"
@@ -49,7 +49,7 @@ menu_custom_app_select() {
         info "Disabling all apps."
         while IFS= read -r line; do
             local APPNAME=${line%%_ENABLED=true}
-            run_script 'ds_env_set' "${APPNAME}_ENABLED" false
+            ds --env_set="${APPNAME}_ENABLED",false
         done < <(grep '_ENABLED=true$' < "${DETECTED_DSDIR}/compose/.env")
 
         info "Enabling selected apps."
@@ -57,7 +57,7 @@ menu_custom_app_select() {
             local APPNAME=${line^^}
             debug "APPNAME=${APPNAME}"
             (ds -a "${APPNAME}")
-            run_script 'ds_env_set' "${APPNAME}_ENABLED" true
+            ds --env_set="${APPNAME}_ENABLED",true
         done < <(echo "${SELECTEDAPPS}")
 
         (ds -r)

@@ -72,7 +72,7 @@ run_dockstarter() {
                     debug "      Creating app vars"
                     (ds -a "${app}")
                     debug "      Setting env"
-                    run_script 'ds_env_set' "${app}_ENABLED" true
+                    ds --env_set="${app}_ENABLED",true
                 done
             else
                 for app_category_index in "${!app_categories[@]}"; do
@@ -86,7 +86,7 @@ run_dockstarter() {
                         debug "      Creating app vars"
                         (ds -a "${app}")
                         debug "      Setting env"
-                        run_script 'ds_env_set' "${app}_ENABLED" true
+                        ds --env_set="${app}_ENABLED",true
                     done
                 done
             fi
