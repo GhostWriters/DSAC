@@ -5,7 +5,7 @@ IFS=$'\n\t'
 menu_custom_app_select() {
     run_script 'run_dockstarter' install
     run_script 'run_dockstarter' install-dependecies
-    run_script 'read_manifest'
+    run_script 'get_supported_apps'
     run_script 'install_yq'
     local APPLIST=()
 
@@ -28,7 +28,7 @@ menu_custom_app_select() {
                     else
                         APPONOFF="off"
                     fi
-                    if grep -q "${APPNAME}_DSAC_SUPPORTED=TRUE$" "${DETECTED_DSACDIR}/.data/dsac_apps"; then
+                    if grep -q "${APPNAME}_DSAC_SUPPORTED=TRUE$" "${DETECTED_DSACDIR}/.data/.env"; then
                         APPDESCRIPTION="(DSAC Supported) ${APPDESCRIPTION}"
                     fi
                     APPLIST+=("${APPNICENAME}" "${APPDESCRIPTION}" "${APPONOFF}")
