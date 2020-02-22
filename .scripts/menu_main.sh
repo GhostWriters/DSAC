@@ -8,6 +8,7 @@ menu_main() {
     MAINOPTS+=("Quick Setup Configurations " "= Select one or many pre-configured server types; uses DockSTARTer")
     MAINOPTS+=("Custom Setup " "= Full user input with no pre-selected apps; uses DockSTARTer")
     MAINOPTS+=("Configure Existing Containers " "= DSAC will detect and configure supported apps in your Docker Containers")
+    MAINOPTS+=("Docker Overrides " "= DSAC will help generate and/or validate Overrides for your setup")
 
     local MAINCHOICE
     if [[ ${CI:-} == true ]]; then
@@ -28,6 +29,9 @@ menu_main() {
             cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
             info "Generation of configure_apps.json complete."
             run_script 'configure_supported_apps'
+            ;;
+        "Docker Overrides ")
+            run_script 'menu_overrides' || run_script 'menu_main'
             ;;
         "Update DSAC ")
             run_script 'update_self' || run_script 'menu_main'
