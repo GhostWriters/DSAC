@@ -1,0 +1,15 @@
+apps:
+  - "compose/.apps/**/*.yml"
+  - ".apps/**/*.yml"
+  - ".data/*.yml"
+  - ".data/*.json"
+
+ci:
+  - ".github/workflows/*.yml"
+  - ".travis.yml"
+
+core:
+  - "*.sh"
+
+docs:
+  - "*.md"
