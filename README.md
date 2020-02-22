@@ -12,4 +12,3 @@
 ## Documentation
 
 Documentation can be found at the [DSAC website](https://dsac.dockstarter.com)
-
