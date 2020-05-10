@@ -6,61 +6,55 @@ get_api_keys() {
     info "Retrieving API Keys"
 
     # shellcheck disable=SC2154
-    for container_name in "${!containers[@]}"; do
-        local config_file
-        local config_path
+    for CONTAINER_NAME in "${!containers[@]}"; do
+        local CONFIG_FILE
+        local CONFIG_PATH
         local API_KEY
         local restricted_user
         local restricted_pass
 
-        info "- ${container_name}"
-        case "${container_name}" in
+        info "- ${CONTAINER_NAME}"
+        CONTAINER_YML="services.${CONTAINER_NAME}.labels[com.dockstarter.dsac]"
+        CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.apps/${CONTAINER_NAME}/${CONTAINER_NAME}.labels.dsac.yml"
+        CONFIG_FILE=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.file")
+        CONFIG_PATH=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.source")
+        CONFIG_PATH_FULL="${CONFIG_PATH}/${CONFIG_FILE}"
+        case "${CONTAINER_NAME}" in
             "hydra2")
-                config_file="nzbhydra.yml"
-                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
-                config_path="${config_path}/${config_file}"
-                API_KEY=$(yq-go r "${config_path}" "main.apiKey")
+                API_KEY=$(yq-go r "${CONFIG_PATH}" "main.apiKey")
                 API_KEY=${API_KEY// /}
-                API_KEYS[$container_name]=${API_KEY}
-                debug "  ${API_KEYS[$container_name]}"
+                API_KEYS[$CONTAINER_NAME]=${API_KEY}
+                debug "  ${API_KEYS[$CONTAINER_NAME]}"
+                ;;
+            "jackett")
+                CONFIG_PATH_FULL="${CONFIG_PATH}/Jackett/${CONFIG_FILE}"
+                API_KEY=$(jq -r '.APIKey' "${CONFIG_PATH_FULL}")
+                API_KEY=${API_KEY// /}
+                API_KEYS[$CONTAINER_NAME]=${API_KEY}
+                debug "  ${API_KEYS[$CONTAINER_NAME]}"
                 ;;
             "nzbget")
-                config_file="nzbget.conf"
-                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
-                config_path="${config_path}/${config_file}"
-                restricted_user=$(grep 'RestrictedUsername=' "${config_path}" | sed -e 's/Restricted.*=\(.*\)/\1/')
+                restricted_user=$(grep 'RestrictedUsername=' "${CONFIG_PATH_FULL}" | sed -e 's/Restricted.*=\(.*\)/\1/')
                 if [[ ${restricted_user} == "" ]]; then
                     restricted_user="dsac"
                     # TODO: Move this to the proper place for setting config
-                    sed -i "s/RestrictedUsername=.*/RestrictedUsername=${restricted_user}/" "${config_path}"
+                    sed -i "s/RestrictedUsername=.*/RestrictedUsername=${restricted_user}/" "${CONFIG_PATH_FULL}"
                 fi
-                restricted_pass=$(grep 'RestrictedPassword=' "${config_path}" | sed -e 's/Restricted.*=\(.*\)/\1/')
+                restricted_pass=$(grep 'RestrictedPassword=' "${CONFIG_PATH_FULL}" | sed -e 's/Restricted.*=\(.*\)/\1/')
                 if [[ ${restricted_pass} == "" ]]; then
                     restricted_pass=$(uuidgen | tr -d - | tr -d '' | tr '[:upper:]' '[:lower:]')
                     # TODO: Move this to the proper place for setting config
-                    sed -i "s/RestrictedPassword=.*/RestrictedPassword=${restricted_pass}/" "${config_path}"
+                    sed -i "s/RestrictedPassword=.*/RestrictedPassword=${restricted_pass}/" "${CONFIG_PATH_FULL}"
                 fi
                 API_KEY="${restricted_user},${restricted_pass}"
-                API_KEYS[$container_name]=${API_KEY}
-                debug "  ${API_KEYS[$container_name]}"
+                API_KEYS[$CONTAINER_NAME]=${API_KEY}
+                debug "  ${API_KEYS[$CONTAINER_NAME]}"
                 ;;
             "radarr" | "sonarr" | "lidarr")
-                config_file="config.xml"
-                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
-                config_path="${config_path}/${config_file}"
-                API_KEY=$(grep '<ApiKey>' "${config_path}" | sed -e 's/<ApiKey>\(.*\)<\/ApiKey>/\1/')
+                API_KEY=$(grep '<ApiKey>' "${CONFIG_PATH_FULL}" | sed -e 's/<ApiKey>\(.*\)<\/ApiKey>/\1/')
                 API_KEY=${API_KEY// /}
-                API_KEYS[$container_name]=${API_KEY}
-                debug "  ${API_KEYS[$container_name]}"
-                ;;
-            "jackett")
-                config_file="ServerConfig.json"
-                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
-                config_path="${config_path}/Jackett/${config_file}"
-                API_KEY=$(jq -r '.APIKey' "${config_path}")
-                API_KEY=${API_KEY// /}
-                API_KEYS[$container_name]=${API_KEY}
-                debug "  ${API_KEYS[$container_name]}"
+                API_KEYS[$CONTAINER_NAME]=${API_KEY}
+                debug "  ${API_KEYS[$CONTAINER_NAME]}"
                 ;;
             "portainer" | "heimdall" | "qbittorrent" | "mylar" | "lazylibrarian" | "bazarr" | "couchpotato")
                 trace "  API Key currently not needed"
@@ -70,7 +64,7 @@ get_api_keys() {
                 ;;
         esac
         if [[ ${API_KEY:-} != "" ]]; then
-            containers[$container_name]=$(jq --arg var "${API_KEY}" '.api_key = $var' <<< "${containers[$container_name]}")
+            yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.data.api_key" "${API_KEY}"
         fi
     done
 }
