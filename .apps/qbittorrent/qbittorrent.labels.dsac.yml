@@ -1,0 +1,10 @@
+services:
+  qbittorrent:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: "qBittorrent/qBittorrent.conf"
+          database: ""
+        ports:
+          default: 8080
