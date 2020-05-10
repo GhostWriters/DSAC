@@ -61,35 +61,90 @@ readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 # DSAC Information
 readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null || true)
 
-# Colors
-# https://misc.flogisoft.com/bash/tip_colors_and_formatting
-readonly BLU='\e[34m'
-readonly GRN='\e[32m'
-readonly RED='\e[31m'
-readonly YLW='\e[33m'
-readonly NC='\e[0m'
+# Terminal Colors
+if [[ ${CI:-} == true ]] || [[ -t 1 ]]; then
+    readonly SCRIPTTERM=true
+fi
+tcolor() {
+    if [[ -n ${SCRIPTTERM:-} ]]; then
+        # http://linuxcommand.org/lc3_adv_tput.php
+        local BF=${1:-}
+        local CAP
+        case ${BF} in
+            [Bb]) CAP=setab ;;
+            [Ff]) CAP=setaf ;;
+            [Nn][Cc]) CAP=sgr0 ;;
+            *) return ;;
+        esac
+        local COLOR_IN=${2:-}
+        local VAL
+        if [[ ${CAP} != "sgr0" ]]; then
+            case ${COLOR_IN} in
+                [Bb4]) VAL=4 ;; # Blue
+                [Cc6]) VAL=6 ;; # Cyan
+                [Gg2]) VAL=2 ;; # Green
+                [Kk0]) VAL=0 ;; # Black
+                [Mm5]) VAL=5 ;; # Magenta
+                [Rr1]) VAL=1 ;; # Red
+                [Ww7]) VAL=7 ;; # White
+                [Yy3]) VAL=3 ;; # Yellow
+                *) return ;;
+            esac
+        fi
+        local COLOR_OUT
+        if [[ $(tput colors 2> /dev/null) -ge 8 ]]; then
+            COLOR_OUT=$(eval tput ${CAP:-} ${VAL:-} 2> /dev/null)
+        fi
+        echo "${COLOR_OUT:-}"
+    else
+        return
+    fi
+}
+declare -Agr B=(
+    [B]=$(tcolor B B)
+    [C]=$(tcolor B C)
+    [G]=$(tcolor B G)
+    [K]=$(tcolor B K)
+    [M]=$(tcolor B M)
+    [R]=$(tcolor B R)
+    [W]=$(tcolor B W)
+    [Y]=$(tcolor B Y)
+)
+declare -Agr F=(
+    [B]=$(tcolor F B)
+    [C]=$(tcolor F C)
+    [G]=$(tcolor F G)
+    [K]=$(tcolor F K)
+    [M]=$(tcolor F M)
+    [R]=$(tcolor F R)
+    [W]=$(tcolor F W)
+    [Y]=$(tcolor F Y)
+)
+readonly NC=$(tcolor NC)
 
 # Log Functions
 readonly LOG_FILE="/tmp/dsac-develop.log"
 sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
 log() {
-    if [[ -v DEBUG && $DEBUG == 1 ]] || [[ -v VERBOSE && $VERBOSE == 1 ]] || [[ -v DEVMODE && $DEVMODE == 1 ]]; then
-        echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" >&2
-    else
-        echo -e "${NC}$(date +"%F %T") ${BLU}[LOG]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null
-    fi
+    local TOTERM=${1:-}
+    local MESSAGE=${2:-}
+    echo -e "${MESSAGE:-}" | (
+        if [[ -n ${TOTERM} ]]; then
+            tee -a "${LOG_FILE}" >&2
+        else
+            cat >> "${LOG_FILE}" 2>&1
+        fi
+    )
 }
-info() { echo -e "${NC}$(date +"%F %T") ${BLU}[INFO]${NC}       $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-warning() { echo -e "${NC}$(date +"%F %T") ${YLW}[WARNING]${NC}    $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-error() { echo -e "${NC}$(date +"%F %T") ${RED}[ERROR]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+trace() { log "${TRACE:-}" "${NC}$(date +"%F %T") ${F[B]}[TRACE ]${NC}   $*${NC}"; }
+debug() { log "${DEBUG:-}" "${NC}$(date +"%F %T") ${F[B]}[DEBUG ]${NC}   $*${NC}"; }
+info() { log "${VERBOSE:-}" "${NC}$(date +"%F %T") ${F[B]}[INFO  ]${NC}   $*${NC}"; }
+notice() { log "true" "${NC}$(date +"%F %T") ${F[G]}[NOTICE]${NC}   $*${NC}"; }
+warn() { log "true" "${NC}$(date +"%F %T") ${F[Y]}[WARN  ]${NC}   $*${NC}"; }
+error() { log "true" "${NC}$(date +"%F %T") ${F[R]}[ERROR ]${NC}   $*${NC}"; }
 fatal() {
-    echo -e "${NC}$(date +"%F %T") ${RED}[FATAL]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
+    log "true" "${NC}$(date +"%F %T") ${B[R]}${F[W]}[FATAL ]${NC}   $*${NC}"
     exit 1
-}
-debug() {
-    if [[ -v DEBUG && $DEBUG == 1 ]] || [[ -v VERBOSE && $VERBOSE == 1 ]] || [[ -v DEVMODE && $DEVMODE == 1 ]]; then
-        echo -e "${NC}$(date +"%F %T") ${GRN}[DEBUG]${NC}      $*${NC}" | tee -a "${LOG_FILE}" >&2
-    fi
 }
 
 # Script Runner Function
@@ -277,7 +332,6 @@ develop() {
             fi
             #Update DSAC from development repo and then from local files
             if [[ -n ${LOCAL:-} ]]; then
-                (sudo dsac -u)
                 run_script 'develop_local' "${LOCAL_DIR}"
             fi
             #Run tests
