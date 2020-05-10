@@ -1,0 +1,10 @@
+services:
+  hydra2:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: "nzbhydra.yml"
+        ports:
+          default: 5076
+        base_url: "/"

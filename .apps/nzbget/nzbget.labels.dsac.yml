@@ -1,0 +1,10 @@
+services:
+  nzbget:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: "nzbget.conf"
+          database: ""
+        ports:
+          default: 6789

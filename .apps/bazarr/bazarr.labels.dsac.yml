@@ -1,0 +1,10 @@
+services:
+  bazarr:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: "config/config.ini"
+          database: "db/bazarr.db"
+        ports:
+          default: 6767
