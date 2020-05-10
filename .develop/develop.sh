@@ -105,7 +105,7 @@ run_script() {
         source "${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh"
         ${SCRIPTSNAME} "$@"
     else
-        fatal "${DETECTED_DSACDIR}/.scripts/${SCRIPTSNAME}.sh not found."
+        fatal "${SCRIPTSNAME}.sh not found in ${DETECTED_DSACDIR}/.develop/ or ${DETECTED_DSACDIR}/.scripts/"
     fi
 }
 
@@ -277,7 +277,7 @@ develop() {
             fi
             #Update DSAC from development repo and then from local files
             if [[ -n ${LOCAL:-} ]]; then
-                (sudo dsac -u "origin/development")
+                (sudo dsac -u)
                 run_script 'develop_local' "${LOCAL_DIR}"
             fi
             #Run tests
