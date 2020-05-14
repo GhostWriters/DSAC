@@ -5,10 +5,10 @@ IFS=$'\n\t'
 menu_custom_app_select() {
     run_script 'run_dockstarter' install
     run_script 'run_dockstarter' install-dependecies
-    run_script 'read_manifest'
     run_script 'install_yq'
     local APPLIST=()
 
+    notice "Getting Application List. Please wait..."
     while IFS= read -r line; do
         local APPNAME=${line^^}
         local FILENAME=${APPNAME,,}
@@ -16,19 +16,19 @@ menu_custom_app_select() {
             if [[ -f ${DETECTED_DSDIR}/compose/.apps/${FILENAME}/${FILENAME}.yml ]]; then
                 if [[ -f ${DETECTED_DSDIR}/compose/.apps/${FILENAME}/${FILENAME}.${ARCH}.yml ]]; then
                     local APPNICENAME
-                    APPNICENAME=$(run_script 'ds_yml_get' "${APPNAME}" "services.${FILENAME}.labels[com.dockstarter.appinfo.nicename]" || echo "${APPNAME}")
+                    APPNICENAME=$(ds --yml-get=${APPNAME},services.${FILENAME}.labels[com.dockstarter.appinfo.nicename] || echo "${APPNAME}")
                     local APPDESCRIPTION
-                    APPDESCRIPTION=$(run_script 'ds_yml_get' "${APPNAME}" "services.${FILENAME}.labels[com.dockstarter.appinfo.description]" || echo "! Missing description !")
+                    APPDESCRIPTION=$(ds --yml-get=${APPNAME},services.${FILENAME}.labels[com.dockstarter.appinfo.description] || echo "! Missing description !")
                     if echo "${APPDESCRIPTION}" | grep -q '(DEPRECATED)'; then
                         continue
                     fi
                     local APPONOFF
-                    if [[ $(run_script 'ds_env_get' "${APPNAME}_ENABLED") == true ]]; then
+                    if [[ $(ds --env-get=${APPNAME}_ENABLED) == true ]]; then
                         APPONOFF="on"
                     else
                         APPONOFF="off"
                     fi
-                    if grep -q "${APPNAME}_DSAC_SUPPORTED=TRUE$" "${DETECTED_DSACDIR}/.data/dsac_apps"; then
+                    if [[ $(yq-go r "${DETECTED_DSACDIR}/.data/supported_apps.yml" "*.*(.==${FILENAME}*)" | wc -l) -ge 1 ]] || [[ $(yq-go r "${DETECTED_DSACDIR}/.data/supported_apps.yml" "*(.==${FILENAME}*)" | wc -l) -ge 1 ]]; then
                         APPDESCRIPTION="(DSAC Supported) ${APPDESCRIPTION}"
                     fi
                     APPLIST+=("${APPNICENAME}" "${APPDESCRIPTION}" "${APPONOFF}")
@@ -49,7 +49,7 @@ menu_custom_app_select() {
         info "Disabling all apps."
         while IFS= read -r line; do
             local APPNAME=${line%%_ENABLED=true}
-            run_script 'ds_env_set' "${APPNAME}_ENABLED" false
+            (ds --env-set=${APPNAME}_ENABLED,false)
         done < <(grep '_ENABLED=true$' < "${DETECTED_DSDIR}/compose/.env")
 
         info "Enabling selected apps."
@@ -57,7 +57,7 @@ menu_custom_app_select() {
             local APPNAME=${line^^}
             debug "APPNAME=${APPNAME}"
             (ds -a "${APPNAME}")
-            run_script 'ds_env_set' "${APPNAME}_ENABLED" true
+            (ds --env-set=${APPNAME}_ENABLED,true)
         done < <(echo "${SELECTEDAPPS}")
 
         (ds -r)
