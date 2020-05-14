@@ -12,10 +12,12 @@ get_api_keys() {
         local API_KEY
         local restricted_user
         local restricted_pass
+        local CONTAINER_YML
+        local CONTAINER_YML_FILE
 
         info "- ${CONTAINER_NAME}"
         CONTAINER_YML="services.${CONTAINER_NAME}.labels[com.dockstarter.dsac]"
-        CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.apps/${CONTAINER_NAME}/${CONTAINER_NAME}.labels.dsac.yml"
+        CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${CONTAINER_NAME}/${CONTAINER_NAME}.yml"
         CONFIG_FILE=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.file")
         CONFIG_PATH=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.source")
         CONFIG_PATH_FULL="${CONFIG_PATH}/${CONFIG_FILE}"
