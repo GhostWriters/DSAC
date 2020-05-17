@@ -24,6 +24,9 @@ menu_main() {
             run_script 'menu_custom_app_select' || run_script 'menu_main'
             ;;
         "Configure Existing Containers ")
+            info "Generating configure_apps.yml file."
+            cp "${SCRIPTPATH}/.data/supported_apps.yml" "${SCRIPTPATH}/.data/configure_apps.yml"
+            info "Generation of configure_apps.yml complete."
             run_script 'configure_supported_apps'
             ;;
         "Update DSAC ")
