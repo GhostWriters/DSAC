@@ -3,47 +3,50 @@ set -euo pipefail
 IFS=$'\n\t'
 
 configure_add_downloader() {
-    local container_name="${1}"
-    local db_path="${2}"
-    local config_path="${3}"
-    local downloader_configured="false"
+    local CONTAINER_NAME="${1}"
+    local DB_PATH="${2}"
+    local CONFIG_PATH="${3}"
+    local DOWNLOADER_CONFIGURED="false"
     local LOCAL_IP
     LOCAL_IP=$(run_script 'detect_local_ip')
-    # Define supported downloaders and their default listening port
-    typeset -A downloaders
-    downloaders[nzbget]="6789"
-    downloaders[qbittorrent]="8080"
-    downloaders[transmission]="9091"
-    info "    - Updating Downloader settings"
-    debug "      container_name=${container_name}"
-    debug "      db_path=${db_path}"
-    # shellcheck disable=SC2154,SC2001
-    if [[ ${container_name} == "radarr" || ${container_name} == "sonarr" || ${container_name} == "lidarr" ]]; then
-        for downloader in "${!downloaders[@]}"; do
-            local db_id
-            local db_name
-            local db_implementation
-            local db_config_contract
-            local db_settings
-            local port
-            local db_settings_new
+    # Get supported DOWNLOADERS
+    mapfile -t DOWNLOADERS < <(yq-go r "${DETECTED_DSACDIR}/.data/supported_apps.yml" "DOWNLOADERS.*" | awk '{gsub("- ",""); print}')
+    info "Updating Downloader settings"
+    debug "CONTAINER_NAME=${CONTAINER_NAME}"
+    debug "DB_PATH=${DB_PATH}"
 
-            if [[ ${containers[${downloader}]+true} == "true" ]]; then
-                if [[ ${downloader} == "nzbget" ]]; then
-                    info "      - Linking ${container_name} to ${downloader}..."
-                    local nzbget_restricted_username
-                    local nzbget_restricted_password
-                    db_name="${downloader} (DSAC)"
-                    db_implementation="Nzbget"
-                    db_config_contract="NzbgetSettings"
-                    nzbget_restricted_username=${API_KEYS[nzbget]%%,*}
-                    nzbget_restricted_password=${API_KEYS[nzbget]#*,}
-                    port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
-                    db_settings_new="{
+    for DOWNLOADER in "${!DOWNLOADERS[@]}"; do
+        local DOWNLOADER_YML
+        DOWNLOADER_YML="services.${DOWNLOADER}.labels[com.dockstarter.dsac]"
+        local DOWNLOADER_YML_FILE
+        DOWNLOADER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${DOWNLOADER}/${DOWNLOADER}.yml"
+        local PORT
+        PORT=$(yq-go r "${DOWNLOADER_YML_FILE}" "${DOWNLOADER_YML}.ports.default")
+        PORT=$(yq-go r "${DOWNLOADER_YML_FILE}" "${DOWNLOADER_YML}.ports.${PORT}" || echo "${PORT}")
+        # shellcheck disable=SC2154,SC2001
+        if [[ ${CONTAINER_NAME} == "radarr" || ${CONTAINER_NAME} == "sonarr" || ${CONTAINER_NAME} == "lidarr" ]]; then
+            local DB_ID
+            local DB_NAME
+            local DB_IMPLEMENTATION
+            local DB_CONFIG_CONTRACT
+            local DB_SETTINGS
+            local DB_SETTINGS_NEW
+
+            if [[ -f ${DOWNLOADER_YML_FILE} ]]; then
+                if [[ ${DOWNLOADER} == "nzbget" ]]; then
+                    info "Linking ${CONTAINER_NAME} to ${DOWNLOADER}..."
+                    local NZBGET_RESTRICTED_USERNAME
+                    local NZBGET_RESTRICTED_PASSWORD
+                    DB_NAME="${DOWNLOADER} (DSAC)"
+                    DB_IMPLEMENTATION="Nzbget"
+                    DB_CONFIG_CONTRACT="NzbgetSettings"
+                    NZBGET_RESTRICTED_USERNAME=${API_KEYS[${DOWNLOADER}]%%,*}
+                    NZBGET_RESTRICTED_PASSWORD=${API_KEYS[${DOWNLOADER}]#*,}
+                    DB_SETTINGS_NEW="{
                                         \"host\": \"${LOCAL_IP}\",
-                                        \"port\": ${port},
-                                        \"username\": \"${nzbget_restricted_username}\",
-                                        \"password\": \"${nzbget_restricted_password}\",
+                                        \"PORT\": ${PORT},
+                                        \"username\": \"${NZBGET_RESTRICTED_USERNAME}\",
+                                        \"password\": \"${NZBGET_RESTRICTED_PASSWORD}\",
                                         \"movieCategory\": \"Movies\",
                                         \"TvCategory\": \"Series\",
                                         \"musicCategory\": \"Music\",
@@ -56,15 +59,14 @@ configure_add_downloader() {
                                         \"useSsl\": false,
                                         \"addPaused\": false
                                     }"
-                elif [[ ${downloader} == "qbittorrent" ]]; then
-                    info "      - Linking ${container_name} to ${downloader}..."
-                    db_name="${downloader} (DSAC)"
-                    db_implementation="QBittorrent"
-                    db_config_contract="QBittorrentSettings"
-                    port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
-                    db_settings_new="{
+                elif [[ ${DOWNLOADER} == "qbittorrent" ]]; then
+                    info "Linking ${CONTAINER_NAME} to ${DOWNLOADER}..."
+                    DB_NAME="${DOWNLOADER} (DSAC)"
+                    DB_IMPLEMENTATION="QBittorrent"
+                    DB_CONFIG_CONTRACT="QBittorrentSettings"
+                    DB_SETTINGS_NEW="{
                                         \"host\": \"${LOCAL_IP}\",
-                                        \"port\": ${port},
+                                        \"PORT\": ${PORT},
                                         \"movieCategory\": \"Movies\",
                                         \"TvCategory\": \"Series\",
                                         \"musicCategory\": \"Music\",
@@ -77,15 +79,14 @@ configure_add_downloader() {
                                         \"initialState\": 0,
                                         \"useSsl\": false,
                                     }"
-                elif [[ ${downloader} == "transmission" ]]; then
-                    info "      - Linking ${container_name} to ${downloader}..."
-                    db_name="${downloader} (DSAC)"
-                    db_implementation="Transmission"
-                    db_config_contract="TransmissionSettings"
-                    port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
-                    db_settings_new="{
+                elif [[ ${DOWNLOADER} == "transmission" ]]; then
+                    info "Linking ${CONTAINER_NAME} to ${DOWNLOADER}..."
+                    DB_NAME="${DOWNLOADER} (DSAC)"
+                    DB_IMPLEMENTATION="Transmission"
+                    DB_CONFIG_CONTRACT="TransmissionSettings"
+                    DB_SETTINGS_NEW="{
                                         \"host\": \"${LOCAL_IP}\",
-                                        \"port\": ${port},
+                                        \"PORT\": ${PORT},
                                         \"movieCategory\": \"Movies\",
                                         \"TvCategory\": \"Series\",
                                         \"musicCategory\": \"Music\",
@@ -100,147 +101,139 @@ configure_add_downloader() {
                                     }"
                 fi
 
-                debug "        Adding ${downloader} as an downloader, if needed..."
-                sqlite3 "${db_path}" "INSERT INTO DownloadClients (Enable,Name,Implementation,Settings,ConfigContract)
-                                        SELECT 1, '${db_name}','${db_implementation}','${db_settings_new}','${db_config_contract}'
-                                        WHERE NOT EXISTS(SELECT 1 FROM DownloadClients WHERE name='${db_name}');"
-                debug "        Get ${downloader} DB ID"
-                db_id=$(sqlite3 "${db_path}" "SELECT id FROM DownloadClients WHERE Name='${db_name}'")
-                debug "        ${downloader} DB ID: ${db_id}"
-                db_settings=$(sqlite3 "${db_path}" "SELECT Settings FROM DownloadClients WHERE id=$db_id")
+                debug "Adding ${DOWNLOADER} as an DOWNLOADER, if needed..."
+                sqlite3 "${DB_PATH}" "INSERT INTO DownloadClients (Enable,Name,Implementation,Settings,ConfigContract)
+                                        SELECT 1, '${DB_NAME}','${DB_IMPLEMENTATION}','${DB_SETTINGS_NEW}','${DB_CONFIG_CONTRACT}'
+                                        WHERE NOT EXISTS(SELECT 1 FROM DownloadClients WHERE name='${DB_NAME}');"
+                debug "Get ${DOWNLOADER} DB ID"
+                DB_ID=$(sqlite3 "${DB_PATH}" "SELECT id FROM DownloadClients WHERE Name='${DB_NAME}'")
+                debug "        ${DOWNLOADER} DB ID: ${DB_ID}"
+                DB_SETTINGS=$(sqlite3 "${DB_PATH}" "SELECT Settings FROM DownloadClients WHERE id=$DB_ID")
                 # Set host
-                debug "        Setting host to: ${LOCAL_IP}"
-                db_settings=$(sed 's/"host":.*/"host": "'"${LOCAL_IP}"'",/' <<< "$db_settings")
-                # Set port
-                debug "        Setting port to: ${port}"
-                db_settings=$(sed 's/"port":.*/"port": "'"${port}"'",/' <<< "$db_settings")
+                debug "Setting host to: ${LOCAL_IP}"
+                DB_SETTINGS=$(sed 's/"host":.*/"host": "'"${LOCAL_IP}"'",/' <<< "$DB_SETTINGS")
+                # Set PORT
+                debug "Setting PORT to: ${PORT}"
+                DB_SETTINGS=$(sed 's/"PORT":.*/"PORT": "'"${PORT}"'",/' <<< "$DB_SETTINGS")
 
-                if [[ ${downloader} == "nzbget" ]]; then
+                if [[ ${DOWNLOADER} == "nzbget" ]]; then
                     # Set username
-                    debug "        Setting username to: ${nzbget_restricted_username}"
-                    db_settings=$(sed 's/"username":.*/"username": "'"${nzbget_restricted_username}"'",/' <<< "$db_settings")
+                    debug "Setting username to: ${NZBGET_RESTRICTED_USERNAME}"
+                    DB_SETTINGS=$(sed 's/"username":.*/"username": "'"${NZBGET_RESTRICTED_USERNAME}"'",/' <<< "$DB_SETTINGS")
                     # Set password
-                    debug "        Setting password to: ${nzbget_restricted_password}"
-                    db_settings=$(sed 's/"password":.*/"password": "'"${nzbget_restricted_password}"'",/' <<< "$db_settings")
+                    debug "Setting password to: ${NZBGET_RESTRICTED_PASSWORD}"
+                    DB_SETTINGS=$(sed 's/"password":.*/"password": "'"${NZBGET_RESTRICTED_PASSWORD}"'",/' <<< "$DB_SETTINGS")
                 fi
 
-                if [[ ${container_name} == "sonarr" ]]; then
+                if [[ ${CONTAINER_NAME} == "sonarr" ]]; then
                     # Change TvCategory
-                    debug "        Setting TvCategory to: Series"
-                    db_settings=$(sed 's/"TvCategory":.*/"TvCategory": "Series",/' <<< "$db_settings")
-                elif [[ ${container_name} == "radarr" ]]; then
+                    debug "Setting TvCategory to: Series"
+                    DB_SETTINGS=$(sed 's/"TvCategory":.*/"TvCategory": "Series",/' <<< "$DB_SETTINGS")
+                elif [[ ${CONTAINER_NAME} == "radarr" ]]; then
                     # Set movieCategory
-                    debug "        Setting movieCategory to: Movies"
-                    db_settings=$(sed 's/"movieCategory":.*/"movieCategory": "Movies",/' <<< "$db_settings")
-                elif [[ ${container_name} == "lidarr" ]]; then
+                    debug "Setting movieCategory to: Movies"
+                    DB_SETTINGS=$(sed 's/"movieCategory":.*/"movieCategory": "Movies",/' <<< "$DB_SETTINGS")
+                elif [[ ${CONTAINER_NAME} == "lidarr" ]]; then
                     # Set musicCategory
-                    debug "        Setting musicCategory to: Music"
-                    db_settings=$(sed 's/"musicCategory":.*/"musicCategory": "Music",/' <<< "$db_settings")
+                    debug "Setting musicCategory to: Music"
+                    DB_SETTINGS=$(sed 's/"musicCategory":.*/"musicCategory": "Music",/' <<< "$DB_SETTINGS")
                 fi
 
-                debug "        Updating DB"
-                sqlite3 "${db_path}" "UPDATE DownloadClients SET Settings='$db_settings' WHERE id=$db_id"
-                downloader_configured="true"
+                debug "Updating DB"
+                sqlite3 "${DB_PATH}" "UPDATE DownloadClients SET Settings='$DB_SETTINGS' WHERE id=$DB_ID"
+                DOWNLOADER_CONFIGURED="true"
             fi
-        done
-    fi
+        fi
 
-    if [[ ${container_name} == "lazylibrarian" ]]; then
-        for downloader in "${!downloaders[@]}"; do
+        if [[ ${CONTAINER_NAME} == "lazylibrarian" ]]; then
             local downloader_section
-            local port
 
-            if [[ ${containers[${downloader}]+true} == "true" ]]; then
-                port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
+            if [[ ${containers[${DOWNLOADER}]+true} == "true" ]]; then
 
-                if [[ ${downloader} == "nzbget" ]]; then
-                    info "      - Linking ${container_name} to ${downloader}..."
-                    local nzbget_restricted_username
-                    local nzbget_restricted_password
-                    nzbget_restricted_username=${API_KEYS[nzbget]%%,*}
-                    nzbget_restricted_password=${API_KEYS[nzbget]#*,}
+                if [[ ${DOWNLOADER} == "nzbget" ]]; then
+                    info "Linking ${CONTAINER_NAME} to ${DOWNLOADER}..."
+                    local NZBGET_RESTRICTED_USERNAME
+                    local NZBGET_RESTRICTED_PASSWORD
+                    NZBGET_RESTRICTED_USERNAME=${API_KEYS[nzbget]%%,*}
+                    NZBGET_RESTRICTED_PASSWORD=${API_KEYS[nzbget]#*,}
                     downloader_section="NZBGet"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_priority 0
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_category Books
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_user "${nzbget_restricted_username}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_pass "${nzbget_restricted_password}"
-                    crudini --set "${config_path}" USENET nzb_downloader_nzbget 1
-                    downloader_configured="true"
-                elif [[ ${downloader} == "qbittorrent" ]]; then
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_priority 0
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_category Books
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_user "${NZBGET_RESTRICTED_USERNAME}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_pass "${NZBGET_RESTRICTED_PASSWORD}"
+                    crudini --set "${CONFIG_PATH}" USENET nzb_downloader_nzbget 1
+                    DOWNLOADER_CONFIGURED="true"
+                elif [[ ${DOWNLOADER} == "qbittorrent" ]]; then
                     downloader_section="QBITTORRENT"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_base
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_dir
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_label Books
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_user
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_pass
-                    crudini --set "${config_path}" TORRENT tor_downloader_qbittorrent 1
-                    downloader_configured="true"
-                elif [[ ${downloader} == "transmission" ]]; then
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_base
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_dir
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_label Books
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_user
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_pass
+                    crudini --set "${CONFIG_PATH}" TORRENT tor_downloader_qbittorrent 1
+                    DOWNLOADER_CONFIGURED="true"
+                elif [[ ${DOWNLOADER} == "transmission" ]]; then
                     downloader_section="TRANSMISSION"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_base
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_dir
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_user
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_pass
-                    crudini --set "${config_path}" TORRENT tor_downloader_transmission 1
-                    downloader_configured="true"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_base
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_dir
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_user
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_pass
+                    crudini --set "${CONFIG_PATH}" TORRENT tor_downloader_transmission 1
+                    DOWNLOADER_CONFIGURED="true"
                 fi
             fi
-        done
-    fi
+        fi
 
-    if [[ ${container_name} == "mylar" ]]; then
-        for downloader in "${!downloaders[@]}"; do
+        if [[ ${CONTAINER_NAME} == "mylar" ]]; then
             local downloader_section
-            local port
 
-            if [[ ${containers[${downloader}]+true} == "true" ]]; then
-                info "      - Linking ${container_name} to ${downloader}..."
-                port=$(jq -r --arg port ${downloaders[${downloader}]} '.ports[$port]' <<< "${containers[${downloader}]}")
+            if [[ ${containers[${DOWNLOADER}]+true} == "true" ]]; then
+                info "Linking ${CONTAINER_NAME} to ${DOWNLOADER}..."
 
-                if [[ ${downloader} == "nzbget" ]]; then
-                    local nzbget_restricted_username
-                    local nzbget_restricted_password
-                    nzbget_restricted_username=${API_KEYS[nzbget]%%,*}
-                    nzbget_restricted_password=${API_KEYS[nzbget]#*,}
+                if [[ ${DOWNLOADER} == "nzbget" ]]; then
+                    local NZBGET_RESTRICTED_USERNAME
+                    local NZBGET_RESTRICTED_PASSWORD
+                    NZBGET_RESTRICTED_USERNAME=${API_KEYS[nzbget]%%,*}
+                    NZBGET_RESTRICTED_PASSWORD=${API_KEYS[nzbget]#*,}
                     downloader_section="NZBGet"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_priority Default
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_category Books
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_user "${nzbget_restricted_username}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_pass "${nzbget_restricted_password}"
-                    downloader_configured="true"
-                elif [[ ${downloader} == "qbittorrent" ]]; then
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_priority Default
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_category Books
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_user "${NZBGET_RESTRICTED_USERNAME}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_pass "${NZBGET_RESTRICTED_PASSWORD}"
+                    DOWNLOADER_CONFIGURED="true"
+                elif [[ ${DOWNLOADER} == "qbittorrent" ]]; then
                     downloader_section="qBittorrent"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}:${port}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_label Books
-                    crudini --set "${config_path}" "Torrents" "enable_torrents" "True"
-                    if [[ $(crudini --set "${config_path}" "Torrents" "minseeds") -eq 0 ]]; then
-                        crudini --set "${config_path}" "Torrents" "minseeds" "1"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}:${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_label Books
+                    crudini --set "${CONFIG_PATH}" "Torrents" "enable_torrents" "True"
+                    if [[ $(crudini --set "${CONFIG_PATH}" "Torrents" "minseeds") -eq 0 ]]; then
+                        crudini --set "${CONFIG_PATH}" "Torrents" "minseeds" "1"
                     fi
-                    downloader_configured="true"
-                elif [[ ${downloader} == "transmission" ]]; then
+                    DOWNLOADER_CONFIGURED="true"
+                elif [[ ${DOWNLOADER} == "transmission" ]]; then
                     downloader_section="Transmission"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_host "${LOCAL_IP}"
-                    crudini --set "${config_path}" "${downloader_section}" ${downloader}_port "${port}"
-                    crudini --set "${config_path}" "Torrents" "enable_torrents" "True"
-                    if [[ $(crudini --set "${config_path}" "Torrents" "minseeds") -eq 0 ]]; then
-                        crudini --set "${config_path}" "Torrents" "minseeds" "1"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "Torrents" "enable_torrents" "True"
+                    if [[ $(crudini --set "${CONFIG_PATH}" "Torrents" "minseeds") -eq 0 ]]; then
+                        crudini --set "${CONFIG_PATH}" "Torrents" "minseeds" "1"
                     fi
-                    downloader_configured="true"
+                    DOWNLOADER_CONFIGURED="true"
                 fi
             fi
-        done
-    fi
+        fi
+    done
 
-    if [[ ${downloader_configured} != "true" ]]; then
-        warn "      No Downloaders to configure."
+    if [[ ${DOWNLOADER_CONFIGURED} != "true" ]]; then
+        warn "No Downloaders to configure."
     fi
 }
 
