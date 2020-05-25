@@ -15,9 +15,7 @@ configure_add_indexer() {
     # Get supported indexers
     mapfile -t INDEXERS < <(yq-go r "${DETECTED_DSACDIR}/.data/supported_apps.yml" "indexers" | awk '{gsub("- ",""); print}')
 
-    for index in "${!INDEXERS[@]}"; do
-        local INDEXER
-        INDEXER=${INDEXERS[$index]}
+    for INDEXER in "${!INDEXERS[@]}"; do
         local CONTAINER_YML
         CONTAINER_YML="services.${INDEXER}.labels[com.dockstarter.dsac]"
         local CONTAINER_YML_FILE
