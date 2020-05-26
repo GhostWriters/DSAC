@@ -16,10 +16,10 @@ menu_custom_app_select() {
             if [[ -f ${DETECTED_DSDIR}/compose/.apps/${FILENAME}/${FILENAME}.yml ]]; then
                 if [[ -f ${DETECTED_DSDIR}/compose/.apps/${FILENAME}/${FILENAME}.${ARCH}.yml ]]; then
                     local APPNICENAME
-                    # shellchek disable=SC2102
+                    # shellcheck disable=SC2102
                     APPNICENAME=$(ds --yml-get="${APPNAME}",services."${FILENAME}".labels[com.dockstarter.appinfo.nicename] || echo "${APPNAME}")
                     local APPDESCRIPTION
-                    # shellchek disable=SC2102
+                    # shellcheck disable=SC2102
                     APPDESCRIPTION=$(ds --yml-get="${APPNAME}",services."${FILENAME}".labels[com.dockstarter.appinfo.description] || echo "! Missing description !")
                     if echo "${APPDESCRIPTION}" | grep -q '(DEPRECATED)'; then
                         continue
