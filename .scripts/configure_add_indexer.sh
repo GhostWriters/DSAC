@@ -34,7 +34,7 @@ configure_add_indexer() {
                 INDEXER_PORT=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.ports.${INDEXER_PORT}" || echo "${INDEXER_PORT}")
                 indexer_url_base="http://${LOCAL_IP}:${INDEXER_PORT}${INDEXER_BASE_URL}"
 
-                if [[ ${INDEXER} == "hydra2" ]]; then
+                if [[ ${INDEXER} == "nzbhydra2" ]]; then
                     INDEXER_TYPE=("torrent" "usenet")
                 elif [[ ${INDEXER} == "jackett" ]]; then
                     INDEXER_TYPE=("torrent")
@@ -126,7 +126,7 @@ configure_add_indexer() {
                         sqlite3 "${DB_PATH}" "UPDATE Indexers SET Settings='$indexer_settings' WHERE id=$indexer_db_id"
                     done
 
-                    if [[ ${INDEXER} == "hydra2" ]]; then
+                    if [[ ${INDEXER} == "nzbhydra2" ]]; then
                         HYDRA2_CONFIGURED="true"
                     fi
 
@@ -206,7 +206,7 @@ configure_add_indexer() {
                         fi
                     done
 
-                    if [[ ${INDEXER} == "hydra2" ]]; then
+                    if [[ ${INDEXER} == "nzbhydra2" ]]; then
                         HYDRA2_CONFIGURED="true"
                     fi
 
@@ -295,7 +295,7 @@ configure_add_indexer() {
                         fi
                     done
 
-                    if [[ ${INDEXER} == "hydra2" ]]; then
+                    if [[ ${INDEXER} == "nzbhydra2" ]]; then
                         HYDRA2_CONFIGURED="true"
                     fi
 
