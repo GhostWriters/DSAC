@@ -11,13 +11,10 @@ run_dockstarter() {
             git clone https://github.com/GhostWriters/DockSTARTer "${DETECTED_DSDIR}"
             bash "${DETECTED_DSDIR}/main.sh" -vi
         else
-            notice "Updating DockSTARTer..."
-            (ds -u)
+            (ds -f -u)
         fi
     elif [[ ${ACTION} == "install-dependecies" ]]; then
-        (ds -i)
-    elif [[ ${ACTION} == "backup" ]]; then
-        (ds -b "${2:-med}")
+        (ds -f -i)
     elif [[ ${ACTION} == "compose" ]]; then
         local WAIT_TIME=1
         local i=0
@@ -57,36 +54,33 @@ run_dockstarter() {
         notice "Updating DS .env"
         (ds -e)
         notice "Adding apps to DS"
-        mapfile -t app_types < <(jq 'keys[]' "${DETECTED_DSACDIR}/.data/configure_apps.json")
-        for app_type_index in "${!app_types[@]}"; do
-            app_type=${app_types[${app_type_index}]//\"/}
-            info "- ${app_type}"
-            mapfile -t app_categories < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'keys[]')
+        mapfile -t APP_TYPES < <(yq-go r --printMode p "${DETECTED_DSACDIR}/.data/configure_apps.yml" "*")
+        for APP_TYPE in "${APP_TYPES[@]}"; do
             #shellcheck disable=SC2154
-            if [[ ${app_type} == "indexers" || ${app_type} == "others" ]]; then
-                mapfile -t apps < <(jq ".${app_type}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'values[]')
-                for app_index in "${!apps[@]}"; do
-                    app=${apps[${app_index}]^^}
-                    app=${app//\"/}
-                    debug "    - ${app}"
-                    debug "      Creating app vars"
-                    (ds -a "${app}")
-                    debug "      Setting env"
-                    run_script 'ds_env_set' "${app}_ENABLED" true
+            if [[ ${APP_TYPE} == "indexers" || ${APP_TYPE} == "others" ]]; then
+                info "Media ${APP_TYPE}"
+                mapfile -t APPS < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}" | awk '{gsub("- ",""); print}')
+                for APPNAME in "${APPS[@]}"; do
+                    APPNAME=${APPNAME^}
+                    debug "${APPNAME}"
+                    debug "Creating app vars"
+                    (ds -a "${APPNAME^^}")
+                    debug "Setting env"
+                    (ds --env-set="${APPNAME^^}_ENABLED",true)
                 done
             else
-                for app_category_index in "${!app_categories[@]}"; do
-                    app_category=${app_categories[${app_category_index}]//\"/}
-                    info "  - ${app_category}"
-                    mapfile -t apps < <(jq ".${app_type}.${app_category}" "${DETECTED_DSACDIR}/.data/configure_apps.json" | jq 'values[]')
-                    for app_index in "${!apps[@]}"; do
-                        app=${apps[${app_index}]^^}
-                        app=${app//\"/}
-                        debug "    - ${app}"
-                        debug "      Creating app vars"
-                        (ds -a "${app}")
-                        debug "      Setting env"
-                        run_script 'ds_env_set' "${app}_ENABLED" true
+                mapfile -t APP_CATEGORIES < <(yq-go r --printMode p "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}.*")
+                for APP_CATEGORY in "${APP_CATEGORIES[@]}"; do
+                    APP_CATEGORY=${APP_CATEGORY//${APP_TYPE}./}
+                    info "Media ${APP_TYPE} - ${APP_CATEGORY}"
+                    mapfile -t APPS < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}.${APP_CATEGORY}" | awk '{gsub("- ",""); print}')
+                    for APPNAME in "${APPS[@]}"; do
+                        APPNAME=${APPNAME^}
+                        debug "${APPNAME}"
+                        debug "Creating app vars"
+                        (ds -a "${APPNAME^^}")
+                        debug "Setting env"
+                        (ds --env-set="${APPNAME^^}_ENABLED",true)
                     done
                 done
             fi
