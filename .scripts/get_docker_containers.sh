@@ -3,6 +3,15 @@ set -euo pipefail
 IFS=$'\n\t'
 
 get_docker_containers() {
+
+    while IFS= read -r line; do
+        local APPNAME=${line^^}
+        local FILENAME=${APPNAME,,}
+        if [[ -f ${DETECTED_DSACDIR}/.data/apps/${FILENAME}.yml ]]; then
+            yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.docker.running" "false"
+        fi
+    done < <(ls -A "${DETECTED_DSACDIR}/.data/apps/")
+
     if [[ $(docker ps -q | wc -l) -gt 1 ]]; then
         notice "Scanning Docker for supported containers"
         while IFS= read -r line; do
@@ -17,7 +26,7 @@ get_docker_containers() {
             local CONTAINER_BASE_YML_FILE
             CONTAINER_BASE_YML_FILE="${DETECTED_DSACDIR}/.apps/${CONTAINER_NAME}/${CONTAINER_NAME}.labels.dsac.yml"
             local CONTAINER_YML_FILE
-            CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${CONTAINER_NAME}/${CONTAINER_NAME}.yml"
+            CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${CONTAINER_NAME}.yml"
 
             info "${CONTAINER_NAME}"
             debug "CONTAINER_YML=${CONTAINER_YML}"
@@ -73,7 +82,8 @@ get_docker_containers() {
                 yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.ports.${PORT_ORIGINAL}" "${PORT_CONFIGURED}"
             done
 
-            containers[${CONTAINER_NAME}]=true
+            # Mark container as running
+            yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.docker.running" "true"
         done < <(sudo docker ps -q)
     else
         error "You don't have any running docker containers."

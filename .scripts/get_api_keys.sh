@@ -6,6 +6,8 @@ get_api_keys() {
     info "Retrieving API Keys"
 
     # shellcheck disable=SC2154
+    # TODO: Change this to use the .data/apps directory
+    # TODO: Output API Keys to YML?
     for CONTAINER_NAME in "${!containers[@]}"; do
         local CONFIG_FILE
         local CONFIG_PATH
@@ -17,12 +19,12 @@ get_api_keys() {
 
         info "- ${CONTAINER_NAME}"
         CONTAINER_YML="services.${CONTAINER_NAME}.labels[com.dockstarter.dsac]"
-        CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${CONTAINER_NAME}/${CONTAINER_NAME}.yml"
+        CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${CONTAINER_NAME}.yml"
         CONFIG_FILE=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.file")
         CONFIG_PATH=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.source")
         CONFIG_PATH_FULL="${CONFIG_PATH}/${CONFIG_FILE}"
         case "${CONTAINER_NAME}" in
-            "hydra2")
+            "nzbhydra2")
                 API_KEY=$(yq-go r "${CONFIG_PATH}" "main.apiKey")
                 API_KEY=${API_KEY// /}
                 API_KEYS[$CONTAINER_NAME]=${API_KEY}

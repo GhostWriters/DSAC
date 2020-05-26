@@ -69,7 +69,6 @@ menu_quick_setup() {
             run_script 'run_dockstarter' install-dependecies
             run_script 'run_dockstarter' apps
             run_script 'run_dockstarter' compose
-            run_script 'run_dockstarter' backup
             run_script 'configure_supported_apps'
         fi
     fi
