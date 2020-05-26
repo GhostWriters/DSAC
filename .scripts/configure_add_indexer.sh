@@ -19,7 +19,7 @@ configure_add_indexer() {
         local CONTAINER_YML
         CONTAINER_YML="services.${INDEXER}.labels[com.dockstarter.dsac]"
         local CONTAINER_YML_FILE
-        CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${INDEXER}/${INDEXER}.yml"
+        CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${INDEXER}.yml"
 
         # shellcheck disable=SC2154,SC2001
         if [[ -f ${CONTAINER_YML_FILE} ]]; then

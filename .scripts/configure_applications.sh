@@ -15,20 +15,22 @@ configure_applications() {
     local DB_PATH
     local CONTAINER_YML_FILE
 
-    mapfile -t app_categories < <(yq-go r --printMode p "${DETECTED_DSACDIR}/.data/configure_apps.yml" '*')
+    if [[ ${APP_TYPE} == "indexers" || ${APP_TYPE} == "others" ]]; then
+        mapfile -t APP_CATEGORIES < <(echo "${APP_TYPE}")
+    else
+        mapfile -t APP_CATEGORIES < <(yq-go r --printMode p "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}.*")
+    fi
     #shellcheck disable=SC2154
-    for app_category_index in "${!app_categories[@]}"; do
-        APP_CATEGORY=${app_categories[${app_category_index}]//\"/}
+    for APP_CATEGORY in "${APP_CATEGORIES[@]}"; do
         if [[ ${APP_TYPE} == "indexers" || ${APP_TYPE} == "others" ]]; then
-            mapfile -t apps < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}" | awk '{gsub("- ",""); print}')
+            mapfile -t APPS < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}" | awk '{gsub("- ",""); print}')
             info "- ${APP_TYPE}"
         else
-            mapfile -t apps < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}.${APP_CATEGORY}" | awk '{gsub("- ",""); print}')
-            info "- ${APP_CATEGORY} ${APP_TYPE}"
+            mapfile -t APPS < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}.${APP_CATEGORY}" | awk '{gsub("- ",""); print}')
+            info "- ${APP_TYPE} ${APP_CATEGORY} "
         fi
-        for app_index in "${!apps[@]}"; do
-            APP_NAME=${apps[${app_index}]//\"/}
-            CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${APP_NAME}/${APP_NAME}.yml"
+        for APP_NAME in "${APPS[@]}"; do
+            CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${APP_NAME}.yml"
             if [[ -f ${CONTAINER_YML_FILE} ]]; then
                 info "  - ${APP_NAME}"
                 CONTAINER_YML_FILE

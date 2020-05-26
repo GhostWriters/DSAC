@@ -16,14 +16,14 @@ menu_custom_app_select() {
             if [[ -f ${DETECTED_DSDIR}/compose/.apps/${FILENAME}/${FILENAME}.yml ]]; then
                 if [[ -f ${DETECTED_DSDIR}/compose/.apps/${FILENAME}/${FILENAME}.${ARCH}.yml ]]; then
                     local APPNICENAME
-                    APPNICENAME=$(ds --yml-get=${APPNAME},services.${FILENAME}.labels[com.dockstarter.appinfo.nicename] || echo "${APPNAME}")
+                    APPNICENAME=$(ds --yml-get="${APPNAME}",services."${FILENAME}".labels[com.dockstarter.appinfo.nicename] || echo "${APPNAME}")
                     local APPDESCRIPTION
-                    APPDESCRIPTION=$(ds --yml-get=${APPNAME},services.${FILENAME}.labels[com.dockstarter.appinfo.description] || echo "! Missing description !")
+                    APPDESCRIPTION=$(ds --yml-get="${APPNAME}",services."${FILENAME}".labels[com.dockstarter.appinfo.description] || echo "! Missing description !")
                     if echo "${APPDESCRIPTION}" | grep -q '(DEPRECATED)'; then
                         continue
                     fi
                     local APPONOFF
-                    if [[ $(ds --env-get=${APPNAME}_ENABLED) == true ]]; then
+                    if [[ $(ds --env-get="${APPNAME}_ENABLED") == true ]]; then
                         APPONOFF="on"
                     else
                         APPONOFF="off"
@@ -49,7 +49,7 @@ menu_custom_app_select() {
         info "Disabling all apps."
         while IFS= read -r line; do
             local APPNAME=${line%%_ENABLED=true}
-            (ds --env-set=${APPNAME}_ENABLED,false)
+            (ds --env-set="${APPNAME}_ENABLED",false)
         done < <(grep '_ENABLED=true$' < "${DETECTED_DSDIR}/compose/.env")
 
         info "Enabling selected apps."
@@ -57,12 +57,11 @@ menu_custom_app_select() {
             local APPNAME=${line^^}
             debug "APPNAME=${APPNAME}"
             (ds -a "${APPNAME}")
-            (ds --env-set=${APPNAME}_ENABLED,true)
+            (ds --env-set="${APPNAME}_ENABLED",true)
         done < <(echo "${SELECTEDAPPS}")
 
         (ds -r)
         run_script 'run_dockstarter' compose
-        run_script 'run_dockstarter' backup
         info "Generating configure_apps.yml file."
         cp "${SCRIPTPATH}/.data/supported_apps.yml" "${SCRIPTPATH}/.data/configure_apps.yml"
         info "Generation of configure_apps.yml complete."
