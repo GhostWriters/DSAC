@@ -17,7 +17,7 @@ managers:
   subtitles:
   - bazarr
 indexers:
-- hydra2
+- nzbhydra2
 - jackett
 others:
 - ourobouros

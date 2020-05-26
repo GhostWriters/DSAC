@@ -51,7 +51,7 @@ configure_applications() {
                 info "    - Stopping ${APP_NAME} (${CONTAINER_ID}) to apply changes..."
                 docker stop "${CONTAINER_ID}" > /dev/null || error "       Unable to stop container..."
 
-                if [[ ${APP_NAME} == "bazarr" || ${APP_NAME} == "hydra2" ]]; then
+                if [[ ${APP_NAME} == "bazarr" || ${APP_NAME} == "nzbhydra2" ]]; then
                     run_script "configure_${APP_NAME}" "${APP_NAME}" "${DB_PATH}" "${CONFIG_PATH}"
                 elif [[ ${APP_CATEGORY} == "usenet" || ${APP_CATEGORY} == "torrent" ]]; then
                     run_script "configure_${APP_CATEGORY}_downloader" "${APP_NAME}" "${DB_PATH}" "${CONFIG_PATH}"
