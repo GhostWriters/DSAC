@@ -1,22 +1,22 @@
 downloaders:
   usenet:
-  - nzbget
+    - nzbget
   torrent:
-  - qbittorrent
-  - transmission
+    - qbittorrent
+    - transmission
 managers:
   books:
-  - lazylibrarian
+    - lazylibrarian
   comics:
-  - mylar
+    - mylar
   movies:
-  - radarr
+    - radarr
   music:
-  - lidarr
+    - lidarr
   series:
-  - sonarr
+    - sonarr
   subtitles:
-  - bazarr
+    - bazarr
 indexers:
-- nzbhydra2
-- jackett
+  - nzbhydra2
+  - jackett
