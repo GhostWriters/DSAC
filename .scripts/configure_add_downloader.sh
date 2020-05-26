@@ -23,7 +23,7 @@ configure_add_downloader() {
         local PORT
         PORT=$(yq-go r "${DOWNLOADER_YML_FILE}" "${DOWNLOADER_YML}.ports.default")
         PORT=$(yq-go r "${DOWNLOADER_YML_FILE}" "${DOWNLOADER_YML}.ports.${PORT}" || echo "${PORT}")
-
+        # shellcheck disable=SC2001
         if [[ -f ${DOWNLOADER_YML_FILE} ]]; then
             if [[ ${CONTAINER_NAME} == "radarr" || ${CONTAINER_NAME} == "sonarr" || ${CONTAINER_NAME} == "lidarr" ]]; then
                 local DB_ID
