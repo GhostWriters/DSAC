@@ -34,7 +34,7 @@ get_docker_containers() {
             debug "CONTAINER_YML_FILE=${CONTAINER_YML_FILE}"
             if [[ -d "${DETECTED_DSACDIR}/.apps/${CONTAINER_NAME}" ]]; then
                 # Check if the information needs to be added or updated
-                if [[ -f "${CONTAINER_YML_FILE}" ]]; then
+                if [[ -f ${CONTAINER_YML_FILE} ]]; then
                     info "Updating information..."
                 else
                     info "Adding information..."
