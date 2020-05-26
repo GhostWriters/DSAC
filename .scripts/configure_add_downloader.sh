@@ -15,24 +15,24 @@ configure_add_downloader() {
     debug "CONTAINER_NAME=${CONTAINER_NAME}"
     debug "DB_PATH=${DB_PATH}"
 
-    for DOWNLOADER in "${!DOWNLOADERS[@]}"; do
+    for DOWNLOADER in "${DOWNLOADERS[@]}"; do
         local DOWNLOADER_YML
         DOWNLOADER_YML="services.${DOWNLOADER}.labels[com.dockstarter.dsac]"
         local DOWNLOADER_YML_FILE
-        DOWNLOADER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${DOWNLOADER}/${DOWNLOADER}.yml"
+        DOWNLOADER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${DOWNLOADER}.yml"
         local PORT
         PORT=$(yq-go r "${DOWNLOADER_YML_FILE}" "${DOWNLOADER_YML}.ports.default")
         PORT=$(yq-go r "${DOWNLOADER_YML_FILE}" "${DOWNLOADER_YML}.ports.${PORT}" || echo "${PORT}")
-        # shellcheck disable=SC2154,SC2001
-        if [[ ${CONTAINER_NAME} == "radarr" || ${CONTAINER_NAME} == "sonarr" || ${CONTAINER_NAME} == "lidarr" ]]; then
-            local DB_ID
-            local DB_NAME
-            local DB_IMPLEMENTATION
-            local DB_CONFIG_CONTRACT
-            local DB_SETTINGS
-            local DB_SETTINGS_NEW
 
-            if [[ -f ${DOWNLOADER_YML_FILE} ]]; then
+        if [[ -f ${DOWNLOADER_YML_FILE} ]]; then
+            if [[ ${CONTAINER_NAME} == "radarr" || ${CONTAINER_NAME} == "sonarr" || ${CONTAINER_NAME} == "lidarr" ]]; then
+                local DB_ID
+                local DB_NAME
+                local DB_IMPLEMENTATION
+                local DB_CONFIG_CONTRACT
+                local DB_SETTINGS
+                local DB_SETTINGS_NEW
+
                 if [[ ${DOWNLOADER} == "nzbget" ]]; then
                     info "Linking ${CONTAINER_NAME} to ${DOWNLOADER}..."
                     local NZBGET_RESTRICTED_USERNAME
@@ -143,12 +143,9 @@ configure_add_downloader() {
                 sqlite3 "${DB_PATH}" "UPDATE DownloadClients SET Settings='$DB_SETTINGS' WHERE id=$DB_ID"
                 DOWNLOADER_CONFIGURED="true"
             fi
-        fi
 
-        if [[ ${CONTAINER_NAME} == "lazylibrarian" ]]; then
-            local downloader_section
-
-            if [[ ${containers[${DOWNLOADER}]+true} == "true" ]]; then
+            if [[ ${CONTAINER_NAME} == "lazylibrarian" ]]; then
+                local downloader_section
 
                 if [[ ${DOWNLOADER} == "nzbget" ]]; then
                     info "Linking ${CONTAINER_NAME} to ${DOWNLOADER}..."
@@ -157,43 +154,41 @@ configure_add_downloader() {
                     NZBGET_RESTRICTED_USERNAME=${API_KEYS[nzbget]%%,*}
                     NZBGET_RESTRICTED_PASSWORD=${API_KEYS[nzbget]#*,}
                     downloader_section="NZBGet"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_priority 0
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_category Books
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_user "${NZBGET_RESTRICTED_USERNAME}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_pass "${NZBGET_RESTRICTED_PASSWORD}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_host" "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_port" "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_priority" 0
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_category" Books
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_user" "${NZBGET_RESTRICTED_USERNAME}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_pass" "${NZBGET_RESTRICTED_PASSWORD}"
                     crudini --set "${CONFIG_PATH}" USENET nzb_downloader_nzbget 1
                     DOWNLOADER_CONFIGURED="true"
                 elif [[ ${DOWNLOADER} == "qbittorrent" ]]; then
                     downloader_section="QBITTORRENT"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_base
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_dir
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_label Books
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_user
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_pass
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_host" "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_port" "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_base"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_dir"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_label" Books
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_user"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_pass"
                     crudini --set "${CONFIG_PATH}" TORRENT tor_downloader_qbittorrent 1
                     DOWNLOADER_CONFIGURED="true"
                 elif [[ ${DOWNLOADER} == "transmission" ]]; then
                     downloader_section="TRANSMISSION"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_base
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_dir
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_user
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_pass
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_host" "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_port" "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_base"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_dir"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_user"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_pass"
                     crudini --set "${CONFIG_PATH}" TORRENT tor_downloader_transmission 1
                     DOWNLOADER_CONFIGURED="true"
                 fi
             fi
-        fi
 
-        if [[ ${CONTAINER_NAME} == "mylar" ]]; then
-            local downloader_section
+            if [[ ${CONTAINER_NAME} == "mylar" ]]; then
+                local downloader_section
 
-            if [[ ${containers[${DOWNLOADER}]+true} == "true" ]]; then
                 info "Linking ${CONTAINER_NAME} to ${DOWNLOADER}..."
 
                 if [[ ${DOWNLOADER} == "nzbget" ]]; then
@@ -202,17 +197,17 @@ configure_add_downloader() {
                     NZBGET_RESTRICTED_USERNAME=${API_KEYS[nzbget]%%,*}
                     NZBGET_RESTRICTED_PASSWORD=${API_KEYS[nzbget]#*,}
                     downloader_section="NZBGet"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_priority Default
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_category Books
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_user "${NZBGET_RESTRICTED_USERNAME}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_pass "${NZBGET_RESTRICTED_PASSWORD}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_host" "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_port" "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_priority" Default
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_category" Books
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_user" "${NZBGET_RESTRICTED_USERNAME}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_pass" "${NZBGET_RESTRICTED_PASSWORD}"
                     DOWNLOADER_CONFIGURED="true"
                 elif [[ ${DOWNLOADER} == "qbittorrent" ]]; then
                     downloader_section="qBittorrent"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}:${PORT}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_label Books
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_host" "${LOCAL_IP}:${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_label" Books
                     crudini --set "${CONFIG_PATH}" "Torrents" "enable_torrents" "True"
                     if [[ $(crudini --set "${CONFIG_PATH}" "Torrents" "minseeds") -eq 0 ]]; then
                         crudini --set "${CONFIG_PATH}" "Torrents" "minseeds" "1"
@@ -220,8 +215,8 @@ configure_add_downloader() {
                     DOWNLOADER_CONFIGURED="true"
                 elif [[ ${DOWNLOADER} == "transmission" ]]; then
                     downloader_section="Transmission"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_host "${LOCAL_IP}"
-                    crudini --set "${CONFIG_PATH}" "${downloader_section}" ${DOWNLOADER}_port "${PORT}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_host" "${LOCAL_IP}"
+                    crudini --set "${CONFIG_PATH}" "${downloader_section}" "${DOWNLOADER}_port" "${PORT}"
                     crudini --set "${CONFIG_PATH}" "Torrents" "enable_torrents" "True"
                     if [[ $(crudini --set "${CONFIG_PATH}" "Torrents" "minseeds") -eq 0 ]]; then
                         crudini --set "${CONFIG_PATH}" "Torrents" "minseeds" "1"
