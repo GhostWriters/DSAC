@@ -34,7 +34,7 @@ run_dockstarter() {
                 fi
                 if [[ ${containers_check[${container_id}]} != "ready" ]]; then
                     NOW=$(date +%s%3N)
-                    TIME_DIFF=$((NOW - containers_check[${container_id}]))
+                    TIME_DIFF=$((NOW - containers_check[\$container_id]))
                     TIME_DIFF=$((TIME_DIFF / 60000))
                     if [[ ${TIME_DIFF} -ge 1 ]]; then
                         containers_check[${container_id}]="ready"
