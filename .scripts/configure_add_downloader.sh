@@ -10,21 +10,19 @@ configure_add_downloader() {
     local LOCAL_IP
     LOCAL_IP=$(run_script 'detect_local_ip')
     # Get supported DOWNLOADERS
-    mapfile -t DOWNLOADERS < <(yq-go r "${DETECTED_DSACDIR}/.data/supported_apps.yml" "DOWNLOADERS.*" | awk '{gsub("- ",""); print}')
+    mapfile -t DOWNLOADERS < <(yq-go r "${DETECTED_DSACDIR}/.data/supported_apps.yml" "downloaders" | awk '{gsub("- ",""); print}')
     info "Updating Downloader settings"
     debug "CONTAINER_NAME=${CONTAINER_NAME}"
     debug "DB_PATH=${DB_PATH}"
 
     for DOWNLOADER in "${DOWNLOADERS[@]}"; do
-        local DOWNLOADER_YML
-        DOWNLOADER_YML="services.${DOWNLOADER}.labels[com.dockstarter.dsac]"
-        local DOWNLOADER_YML_FILE
-        DOWNLOADER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${DOWNLOADER}.yml"
-        local PORT
-        PORT=$(yq-go r "${DOWNLOADER_YML_FILE}" "${DOWNLOADER_YML}.ports.default")
-        PORT=$(yq-go r "${DOWNLOADER_YML_FILE}" "${DOWNLOADER_YML}.ports.${PORT}" || echo "${PORT}")
-        # shellcheck disable=SC2001
-        if [[ -f ${DOWNLOADER_YML_FILE} ]]; then
+        local CONTAINER_YML
+        CONTAINER_YML="services.${DOWNLOADER}.labels[com.dockstarter.dsac]"
+
+        if [[ $(run_script 'yml_get' "${DOWNLOADER}" "${CONTAINER_YML}.docker.running") == "true" ]]; then
+            local PORT
+            PORT=$(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.ports.default")
+            PORT=$(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.ports.${PORT}" || echo "${PORT}")
             if [[ ${CONTAINER_NAME} == "radarr" || ${CONTAINER_NAME} == "sonarr" || ${CONTAINER_NAME} == "lidarr" ]]; then
                 local DB_ID
                 local DB_NAME

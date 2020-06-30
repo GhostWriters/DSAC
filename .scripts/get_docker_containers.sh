@@ -4,16 +4,21 @@ IFS=$'\n\t'
 
 get_docker_containers() {
 
-    while IFS= read -r line; do
-        local APPNAME=${line^^}
-        local FILENAME=${APPNAME,,}
-        if [[ -f ${DETECTED_DSACDIR}/.data/apps/${FILENAME}.yml ]]; then
-            yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.docker.running" "false"
-        fi
-    done < <(ls -A "${DETECTED_DSACDIR}/.data/apps/")
+    if [[ -d "${DETECTED_DSACDIR}/.data/apps/" ]]; then
+        info "Cleaning up existing container information"
+        while IFS= read -r line; do
+            local APPNAME=${line^^}
+            local FILENAME=${APPNAME,,}
+            local CONTAINER_YML
+            CONTAINER_YML="services.${FILENAME}.labels[com.dockstarter.dsac]"
+            if [[ -f ${DETECTED_DSACDIR}/.data/apps/${FILENAME}.yml ]]; then
+                run_script 'yml_set' "${FILENAME}" "${CONTAINER_YML}.docker.running" "false"
+            fi
+        done < <(ls -A "${DETECTED_DSACDIR}/.data/apps/")
+    fi
 
     if [[ $(docker ps -q | wc -l) -gt 1 ]]; then
-        notice "Scanning Docker for supported containers"
+        info "Scanning Docker for supported containers"
         while IFS= read -r line; do
             local CONTAINER_ID=${line}
             local CONTAINER_IMAGE
@@ -28,7 +33,7 @@ get_docker_containers() {
             local CONTAINER_YML_FILE
             CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${CONTAINER_NAME}.yml"
 
-            info "${CONTAINER_NAME}"
+            info "${CONTAINER_NAME^}"
             debug "CONTAINER_YML=${CONTAINER_YML}"
             debug "CONTAINER_BASE_YML_FILE=${CONTAINER_BASE_YML_FILE}"
             debug "CONTAINER_YML_FILE=${CONTAINER_YML_FILE}"
@@ -38,8 +43,8 @@ get_docker_containers() {
                     info "Updating information..."
                 else
                     info "Adding information..."
-                    if [[ ! -d "${DETECTED_DSACDIR}/.data/apps/${CONTAINER_NAME}" ]]; then
-                        mkdir -p "${DETECTED_DSACDIR}/.data/apps/${CONTAINER_NAME}"
+                    if [[ ! -d "${DETECTED_DSACDIR}/.data/apps/" ]]; then
+                        mkdir -p "${DETECTED_DSACDIR}/.data/apps/"
                     fi
                     cp "${CONTAINER_BASE_YML_FILE}" "${CONTAINER_YML_FILE}"
                 fi
@@ -48,9 +53,9 @@ get_docker_containers() {
                 continue
             fi
             # Write container information to yml
-            yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.docker.container_name" "${CONTAINER_NAME}"
-            yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.docker.container_id" "${CONTAINER_ID}"
-            yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.docker.container_image" "${CONTAINER_IMAGE}"
+            run_script 'yml_set' "${CONTAINER_NAME}" "${CONTAINER_YML}.docker.container_name" "${CONTAINER_NAME}"
+            run_script 'yml_set' "${CONTAINER_NAME}" "${CONTAINER_YML}.docker.container_id" "${CONTAINER_ID}"
+            run_script 'yml_set' "${CONTAINER_NAME}" "${CONTAINER_YML}.docker.container_image" "${CONTAINER_IMAGE}"
 
             # Get container volume mounts
             info "Getting ${CONTAINER_NAME} config path."
@@ -65,7 +70,7 @@ get_docker_containers() {
                     CONFIG_SOURCE=$(jq 'fromjson | .Source' <<< "$i")
                     CONFIG_SOURCE=${CONFIG_SOURCE//\"/}
                     debug "CONFIG_SOURCE=${CONFIG_SOURCE}"
-                    yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.source" "${CONFIG_SOURCE}"
+                    run_script 'yml_set' "${CONTAINER_NAME}" "${CONTAINER_YML}.config.source" "${CONFIG_SOURCE}"
                     # config path found. Time to move on.
                     break
                 fi
@@ -79,11 +84,12 @@ get_docker_containers() {
             for PORT_MAPPING in "${PORTS[@]}"; do
                 PORT_ORIGINAL=$(awk '{split($1,a,"/"); print a[1]}' <<< "${PORT_MAPPING}")
                 PORT_CONFIGURED=$(awk '{split($3,a,":"); print a[2]}' <<< "${PORT_MAPPING}")
-                yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.ports.${PORT_ORIGINAL}" "${PORT_CONFIGURED}"
+                #yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.ports.${PORT_ORIGINAL}" "${PORT_CONFIGURED}"
+                run_script 'yml_set' "${CONTAINER_NAME}" "${CONTAINER_YML}.ports.${PORT_ORIGINAL}" "${PORT_CONFIGURED}"
             done
 
             # Mark container as running
-            yq-go w -i "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.docker.running" "true"
+            run_script 'yml_set' "${CONTAINER_NAME}" "${CONTAINER_YML}.docker.running" "true"
         done < <(sudo docker ps -q)
     else
         error "You don't have any running docker containers."

@@ -13,7 +13,6 @@ configure_applications() {
     local CONFIG_PATH
     local DB_FILE
     local DB_PATH
-    local CONTAINER_YML_FILE
 
     if [[ ${APP_TYPE} == "indexers" || ${APP_TYPE} == "others" ]]; then
         mapfile -t APP_CATEGORIES < <(echo "${APP_TYPE}")
@@ -23,21 +22,21 @@ configure_applications() {
     #shellcheck disable=SC2154
     for APP_CATEGORY in "${APP_CATEGORIES[@]}"; do
         if [[ ${APP_TYPE} == "indexers" || ${APP_TYPE} == "others" ]]; then
-            mapfile -t APPS < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}" | awk '{gsub("- ",""); print}')
+            mapfile -t APPS < <(run_script 'yml_get' "" "${APP_TYPE}" "${DETECTED_DSACDIR}/.data/configure_apps.yml" | awk '{gsub("- ",""); print}')
             info "- ${APP_TYPE}"
         else
-            mapfile -t APPS < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}.${APP_CATEGORY}" | awk '{gsub("- ",""); print}')
+            mapfile -t APPS < <(run_script 'yml_get' "" "${APP_TYPE}.${APP_CATEGORY}" "${DETECTED_DSACDIR}/.data/configure_apps.yml" | awk '{gsub("- ",""); print}')
             info "- ${APP_TYPE} ${APP_CATEGORY} "
         fi
         for APP_NAME in "${APPS[@]}"; do
-            CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${APP_NAME}.yml"
-            if [[ -f ${CONTAINER_YML_FILE} ]]; then
-                info "  - ${APP_NAME}"
-                CONTAINER_YML_FILE
-                CONTAINER_ID=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.docker.container_id")
-                CONFIG_SOURCE=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.source")
-                CONFIG_FILE=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.file")
-                DB_FILE=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.config.database")
+            local CONTAINER_YML
+            CONTAINER_YML="services.${INDEXER}.labels[com.dockstarter.dsac]"
+            if [[ $(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.docker.running") == "true" ]]; then
+                info "${APP_NAME}"
+                CONTAINER_ID=$(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.docker.container_id")
+                CONFIG_SOURCE=$(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.config.source")
+                CONFIG_FILE=$(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.config.file")
+                DB_FILE=$(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.config.database")
 
                 if [[ -n ${CONFIG_FILE} ]]; then
                     CONFIG_PATH="${CONFIG_SOURCE}/${CONFIG_FILE}"
@@ -50,7 +49,7 @@ configure_applications() {
                     DB_PATH=""
                 fi
 
-                info "    - Stopping ${APP_NAME} (${CONTAINER_ID}) to apply changes..."
+                info "Stopping ${APP_NAME} (${CONTAINER_ID}) to apply changes..."
                 docker stop "${CONTAINER_ID}" > /dev/null || error "       Unable to stop container..."
 
                 if [[ ${APP_NAME} == "bazarr" || ${APP_NAME} == "nzbhydra2" ]]; then
@@ -58,16 +57,16 @@ configure_applications() {
                 elif [[ ${APP_CATEGORY} == "usenet" || ${APP_CATEGORY} == "torrent" ]]; then
                     run_script "configure_${APP_CATEGORY}_downloader" "${APP_NAME}" "${DB_PATH}" "${CONFIG_PATH}"
                 elif [[ ${APP_TYPE} == "indexers" ]]; then
-                    debug "    - Not doing anything with ${APP_NAME} right now..."
+                    debug "Not doing anything with ${APP_NAME} right now..."
                 else
                     run_script "configure_add_indexer" "${APP_NAME}" "${DB_PATH}" "${CONFIG_PATH}"
                     run_script "configure_add_downloader" "${APP_NAME}" "${DB_PATH}" "${CONFIG_PATH}"
                 fi
 
-                info "    - Starting ${APP_NAME} (${CONTAINER_ID})..."
-                docker start "${CONTAINER_ID}" > /dev/null || error "       Unable to start container..."
+                info "Starting ${APP_NAME} (${CONTAINER_ID})..."
+                docker start "${CONTAINER_ID}" > /dev/null || error "Unable to start container..."
 
-                info "  - Done configuring ${APP_NAME}"
+                info "Done configuring ${APP_NAME}"
             fi
         done
         if [[ ${APP_TYPE} == "indexers" || ${APP_TYPE} == "others" ]]; then

@@ -18,20 +18,17 @@ configure_add_indexer() {
     for INDEXER in "${!INDEXERS[@]}"; do
         local CONTAINER_YML
         CONTAINER_YML="services.${INDEXER}.labels[com.dockstarter.dsac]"
-        local CONTAINER_YML_FILE
-        CONTAINER_YML_FILE="${DETECTED_DSACDIR}/.data/apps/${INDEXER}.yml"
 
-        # shellcheck disable=SC2154,SC2001
-        if [[ -f ${CONTAINER_YML_FILE} ]]; then
+        if [[ $(run_script 'yml_get' "${INDEXER}" "${CONTAINER_YML}.docker.running") == "true" ]]; then
             if [[ ${INDEXER} == "nzbhydra2" || (${INDEXER} == "jackett" && ${HYDRA2_CONFIGURED} != "true") ]]; then
                 local INDEXER_PORT
                 local INDEXER_BASE_URL
                 local INDEXER_TYPE
                 local LOCAL_IP
                 LOCAL_IP=$(run_script 'detect_local_ip')
-                INDEXER_BASE_URL=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.base_url")
-                INDEXER_PORT=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.ports.default")
-                INDEXER_PORT=$(yq-go r "${CONTAINER_YML_FILE}" "${CONTAINER_YML}.ports.${INDEXER_PORT}" || echo "${INDEXER_PORT}")
+                INDEXER_BASE_URL=$(run_script 'yml_get' "${INDEXER}" "${CONTAINER_YML}.base_url")
+                INDEXER_PORT=$(run_script 'yml_get' "${INDEXER}" "${CONTAINER_YML}.ports.default")
+                INDEXER_PORT=$(run_script 'yml_get' "${INDEXER}" "${CONTAINER_YML}.ports.${INDEXER_PORT}" || echo "${INDEXER_PORT}")
                 indexer_url_base="http://${LOCAL_IP}:${INDEXER_PORT}${INDEXER_BASE_URL}"
 
                 if [[ ${INDEXER} == "nzbhydra2" ]]; then
