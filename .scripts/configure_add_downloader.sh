@@ -21,8 +21,8 @@ configure_add_downloader() {
 
         if [[ $(run_script 'yml_get' "${DOWNLOADER}" "${DOWNLOADER_YML}.docker.running") == "true" ]]; then
             local PORT
-            PORT=$(run_script 'yml_get' "${APP_NAME}" "${DOWNLOADER_YML}.ports.default")
-            PORT=$(run_script 'yml_get' "${APP_NAME}" "${DOWNLOADER_YML}.ports.${PORT}" || echo "${PORT}")
+            PORT=$(run_script 'yml_get' "${APPNAME}" "${DOWNLOADER_YML}.ports.default")
+            PORT=$(run_script 'yml_get' "${APPNAME}" "${DOWNLOADER_YML}.ports.${PORT}" || echo "${PORT}")
             if [[ ${APPNAME} == "radarr" || ${APPNAME} == "sonarr" || ${APPNAME} == "lidarr" ]]; then
                 local DB_ID
                 local DB_NAME
@@ -109,14 +109,17 @@ configure_add_downloader() {
                 DB_SETTINGS=$(sqlite3 "${APP_DB_PATH}" "SELECT Settings FROM DownloadClients WHERE id=$DB_ID")
                 # Set host
                 debug "Setting host to: ${LOCAL_IP}"
+                # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                 DB_SETTINGS=$(sed 's/"host":.*/"host": "'"${LOCAL_IP}"'",/' <<< "$DB_SETTINGS")
                 # Set PORT
                 debug "Setting PORT to: ${PORT}"
+                # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                 DB_SETTINGS=$(sed 's/"PORT":.*/"PORT": "'"${PORT}"'",/' <<< "$DB_SETTINGS")
 
                 if [[ ${DOWNLOADER} == "nzbget" ]]; then
                     # Set username
                     debug "Setting username to: ${NZBGET_RESTRICTED_USERNAME}"
+                    # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                     DB_SETTINGS=$(sed 's/"username":.*/"username": "'"${NZBGET_RESTRICTED_USERNAME}"'",/' <<< "$DB_SETTINGS")
                     # Set password
                     debug "Setting password to: ${NZBGET_RESTRICTED_PASSWORD}"
@@ -126,14 +129,17 @@ configure_add_downloader() {
                 if [[ ${APPNAME} == "sonarr" ]]; then
                     # Change TvCategory
                     debug "Setting TvCategory to: Series"
+                    # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                     DB_SETTINGS=$(sed 's/"TvCategory":.*/"TvCategory": "Series",/' <<< "$DB_SETTINGS")
                 elif [[ ${APPNAME} == "radarr" ]]; then
                     # Set movieCategory
                     debug "Setting movieCategory to: Movies"
+                    # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                     DB_SETTINGS=$(sed 's/"movieCategory":.*/"movieCategory": "Movies",/' <<< "$DB_SETTINGS")
                 elif [[ ${APPNAME} == "lidarr" ]]; then
                     # Set musicCategory
                     debug "Setting musicCategory to: Music"
+                    # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                     DB_SETTINGS=$(sed 's/"musicCategory":.*/"musicCategory": "Music",/' <<< "$DB_SETTINGS")
                 fi
 
