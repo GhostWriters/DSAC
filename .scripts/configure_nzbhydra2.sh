@@ -3,26 +3,26 @@ set -euo pipefail
 IFS=$'\n\t'
 
 configure_nzbhydra2() {
-    local container_name=${1}
+    local APPNAME=${1}
     # local db_path=${2}
-    local CONTAINER_CONFIG_PATH=${3}
-    local CONTAINER_YML
-    CONTAINER_YML="services.${CONTAINER_NAME}.labels[com.dockstarter.dsac]"
+    local APP_CONFIG_PATH=${3}
+    local APP_YML
+    APP_YML="services.${CONTAINER_NAME}.labels[com.dockstarter.dsac]"
 
-    if [[ $(run_script 'yml_get' "${CONTAINER_NAME}" "${CONTAINER_YML}.docker.running") == "true" ]]; then
+    if [[ $(run_script 'yml_get' "${CONTAINER_NAME}" "${APP_YML}.docker.running") == "true" ]]; then
         local LOCAL_IP
         LOCAL_IP=$(run_script 'detect_local_ip')
-        local JACKETT_CONTAINER_YML="services.jackett.labels[com.dockstarter.dsac]"
-        if [[ $(run_script 'yml_get' "jackett" "${RADARR_CONTAINER_YML}.docker.running") == "true" ]]; then
+        local JACKETT_APP_YML="services.jackett.labels[com.dockstarter.dsac]"
+        if [[ $(run_script 'yml_get' "jackett" "${RADARR_APP_YML}.docker.running") == "true" ]]; then
             local JACKETT_CONFIG_PATH
-            JACKETT_CONFIG_PATH="$(run_script 'yml_get' "jackett" "${JACKETT_CONTAINER_YML}.config.source")/Jackett"
+            JACKETT_CONFIG_PATH="$(run_script 'yml_get' "jackett" "${JACKETT_APP_YML}.config.source")/Jackett"
             local JACKETT_CONFIG_FILE
-            JACKETT_CONFIG_FILE="${JACKETT_CONFIG_PATH}/$(run_script 'yml_get' "jackett" "${JACKETT_CONTAINER_YML}.config.file")"
+            JACKETT_CONFIG_FILE="${JACKETT_CONFIG_PATH}/$(run_script 'yml_get' "jackett" "${JACKETT_APP_YML}.config.file")"
             local JACKETT_INDEXERS_PATH
             JACKETT_INDEXERS_PATH="${JACKETT_CONFIG_PATH}/Indexers"
             local JACKETT_PORT
-            JACKETT_PORT=$(run_script 'yml_get' "jackett" "${JACKETT_CONTAINER_YML}.ports.default")
-            JACKETT_PORT=$(run_script 'yml_get' "jackett" "${JACKETT_CONTAINER_YML}.ports.${JACKETT_PORT}" || echo "${JACKETT_PORT}")
+            JACKETT_PORT=$(run_script 'yml_get' "jackett" "${JACKETT_APP_YML}.ports.default")
+            JACKETT_PORT=$(run_script 'yml_get' "jackett" "${JACKETT_APP_YML}.ports.${JACKETT_PORT}" || echo "${JACKETT_PORT}")
             local JACKETT_BASE
             JACKETT_BASE=$(jq -r '.BasePathOverride' "${JACKETT_CONFIG_FILE}" || echo "/")
             local JACKET_URL
@@ -38,7 +38,7 @@ configure_nzbhydra2() {
                     # Get indexers from Hydra2
                     HYDRA_INDEXER_NAME="Jackett - ${TRACKER} (DSAC)"
                     debug "       Checking for '${HYDRA_INDEXER_NAME}' in Hydra2 indexers list"
-                    if ! yq-go r "${CONTAINER_CONFIG_PATH}" "indexers[*].name" | grep -q "${HYDRA_INDEXER_NAME}"; then
+                    if ! yq-go r "${APP_CONFIG_PATH}" "indexers[*].name" | grep -q "${HYDRA_INDEXER_NAME}"; then
                         debug "       - Not found..."
                         HYDRA_INDEXER_HOST="${JACKET_URL}/api/v2.0/indexers/${TRACKER}/results/torznab/"
 
@@ -53,7 +53,7 @@ configure_nzbhydra2() {
                             yq-go w "${HITMP}" "indexers[0].name" "\"${HYDRA_INDEXER_NAME}\"" -i
                             yq-go w "${HITMP}" "indexers[0].host" "\"${HYDRA_INDEXER_HOST}\"" -i
                             yq-go w "${HITMP}" "indexers[0].score" "4" -i
-                            yq-go m "${CONTAINER_CONFIG_PATH}" "${HITMP}" -i
+                            yq-go m "${APP_CONFIG_PATH}" "${HITMP}" -i
                             rm -f "${HITMP}" || warn "Temporary Hydra2 indexer file could not be removed."
                         fi
                     else

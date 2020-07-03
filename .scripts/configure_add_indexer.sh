@@ -4,31 +4,31 @@ IFS=$'\n\t'
 
 configure_add_indexer() {
     info "    - Updating Indexer settings"
-    local CONTAINER_NAME="${1}"
-    local DB_PATH="${2}"
-    local CONFIG_PATH="${3}"
+    local APPNAME="${1}"
+    local APP_DB_PATH="${2}"
+    local APP_CONFIG_PATH="${3}"
     local INDEXER_CONFIGURED="false"
     local HYDRA2_CONFIGURED="false"
-    debug "CONTAINER_NAME=${CONTAINER_NAME}"
-    debug "DB_PATH=${DB_PATH}"
-    debug "CONFIG_PATH=${CONFIG_PATH}"
+    debug "APPNAME=${APPNAME}"
+    debug "APP_DB_PATH=${APP_DB_PATH}"
+    debug "APP_CONFIG_PATH=${APP_CONFIG_PATH}"
     # Get supported indexers
     mapfile -t INDEXERS < <(yq-go r "${DETECTED_DSACDIR}/.data/supported_apps.yml" "indexers" | awk '{gsub("- ",""); print}')
 
     for INDEXER in "${!INDEXERS[@]}"; do
-        local CONTAINER_YML
-        CONTAINER_YML="services.${INDEXER}.labels[com.dockstarter.dsac]"
+        local INDEXER_YML
+        INDEXER_YML="services.${INDEXER}.labels[com.dockstarter.dsac]"
 
-        if [[ $(run_script 'yml_get' "${INDEXER}" "${CONTAINER_YML}.docker.running") == "true" ]]; then
+        if [[ $(run_script 'yml_get' "${INDEXER}" "${APP_YML}.docker.running") == "true" ]]; then
             if [[ ${INDEXER} == "nzbhydra2" || (${INDEXER} == "jackett" && ${HYDRA2_CONFIGURED} != "true") ]]; then
                 local INDEXER_PORT
                 local INDEXER_BASE_URL
                 local INDEXER_TYPE
                 local LOCAL_IP
                 LOCAL_IP=$(run_script 'detect_local_ip')
-                INDEXER_BASE_URL=$(run_script 'yml_get' "${INDEXER}" "${CONTAINER_YML}.base_url")
-                INDEXER_PORT=$(run_script 'yml_get' "${INDEXER}" "${CONTAINER_YML}.ports.default")
-                INDEXER_PORT=$(run_script 'yml_get' "${INDEXER}" "${CONTAINER_YML}.ports.${INDEXER_PORT}" || echo "${INDEXER_PORT}")
+                INDEXER_BASE_URL=$(run_script 'yml_get' "${INDEXER}" "${INDEXER_YML}.base_url")
+                INDEXER_PORT=$(run_script 'yml_get' "${INDEXER}" "${INDEXER_YML}.ports.default")
+                INDEXER_PORT=$(run_script 'yml_get' "${INDEXER}" "${INDEXER_YML}.ports.${INDEXER_PORT}" || echo "${INDEXER_PORT}")
                 indexer_url_base="http://${LOCAL_IP}:${INDEXER_PORT}${INDEXER_BASE_URL}"
 
                 if [[ ${INDEXER} == "nzbhydra2" ]]; then
@@ -39,31 +39,31 @@ configure_add_indexer() {
                     fatal "${INDEXER} not supported and this shouldn't have happened..."
                 fi
 
-                if [[ ${CONTAINER_NAME} == "radarr" || ${CONTAINER_NAME} == "sonarr" || ${CONTAINER_NAME} == "lidarr" ]]; then
-                    info "Linking ${CONTAINER_NAME} to ${INDEXER}..."
+                if [[ ${APPNAME} == "radarr" || ${APPNAME} == "sonarr" || ${APPNAME} == "lidarr" ]]; then
+                    info "Linking ${APPNAME} to ${INDEXER}..."
                     local indexer_db_id
                     local indexer_settings
                     local categories
                     local additional_columns
                     local additional_values
 
-                    if [[ ${CONTAINER_NAME} == "radarr" ]]; then
+                    if [[ ${APPNAME} == "radarr" ]]; then
                         categories="2000,2010,2020,2030,2035,2040,2045,2050,2060"
-                    elif [[ ${CONTAINER_NAME} == "sonarr" ]]; then
+                    elif [[ ${APPNAME} == "sonarr" ]]; then
                         categories="5030,5040"
-                    elif [[ ${CONTAINER_NAME} == "lidarr" ]]; then
+                    elif [[ ${APPNAME} == "lidarr" ]]; then
                         categories="3000,3010,3020,3030,3040"
                     else
                         categories=""
-                        warn "No categories configured for ${CONTAINER_NAME}"
+                        warn "No categories configured for ${APPNAME}"
                     fi
-                    debug "CONTAINER_NAME=${CONTAINER_NAME}"
+                    debug "APPNAME=${APPNAME}"
                     debug "categories=${categories}"
 
-                    if [[ ${CONTAINER_NAME} == "radarr" || ${CONTAINER_NAME} == "sonarr" ]]; then
+                    if [[ ${APPNAME} == "radarr" || ${APPNAME} == "sonarr" ]]; then
                         additional_columns=",EnableSearch"
                         additional_values=",1"
-                    elif [[ ${CONTAINER_NAME} == "lidarr" ]]; then
+                    elif [[ ${APPNAME} == "lidarr" ]]; then
                         additional_columns=",EnableAutomaticSearch,EnableInteractiveSearch"
                         additional_values=",1,1"
                     else
@@ -94,7 +94,7 @@ configure_add_indexer() {
                         else
                             fatal "${INDEXER} not supported and this shouldn't have happened..."
                         fi
-                        sqlite3 "${DB_PATH}" "INSERT INTO Indexers (Name,Implementation,Settings,ConfigContract,EnableRss${additional_columns})
+                        sqlite3 "${APP_DB_PATH}" "INSERT INTO Indexers (Name,Implementation,Settings,ConfigContract,EnableRss${additional_columns})
                                                 SELECT '${indexer_name}','${implementation}','{
                                                         \"baseUrl\": \"${indexer_url}\",
                                                         \"multiLanguages\": [],
@@ -105,10 +105,10 @@ configure_add_indexer() {
                                                         \"searchByTitle\": false }','${config_contract}',1${additional_values}
                                                 WHERE NOT EXISTS(SELECT 1 FROM Indexers WHERE name='${indexer_name}');"
                         debug "Get ${INDEXER} DB ID"
-                        indexer_db_id=$(sqlite3 "${DB_PATH}" "SELECT id FROM Indexers WHERE Name='${indexer_name}'")
+                        indexer_db_id=$(sqlite3 "${APP_DB_PATH}" "SELECT id FROM Indexers WHERE Name='${indexer_name}'")
                         debug "${INDEXER} DB ID: ${indexer_db_id}"
                         # Get settings for INDEXER
-                        indexer_settings=$(sqlite3 "${DB_PATH}" "SELECT Settings FROM Indexers WHERE id=$indexer_db_id")
+                        indexer_settings=$(sqlite3 "${APP_DB_PATH}" "SELECT Settings FROM Indexers WHERE id=$indexer_db_id")
                         # Set INDEXER API Key
                         debug "Setting API Key to: ${API_KEYS[${INDEXER}]}"
                         indexer_settings=$(sed 's/"apiKey":.*",/"apiKey": "'"${API_KEYS[${INDEXER}]}"'",/' <<< "$indexer_settings")
@@ -120,7 +120,7 @@ configure_add_indexer() {
                         indexer_settings=$(sed 's#"categories":.*,#"categories": ['"${categories}"'],#' <<< "$indexer_settings")
                         #Update the settings for INDEXER
                         debug "Updating DB"
-                        sqlite3 "${DB_PATH}" "UPDATE Indexers SET Settings='$indexer_settings' WHERE id=$indexer_db_id"
+                        sqlite3 "${APP_DB_PATH}" "UPDATE Indexers SET Settings='$indexer_settings' WHERE id=$indexer_db_id"
                     done
 
                     if [[ ${INDEXER} == "nzbhydra2" ]]; then
@@ -130,8 +130,8 @@ configure_add_indexer() {
                     INDEXER_CONFIGURED="true"
                 fi
 
-                if [[ ${CONTAINER_NAME} == "lazylibrarian" ]]; then
-                    info "Linking ${CONTAINER_NAME} to ${INDEXER}..."
+                if [[ ${APPNAME} == "lazylibrarian" ]]; then
+                    info "Linking ${APPNAME} to ${INDEXER}..."
                     for type in "${INDEXER_TYPE[@]}"; do
                         local indexer_url
                         local indexer_name
@@ -158,9 +158,9 @@ configure_add_indexer() {
                         for ((i = 0; i <= 10; i++)); do
                             debug "Checking ${implementation}${i}..."
                             #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
-                            if [[ $(grep -c "${implementation}${i}" "${CONFIG_PATH}") -gt 0 ]]; then
+                            if [[ $(grep -c "${implementation}${i}" "${APP_CONFIG_PATH}") -gt 0 ]]; then
                                 local indexer_name_check
-                                indexer_name_check=$(crudini --get "${CONFIG_PATH}" "${implementation}${i}" dispname)
+                                indexer_name_check=$(crudini --get "${APP_CONFIG_PATH}" "${implementation}${i}" dispname)
                                 if [[ ${indexer_name_check} == "${indexer_name}" ]]; then
                                     indexer_section="${implementation}${i}"
                                     debug "- Updating ${indexer_name}..."
@@ -174,31 +174,31 @@ configure_add_indexer() {
                         done
 
                         if [[ -n ${indexer_section} ]]; then
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" comicsearch
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" audiocat 3030
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" extended 1
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" manual 0
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" bookcat 7000,7020
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" enabled True
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" magcat 7010
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" comiccat 7030
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" dltypes A,C,E,M
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" generalsearch search
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" comicsearch
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" audiocat 3030
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" extended 1
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" manual 0
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" bookcat 7000,7020
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" enabled True
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" magcat 7010
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" comiccat 7030
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" dltypes A,C,E,M
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" generalsearch search
                             # Set INDEXER Url
                             debug "Setting URL to: ${indexer_url}"
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" host "${indexer_url}"
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" host "${indexer_url}"
                             # Set INDEXER API key
                             debug "Setting API Key to: ${API_KEYS[${INDEXER}]}"
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" api "${API_KEYS[${INDEXER}]}"
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" apilimit 0
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" booksearch book
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" apicount 0
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" dlpriority 0
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" magsearch
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" audiosearch
-                            crudini --set "${CONFIG_PATH}" "${indexer_section}" dispname "${indexer_name}"
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" api "${API_KEYS[${INDEXER}]}"
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" apilimit 0
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" booksearch book
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" apicount 0
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" dlpriority 0
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" magsearch
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" audiosearch
+                            crudini --set "${APP_CONFIG_PATH}" "${indexer_section}" dispname "${indexer_name}"
                         else
-                            error "Unable to link ${CONTAINER_NAME} to ${INDEXER}..."
+                            error "Unable to link ${APPNAME} to ${INDEXER}..."
                             error "You probably have too many providers configured."
                         fi
                     done
@@ -210,8 +210,8 @@ configure_add_indexer() {
                     INDEXER_CONFIGURED="true"
                 fi
 
-                if [[ ${CONTAINER_NAME} == "mylar" ]]; then
-                    info "Linking ${CONTAINER_NAME} to ${INDEXER}..."
+                if [[ ${APPNAME} == "mylar" ]]; then
+                    info "Linking ${APPNAME} to ${INDEXER}..."
                     for type in "${INDEXER_TYPE[@]}"; do
                         local indexer_url
                         local indexer_name
@@ -244,34 +244,34 @@ configure_add_indexer() {
                         fi
                         implementation_lower=$(echo "${implementation}" | tr '[:upper:]' '[:lower:]')
 
-                        indexers=$(crudini --get "${CONFIG_PATH}" "${implementation}" "extra_${implementation_lower}s")
+                        indexers=$(crudini --get "${APP_CONFIG_PATH}" "${implementation}" "extra_${implementation_lower}s")
 
                         if [[ ${indexers} == "" ]]; then
                             debug "Adding first ${implementation}"
-                            crudini --set "${CONFIG_PATH}" "${implementation}" "extra_${implementation_lower}s" "${indexer_setting}"
+                            crudini --set "${APP_CONFIG_PATH}" "${implementation}" "extra_${implementation_lower}s" "${indexer_setting}"
                         elif [[ ${indexers} == *"${indexer_name}"* ]]; then
                             debug "Updating ${implementation}"
                             debug "indexers=${indexers}"
                             indexers=${indexers//${indexer_regex}/${indexer_setting}}
                             debug "indexers=${indexers}"
-                            crudini --set "${CONFIG_PATH}" "${implementation}" "extra_${implementation_lower}s"
+                            crudini --set "${APP_CONFIG_PATH}" "${implementation}" "extra_${implementation_lower}s"
                         else
                             debug "Adding additional ${implementation}"
-                            crudini --set "${CONFIG_PATH}" "${implementation}" "extra_${implementation_lower}s" "${indexers}, ${indexer_setting}"
+                            crudini --set "${APP_CONFIG_PATH}" "${implementation}" "extra_${implementation_lower}s" "${indexers}, ${indexer_setting}"
                         fi
 
                         # Enable to general INDEXER
                         if [[ ${type} == "usenet" ]]; then
-                            crudini --set "${CONFIG_PATH}" "${implementation}" "${implementation_lower}" "true"
+                            crudini --set "${APP_CONFIG_PATH}" "${implementation}" "${implementation_lower}" "true"
                         elif [[ ${type} == "torrent" ]]; then
-                            crudini --set "${CONFIG_PATH}" "${implementation}" "enable_${implementation_lower}" "true"
+                            crudini --set "${APP_CONFIG_PATH}" "${implementation}" "enable_${implementation_lower}" "true"
                         fi
 
-                        provider_order=$(crudini --get "${CONFIG_PATH}" "Providers" "provider_order")
+                        provider_order=$(crudini --get "${APP_CONFIG_PATH}" "Providers" "provider_order")
                         debug "Providers:${provider_order}"
                         if [[ ${provider_order} == "" || ${provider_order} == "0," ]]; then
                             debug "Adding first provider to list"
-                            crudini --set "${CONFIG_PATH}" "Providers" "provider_order" "0, ${indexer_name}"
+                            crudini --set "${APP_CONFIG_PATH}" "Providers" "provider_order" "0, ${indexer_name}"
                         elif [[ ${provider_order} == *"${indexer_name}"* ]]; then
                             debug "Provider already exists in list"
                         else
@@ -287,7 +287,7 @@ configure_add_indexer() {
                             index=$((index + 1))
                             debug "index:${index}"
                             provider_order="${provider_order}, ${index}, ${indexer_name}"
-                            crudini --set "${CONFIG_PATH}" "Providers" "provider_order" "${provider_order}"
+                            crudini --set "${APP_CONFIG_PATH}" "Providers" "provider_order" "${provider_order}"
                             debug "Providers:${provider_order}"
                         fi
                     done
