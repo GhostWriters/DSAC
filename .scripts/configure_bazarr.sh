@@ -29,7 +29,7 @@ configure_bazarr() {
             RADARR_PORT=$(run_script 'yml_get' "radarr" "${RADARR_APP_YML}.ports.${RADARR_PORT}" || echo "${RADARR_PORT}")
             crudini --set "${CONFIG_PATH}" radarr apikey "${API_KEYS[radarr]}"
             crudini --set "${CONFIG_PATH}" radarr ip "${LOCAL_IP}"
-            crudini --set "${CONFIG_PATH}" radarr port "${radarr_port}"
+            crudini --set "${CONFIG_PATH}" radarr port "${RADARR_PORT}"
             crudini --set "${CONFIG_PATH}" general use_radarr true
         fi
     fi
