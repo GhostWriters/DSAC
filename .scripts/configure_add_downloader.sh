@@ -123,6 +123,7 @@ configure_add_downloader() {
                     DB_SETTINGS=$(sed 's/"username":.*/"username": "'"${NZBGET_RESTRICTED_USERNAME}"'",/' <<< "$DB_SETTINGS")
                     # Set password
                     debug "Setting password to: ${NZBGET_RESTRICTED_PASSWORD}"
+                    # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                     DB_SETTINGS=$(sed 's/"password":.*/"password": "'"${NZBGET_RESTRICTED_PASSWORD}"'",/' <<< "$DB_SETTINGS")
                 fi
 
