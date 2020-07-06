@@ -7,9 +7,9 @@ configure_nzbhydra2() {
     # local db_path=${2}
     local APP_CONFIG_PATH=${3}
     local APP_YML
-    APP_YML="services.${CONTAINER_NAME}.labels[com.dockstarter.dsac]"
+    APP_YML="services.${APPNAME}.labels[com.dockstarter.dsac]"
 
-    if [[ $(run_script 'yml_get' "${CONTAINER_NAME}" "${APP_YML}.docker.running") == "true" ]]; then
+    if [[ $(run_script 'yml_get' "${APPNAME}" "${APP_YML}.docker.running") == "true" ]]; then
         local LOCAL_IP
         LOCAL_IP=$(run_script 'detect_local_ip')
         local JACKETT_APP_YML="services.jackett.labels[com.dockstarter.dsac]"
