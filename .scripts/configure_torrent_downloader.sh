@@ -25,8 +25,8 @@ configure_torrent_downloader() {
 
             local ip_addresses_current
             #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
-            if [[ $(grep -c "AuthSubnetWhitelist=" "${config_path}") -gt 0 ]]; then
-                ip_addresses_current="$(grep "AuthSubnetWhitelist=" "${config_path}")"
+            if [[ $(grep -c "AuthSubnetWhitelist=" "${APP_CONFIG_PATH}") -gt 0 ]]; then
+                ip_addresses_current="$(grep "AuthSubnetWhitelist=" "${APP_CONFIG_PATH}")"
                 ip_addresses_current=${ip_addresses_current#*=}
                 ip_addresses_current=${ip_addresses_current// /}
 
@@ -55,21 +55,21 @@ configure_torrent_downloader() {
             debug "    ip_addresses=${ip_addresses}"
             info "    - Adding docker network to the list..."
             #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
-            if [[ $(grep -c "AuthSubnetWhitelist=" "${config_path}") -gt 0 ]]; then
+            if [[ $(grep -c "AuthSubnetWhitelist=" "${APP_CONFIG_PATH}") -gt 0 ]]; then
                 debug "    Updating AuthSubnetWhitelist"
-                sed -i "s#AuthSubnetWhitelist=.*#AuthSubnetWhitelist=${ip_addresses}#" "${config_path}"
+                sed -i "s#AuthSubnetWhitelist=.*#AuthSubnetWhitelist=${ip_addresses}#" "${APP_CONFIG_PATH}"
             else
                 debug "    Adding AuthSubnetWhitelist"
-                echo "WebUI\AuthSubnetWhitelist=${ip_addresses}" >> "${config_path}"
+                echo "WebUI\AuthSubnetWhitelist=${ip_addresses}" >> "${APP_CONFIG_PATH}"
             fi
             info "    - Enabling authentication bypass for local docker network..."
             #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
-            if [[ $(grep -c "AuthSubnetWhitelistEnabled=" "${config_path}") -gt 0 ]]; then
+            if [[ $(grep -c "AuthSubnetWhitelistEnabled=" "${APP_CONFIG_PATH}") -gt 0 ]]; then
                 debug "    Updating AuthSubnetWhitelistEnabled"
-                sed -i "s/AuthSubnetWhitelistEnabled=.*/AuthSubnetWhitelistEnabled=true/" "${config_path}"
+                sed -i "s/AuthSubnetWhitelistEnabled=.*/AuthSubnetWhitelistEnabled=true/" "${APP_CONFIG_PATH}"
             else
                 debug "    Adding AuthSubnetWhitelistEnabled"
-                echo "WebUI\AuthSubnetWhitelistEnabled=true" >> "${config_path}"
+                echo "WebUI\AuthSubnetWhitelistEnabled=true" >> "${APP_CONFIG_PATH}"
             fi
         fi
     fi
