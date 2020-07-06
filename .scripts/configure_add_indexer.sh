@@ -88,10 +88,10 @@ configure_add_indexer() {
                             indexer_name="${INDEXER} - Torrent (DSAC)"
                             indexer_url=${indexer_url_base}
                             # Check if using only Jackett
-                            if [[ (${INDEXER} == "jackett" && ${HYDRA2_CONFIGURED} != "true") ]]; then
-                                api_url = "api/v2.0/indexers/all/results/torznab"
+                            if [[ ${INDEXER} == "jackett" && ${HYDRA2_CONFIGURED} != "true" ]]; then
+                                api_url="api/v2.0/indexers/all/results/torznab"
                             else
-                                api_url = "torznab"
+                                api_url="torznab"
                             fi
                             if [[ ${INDEXER_BASE_URL} == "/" ]]; then
                                 indexer_url="${indexer_url_base}${api_url}"
