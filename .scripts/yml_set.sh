@@ -16,5 +16,5 @@ yml_set() {
 }
 
 test_yml_set() {
-    run_script 'yml_get' PORTAINER "services..labels[com.dockstarter.dsac]"
+    warn "CI does not test this script"
 }
