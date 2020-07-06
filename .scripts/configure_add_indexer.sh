@@ -115,15 +115,19 @@ configure_add_indexer() {
                         indexer_db_id=$(sqlite3 "${APP_DB_PATH}" "SELECT id FROM Indexers WHERE Name='${indexer_name}'")
                         debug "${INDEXER} DB ID: ${indexer_db_id}"
                         # Get settings for INDEXER
+                        # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                         indexer_settings=$(sqlite3 "${APP_DB_PATH}" "SELECT Settings FROM Indexers WHERE id=$indexer_db_id")
                         # Set INDEXER API Key
                         debug "Setting API Key to: ${API_KEYS[${INDEXER}]}"
+                        # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                         indexer_settings=$(sed 's/"apiKey":.*",/"apiKey": "'"${API_KEYS[${INDEXER}]}"'",/' <<< "$indexer_settings")
                         # Set INDEXER Url
                         debug "Setting URL to: ${indexer_url}"
+                        # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                         indexer_settings=$(sed 's#"baseUrl":.*",#"baseUrl": "'"${indexer_url}"'",#' <<< "$indexer_settings")
                         # Set categories
                         debug "Setting categories to: [${categories}]"
+                        # shellcheck disable=SC2001 # Need to use sed here and can't use variable//search/replace
                         indexer_settings=$(sed 's#"categories":.*,#"categories": ['"${categories}"'],#' <<< "$indexer_settings")
                         #Update the settings for INDEXER
                         debug "Updating DB"
