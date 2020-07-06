@@ -19,7 +19,7 @@ configure_bazarr() {
             SONARR_PORT=$(run_script 'yml_get' "sonarr" "${SONARR_APP_YML}.ports.${SONARR_PORT}" || echo "${SONARR_PORT}")
             crudini --set "${CONFIG_PATH}" sonarr apikey "${API_KEYS[sonarr]}"
             crudini --set "${CONFIG_PATH}" sonarr ip "${LOCAL_IP}"
-            crudini --set "${CONFIG_PATH}" sonarr port "${sonarr_port}"
+            crudini --set "${CONFIG_PATH}" sonarr port "${SONARR_PORT}"
             crudini --set "${CONFIG_PATH}" general use_sonarr true
         fi
         local RADARR_APP_YML="services.sonarr.labels[com.dockstarter.dsac]"
