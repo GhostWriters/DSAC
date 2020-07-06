@@ -32,7 +32,7 @@ configure_add_indexer() {
                 indexer_url_base="http://${LOCAL_IP}:${INDEXER_PORT}${INDEXER_BASE_URL}"
 
                 if [[ ${INDEXER} == "nzbhydra2" ]]; then
-                    INDEXER_TYPE=("torrent" "usenet")
+                    INDEXER_TYPE=("usenet" "torrent")
                 elif [[ ${INDEXER} == "jackett" ]]; then
                     INDEXER_TYPE=("torrent")
                 else
@@ -74,6 +74,7 @@ configure_add_indexer() {
                     for type in "${INDEXER_TYPE[@]}"; do
                         local indexer_url
                         local indexer_name
+                        local api_url
                         debug "Indexer type: ${type}"
 
                         if [[ ${type} == "usenet" ]]; then
@@ -86,10 +87,16 @@ configure_add_indexer() {
                             config_contract="TorznabSettings"
                             indexer_name="${INDEXER} - Torrent (DSAC)"
                             indexer_url=${indexer_url_base}
-                            if [[ ${INDEXER_BASE_URL} == "/" ]]; then
-                                indexer_url="${indexer_url_base}torznab"
+                            # Check if using only Jackett
+                            if [[ (${INDEXER} == "jackett" && ${HYDRA2_CONFIGURED} != "true") ]]; then
+                                api_url = "api/v2.0/indexers/all/results/torznab"
                             else
-                                indexer_url="${indexer_url_base}/torznab"
+                                api_url = "torznab"
+                            fi
+                            if [[ ${INDEXER_BASE_URL} == "/" ]]; then
+                                indexer_url="${indexer_url_base}${api_url}"
+                            else
+                                indexer_url="${indexer_url_base}/${api_url}"
                             fi
                         else
                             fatal "${INDEXER} not supported and this shouldn't have happened..."
