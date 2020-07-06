@@ -13,21 +13,21 @@ configure_usenet_downloader() {
     if [[ $(run_script 'yml_get' "${APPNAME}" "${APP_CONTAINER_YML}.docker.running") == "true" ]]; then
         if [[ ${APPNAME} == "nzbget" ]]; then
             #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
-            if [[ $(grep -c ".Name=Books" "${config_path}") -eq 0 ]]; then
+            if [[ $(grep -c ".Name=Books" "${APP_CONFIG_PATH}") -eq 0 ]]; then
                 for ((i = 0; i <= 10; i++)); do
                     local category
                     category="Category${i}"
                     #TODO: Change all "grep -c ... -gt 0" to use "grep -p"
-                    if [[ $(grep -c "${category}.Name=" "${config_path}") -eq 0 ]]; then
+                    if [[ $(grep -c "${category}.Name=" "${APP_CONFIG_PATH}") -eq 0 ]]; then
                         info "    - Adding Books category..."
                         debug "    ${category}.Name=Books (DSAC)"
-                        echo "${category}.Name=Books (DSAC)" >> "${config_path}"
-                        echo "${category}.Aliases=Books" >> "${config_path}"
+                        echo "${category}.Name=Books (DSAC)" >> "${APP_CONFIG_PATH}"
+                        echo "${category}.Aliases=Books" >> "${APP_CONFIG_PATH}"
                         break
                     fi
                 done
             else
-                debug "    - $(grep ".Name=Books" "${config_path}")"
+                debug "    - $(grep ".Name=Books" "${APP_CONFIG_PATH}")"
             fi
         fi
     fi
