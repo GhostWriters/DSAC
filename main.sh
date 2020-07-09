@@ -37,12 +37,13 @@ cmdline() {
         local DELIM=""
         case "${ARG}" in
             #translate --gnu-long-options to -g (short options)
+            --debug) LOCAL_ARGS="${LOCAL_ARGS:-}-x " ;;
+            --force) LOCAL_ARGS="${LOCAL_ARGS:-}-f " ;;
             --help) LOCAL_ARGS="${LOCAL_ARGS:-}-h " ;;
             --install) LOCAL_ARGS="${LOCAL_ARGS:-}-i " ;;
             --test) LOCAL_ARGS="${LOCAL_ARGS:-}-t " ;;
             --update) LOCAL_ARGS="${LOCAL_ARGS:-}-u " ;;
             --verbose) LOCAL_ARGS="${LOCAL_ARGS:-}-v " ;;
-            --debug) LOCAL_ARGS="${LOCAL_ARGS:-}-x " ;;
             #pass through anything else
             *)
                 [[ ${ARG:0:1} == "-" ]] || DELIM='"'
@@ -58,6 +59,9 @@ cmdline() {
         case ${OPTION} in
             d)
                 readonly DEBUG=1
+                ;;
+            f)
+                readonly FORCE=true
                 ;;
             h)
                 usage

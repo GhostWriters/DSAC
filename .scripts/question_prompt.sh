@@ -30,6 +30,8 @@ question_prompt() {
             else
                 YN=N
             fi
+        elif [[ ${PROMPT:-} == "FORCE" ]]; then
+            YN=${DEFAULT}
         else
             YN=${DEFAULT}
         fi
