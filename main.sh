@@ -319,6 +319,9 @@ main() {
     fi
     # Repo Check
     local PROMPT
+    if [[ ${FORCE:-} == true ]]; then
+        PROMPT="FORCE"
+    fi
     local DSAC_COMMAND
     DSAC_COMMAND=$(command -v dsac || true)
     if [[ -L ${DSAC_COMMAND} ]]; then
