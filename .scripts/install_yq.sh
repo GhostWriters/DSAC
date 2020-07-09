@@ -3,9 +3,13 @@ set -euo pipefail
 IFS=$'\n\t'
 
 install_yq() {
-    local MINIMUM_YQ="2.0.0"
+    local MINIMUM_YQ="3.2.1"
     local INSTALLED_YQ
-    INSTALLED_YQ=$( (/usr/local/bin/yq-go --version 2> /dev/null || echo "0") | sed -E 's/.* version ([^,]*)(, build .*)?/\1/')
+    if [[ ${FORCE:-} == true ]] && [[ -n ${INSTALL:-} ]]; then
+        INSTALLED_YQ="0"
+    else
+        INSTALLED_YQ=$( (/usr/local/bin/yq-go --version 2> /dev/null || echo "0") | sed -E 's/.* version ([^,]*)(, build .*)?/\1/')
+    fi
     if vergt "${MINIMUM_YQ}" "${INSTALLED_YQ}"; then
         local AVAILABLE_YQ
         AVAILABLE_YQ=$( (curl -H "${GH_HEADER:-}" -fsL "https://api.github.com/repos/mikefarah/yq/releases/latest" | grep -Po '"tag_name": "[Vv]?\K.*?(?=")') || echo "0")
@@ -20,12 +24,17 @@ install_yq() {
         if vergt "${AVAILABLE_YQ}" "${INSTALLED_YQ}"; then
             # https://github.com/mikefarah/yq
             info "Installing latest yq-go."
-            if [[ ${ARCH} == "aarch64" ]] || [[ ${ARCH} == "armv7l" ]]; then
-                curl -fsL "https://github.com/mikefarah/yq/releases/download/${AVAILABLE_YQ}/yq_linux_arm" -o /usr/local/bin/yq-go > /dev/null 2>&1 || fatal "Failed to install yq-go."
+            local YQ_ARCH
+            if [[ ${ARCH} == "aarch64" ]]; then
+                YQ_ARCH="yq_linux_arm64"
+            fi
+            if [[ ${ARCH} == "armv7l" ]]; then
+                YQ_ARCH="yq_linux_arm"
             fi
             if [[ ${ARCH} == "x86_64" ]]; then
-                curl -fsL "https://github.com/mikefarah/yq/releases/download/${AVAILABLE_YQ}/yq_linux_amd64" -o /usr/local/bin/yq-go > /dev/null 2>&1 || fatal "Failed to install yq-go."
+                YQ_ARCH="yq_linux_amd64"
             fi
+            curl -fsL "https://github.com/mikefarah/yq/releases/download/${AVAILABLE_YQ}/${YQ_ARCH}" -o /usr/local/bin/yq-go > /dev/null 2>&1 || fatal "Failed to install yq-go."
             if [[ ! -L "/usr/bin/yq-go" ]]; then
                 ln -s /usr/local/bin/yq-go /usr/bin/yq-go || fatal "Failed to create /usr/bin/yq-go symlink."
             fi
@@ -33,7 +42,10 @@ install_yq() {
             local UPDATED_YQ
             UPDATED_YQ=$( (/usr/local/bin/yq-go --version 2> /dev/null || echo "0") | sed -E 's/.* version ([^,]*)(, build .*)?/\1/')
             if vergt "${AVAILABLE_YQ}" "${UPDATED_YQ}"; then
-                fatal "Failed to install the latest yq-go."
+                error "Failed to install the latest yq-go."
+            fi
+            if vergt "${MINIMUM_YQ}" "${UPDATED_YQ}"; then
+                fatal "Failed to install the minimum required yq-go."
             fi
         fi
     fi
