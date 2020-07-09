@@ -106,7 +106,7 @@ fi
 # Github Token for Travis CI
 if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == true ]]; then
     readonly GH_HEADER="Authorization: token ${GH_TOKEN}"
-    echo "${GH_HEADER}" > /dev/null 2>&1 || true # Ridiculous workaround for SC2034 where the variable is used in other files called by this script
+    export GH_HEADER
 fi
 
 # Script Information
@@ -133,8 +133,8 @@ readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 
 # DS Information
-# shellcheck disable=SC2034 # This variable is actually used in other scripts
 readonly DETECTED_DSDIR=$(eval echo "~${DETECTED_UNAME}/.docker" 2> /dev/null || true)
+export DETECTED_DSDIR
 
 # DSAC Information
 readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null || true)
@@ -325,7 +325,7 @@ main() {
                 if [[ ${PROMPT:-} != "GUI" ]]; then
                     PROMPT="CLI"
                 fi
-                if run_script 'question_prompt' "${PROMPT:-}" N "DockSTARTer App Config installation found at ${DSAC_SYMLINK} location. Would you like to run ${SCRIPTNAME} instead?"; then
+                if run_script 'question_prompt' "${PROMPT:-CLI}" N "DockSTARTer App Config installation found at ${DSAC_SYMLINK} location. Would you like to run ${SCRIPTNAME} instead?"; then
                     run_script 'symlink_dsac'
                     DSAC_COMMAND=$(command -v dsac || true)
                     DSAC_SYMLINK=$(readlink -f "${DSAC_COMMAND}")
@@ -335,7 +335,7 @@ main() {
             warn "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
             sudo bash "${DSAC_SYMLINK}" -vu
             sudo bash "${DSAC_SYMLINK}" -vi
-            exec sudo bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
+            exec sudo -E bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
         fi
     else
         if ! repo_exists; then
@@ -346,12 +346,12 @@ main() {
             fi
             git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
             notice "Performing first run install."
-            exec sudo bash "${DETECTED_DSACDIR}/main.sh" "-vi"
+            exec sudo -E bash "${DETECTED_DSACDIR}/main.sh" "-vi"
         fi
     fi
     # Sudo Check
     if [[ ${EUID} -ne 0 ]]; then
-        exec sudo bash "${SCRIPTNAME}" "${ARGS[@]:-}"
+        exec sudo -E bash "${SCRIPTNAME}" "${ARGS[@]:-}"
     fi
     # Create Symlink
     run_script 'symlink_dsac'
