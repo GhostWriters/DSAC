@@ -21,16 +21,17 @@ configure_applications() {
     fi
     #shellcheck disable=SC2154
     for APP_CATEGORY in "${APP_CATEGORIES[@]}"; do
+        APP_CATEGORY="${APP_CATEGORY#*.}"
         if [[ ${APP_TYPE} == "indexers" || ${APP_TYPE} == "others" ]]; then
             mapfile -t APPS < <(run_script 'yml_get' "" "${APP_TYPE}" "${DETECTED_DSACDIR}/.data/configure_apps.yml" | awk '{gsub("- ",""); print}')
-            info "- ${APP_TYPE}"
+            info "- ${APP_TYPE^}"
         else
             mapfile -t APPS < <(run_script 'yml_get' "" "${APP_TYPE}.${APP_CATEGORY}" "${DETECTED_DSACDIR}/.data/configure_apps.yml" | awk '{gsub("- ",""); print}')
-            info "- ${APP_TYPE} ${APP_CATEGORY} "
+            info "- ${APP_TYPE^} ${APP_CATEGORY^}"
         fi
         for APPNAME in "${APPS[@]}"; do
             local APP_YML
-            APP_YML="services.${INDEXER}.labels[com.dockstarter.dsac]"
+            APP_YML="services.${APPNAME}.labels[com.dockstarter.dsac]"
             if [[ $(run_script 'yml_get' "${APPNAME}" "${APP_YML}.docker.running") == "true" ]]; then
                 info "${APPNAME}"
                 CONTAINER_ID=$(run_script 'yml_get' "${APPNAME}" "${APP_YML}.docker.container_id")
