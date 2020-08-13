@@ -14,7 +14,8 @@ run_dockstarter() {
             (ds -f -u)
         fi
     elif [[ ${ACTION} == "install-dependecies" ]]; then
-        (ds -f -i)
+        # (ds -i)
+        debug "Skipping dependency install"
     elif [[ ${ACTION} == "compose" ]]; then
         local WAIT_TIME=1
         local i=0
@@ -22,6 +23,9 @@ run_dockstarter() {
         local indicators=('\' '|' '/' '-')
         typeset -A containers_check
         (ds -c up)
+        if [[ -n ${DEBUG:-} ]]; then
+            docker ps --format "table {{.Names}}\t{{.Status}}"
+        fi
         notice "Waiting for containers to be running for ${WAIT_TIME} minute(s)..."
         while true; do
             local not_ready="false"
@@ -36,6 +40,7 @@ run_dockstarter() {
                     NOW=$(date +%s%3N)
                     TIME_DIFF=$((NOW - containers_check[\$container_id]))
                     TIME_DIFF=$((TIME_DIFF / 60000))
+                    #debug "$(docker inspect --format='{{.Name}}' ${container_id}) ${TIME_DIFF}"
                     if [[ ${TIME_DIFF} -ge 1 ]]; then
                         containers_check[${container_id}]="ready"
                     else
@@ -45,6 +50,9 @@ run_dockstarter() {
             done < <(docker ps -q)
             if [[ ${not_ready} == "false" ]]; then
                 info "All containers appear to be ready!"
+                if [[ -n ${DEBUG:-} ]]; then
+                    docker ps --format "table {{.Names}}\t{{.Status}}"
+                fi
                 break
             fi
             sleep 1s
@@ -58,7 +66,7 @@ run_dockstarter() {
         for APP_TYPE in "${APP_TYPES[@]}"; do
             #shellcheck disable=SC2154
             if [[ ${APP_TYPE} == "indexers" || ${APP_TYPE} == "others" ]]; then
-                info "Media ${APP_TYPE}"
+                info "Media ${APP_TYPE^}"
                 mapfile -t APPS < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}" | awk '{gsub("- ",""); print}')
                 for APPNAME in "${APPS[@]}"; do
                     APPNAME=${APPNAME^}
@@ -72,7 +80,7 @@ run_dockstarter() {
                 mapfile -t APP_CATEGORIES < <(yq-go r --printMode p "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}.*")
                 for APP_CATEGORY in "${APP_CATEGORIES[@]}"; do
                     APP_CATEGORY=${APP_CATEGORY//${APP_TYPE}./}
-                    info "Media ${APP_TYPE} - ${APP_CATEGORY}"
+                    info "Media ${APP_TYPE^} - ${APP_CATEGORY^}"
                     mapfile -t APPS < <(yq-go r "${DETECTED_DSACDIR}/.data/configure_apps.yml" "${APP_TYPE}.${APP_CATEGORY}" | awk '{gsub("- ",""); print}')
                     for APPNAME in "${APPS[@]}"; do
                         APPNAME=${APPNAME^}
@@ -85,7 +93,7 @@ run_dockstarter() {
                 done
             fi
         done
-        notice "Adding apps to DS completed"
+        info "Adding apps to DS completed"
     fi
 }
 
