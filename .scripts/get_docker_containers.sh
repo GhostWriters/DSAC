@@ -27,9 +27,9 @@ get_docker_containers() {
             CONTAINER_NAME=$(docker container inspect -f '{{ .Name }}' "${CONTAINER_ID}")
             CONTAINER_NAME=${CONTAINER_NAME//\//}
             local APPLICATION_NAME
-            APPLICATION_NAME=${CONTAINER_IMAGE#*/} # Get everything after the /
+            APPLICATION_NAME=${CONTAINER_IMAGE#*/}   # Get everything after the /
             APPLICATION_NAME=${APPLICATION_NAME%%:*} # Get everything befor the :
-            APPLICATION_NAME=${APPLICATION_NAME,,} # To lowercase
+            APPLICATION_NAME=${APPLICATION_NAME,,}   # To lowercase
             local CONTAINER_YML
             CONTAINER_YML="services.${CONTAINER_NAME}.labels[com.dockstarter.dsac]"
             local CONTAINER_BASE_YML_FILE
