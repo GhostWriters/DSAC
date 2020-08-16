@@ -104,7 +104,8 @@ cmdline() {
 }
 cmdline "${ARGS[@]:-}"
 if [[ -n ${DEBUG:-} ]] && [[ -n ${VERBOSE:-} ]]; then
-    readonly TRACE=1
+    #readonly TRACE=1
+    echo "Skipping TRACE"
 fi
 
 # Github Token for Travis CI
@@ -205,16 +206,16 @@ declare -Agr F=(
 readonly NC=$(tcolor NC)
 
 # Log Functions
-readonly LOG_FILE="/tmp/dockstarterappconfig.log"
-sudo -E chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true
+readonly LOG_TEMP=$(mktemp) || echo "Failed to create temporary log file."
+echo "DockSTARTer App Config Log" > "${LOG_TEMP}"
 log() {
     local TOTERM=${1:-}
     local MESSAGE=${2:-}
     echo -e "${MESSAGE:-}" | (
         if [[ -n ${TOTERM} ]]; then
-            tee -a "${LOG_FILE}" >&2
+            tee -a "${LOG_TEMP}" >&2
         else
-            cat >> "${LOG_FILE}" 2>&1
+            cat >> "${LOG_TEMP}" 2>&1
         fi
     )
 }
@@ -299,6 +300,9 @@ cleanup() {
     if [[ ${EXIT_CODE} -ne 0 ]]; then
         error "DockSTARTer App Config did not finish running successfully."
     fi
+
+    sudo sh -c "cat ${LOG_TEMP} >> ${SCRIPTPATH}/dockstarterappconfig.log" || true
+
     exit ${EXIT_CODE}
     trap - 0 1 2 3 6 14 15
 }
@@ -306,8 +310,6 @@ trap 'cleanup' 0 1 2 3 6 14 15
 
 # Main Function
 main() {
-    #Save current log if not empty and rotate logs
-    savelog -n -C -l -t "${LOG_FILE}" > /dev/null
     # Arch Check
     readonly ARCH=$(uname -m)
     if [[ ${ARCH} != "aarch64" ]] && [[ ${ARCH} != "armv7l" ]] && [[ ${ARCH} != "x86_64" ]]; then
