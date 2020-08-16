@@ -123,16 +123,16 @@ declare -Agr F=(
 readonly NC=$(tcolor NC)
 
 # Log Functions
-readonly LOG_FILE="/tmp/dsac-develop.log"
-sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
+readonly LOG_TEMP=$(mktemp) || echo "Failed to create temporary log file."
+echo "DockSTARTer App Config Log - Develop" > "${LOG_TEMP}"
 log() {
     local TOTERM=${1:-}
     local MESSAGE=${2:-}
     echo -e "${MESSAGE:-}" | (
         if [[ -n ${TOTERM} ]]; then
-            tee -a "${LOG_FILE}" >&2
+            tee -a "${LOG_TEMP}" >&2
         else
-            cat >> "${LOG_FILE}" 2>&1
+            cat >> "${LOG_TEMP}" 2>&1
         fi
     )
 }
@@ -186,12 +186,19 @@ run_test() {
 
 # Cleanup Function
 cleanup() {
+    local -ri EXIT_CODE=$?
+
     if [[ ${SCRIPTPATH} == "${DETECTED_DSACDIR}" ]]; then
         chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
     fi
     if [[ ${CI:-} == true ]] && [[ ${TRAVIS:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS} == false ]]; then
         warning "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
     fi
+
+    sudo sh -c "cat ${LOG_TEMP} >> ${SCRIPTPATH}/dockstarterappconfig.log" || true
+
+    exit ${EXIT_CODE}
+    trap - 0 1 2 3 6 14 15
 }
 trap 'cleanup' 0 1 2 3 6 14 15
 
