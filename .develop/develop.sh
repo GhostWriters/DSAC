@@ -55,7 +55,9 @@ readonly SCRIPTPATH="$(cd -P "$(dirname "${SCRIPTNAME}")" > /dev/null && pwd)"
 readonly DETECTED_PUID=${SUDO_UID:-$UID}
 readonly DETECTED_UNAME=$(id -un "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_PGID=$(id -g "${DETECTED_PUID}" 2> /dev/null || true)
+export DETECTED_PGID
 readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
+export DETECTED_UGROUP
 readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 
 # DSAC Information
