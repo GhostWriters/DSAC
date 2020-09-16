@@ -14,8 +14,8 @@ update_self() {
     info "Fetching recent changes from git."
     git fetch --all --prune > /dev/null 2>&1 || fatal "Failed to fetch recent changes from git."
     if [[ ${CI:-} != true ]]; then
-    info "Resetting to ${BRANCH}."
-    git reset --hard "${BRANCH}" > /dev/null 2>&1 || fatal "Failed to reset to ${BRANCH}."
+        info "Resetting to ${BRANCH}."
+        git reset --hard "${BRANCH}" > /dev/null 2>&1 || fatal "Failed to reset to ${BRANCH}."
         info "Pulling recent changes from git."
         git pull > /dev/null 2>&1 || fatal "Failed to pull recent changes from git."
     fi
