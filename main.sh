@@ -96,7 +96,7 @@ cmdline() {
                 ;;
         esac
     done
-    return 0
+    return
 }
 cmdline "${ARGS[@]:-}"
 if [[ -n ${DEBUG:-} ]] && [[ -n ${VERBOSE:-} ]]; then
@@ -106,7 +106,7 @@ fi
 # Github Token for Travis CI
 if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == true ]]; then
     readonly GH_HEADER="Authorization: token ${GH_TOKEN}"
-    echo "${GH_HEADER}" > /dev/null 2>&1 || true # Ridiculous workaround for SC2034 where the variable is used in other files called by this script
+    export GH_HEADER
 fi
 
 # Script Information
@@ -129,7 +129,9 @@ readonly SCRIPTNAME="${SCRIPTPATH}/$(basename "$(get_scriptname)")"
 readonly DETECTED_PUID=${SUDO_UID:-$UID}
 readonly DETECTED_UNAME=$(id -un "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_PGID=$(id -g "${DETECTED_PUID}" 2> /dev/null || true)
+export DETECTED_PGID
 readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
+export DETECTED_UGROUP
 readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 
 # DS Information
@@ -170,8 +172,8 @@ tcolor() {
             esac
         fi
         local COLOR_OUT
-        if [[ $(tput colors) -ge 8 ]]; then
-            COLOR_OUT=$(eval tput ${CAP:-} ${VAL:-})
+        if [[ $(tput colors 2> /dev/null) -ge 8 ]]; then
+            COLOR_OUT=$(eval tput ${CAP:-} ${VAL:-} 2> /dev/null)
         fi
         echo "${COLOR_OUT:-}"
     else
@@ -201,29 +203,27 @@ declare -Agr F=(
 readonly NC=$(tcolor NC)
 
 # Log Functions
-readonly LOG_FILE="/tmp/dockstarterappconfig.log"
-sudo chown "${DETECTED_PUID:-$DETECTED_UNAME}":"${DETECTED_PGID:-$DETECTED_UGROUP}" "${LOG_FILE}" > /dev/null 2>&1 || true # This line should always use sudo
+readonly LOG_TEMP=$(mktemp) || echo "Failed to create temporary log file."
+echo "DockSTARTer Log" > "${LOG_TEMP}"
 log() {
-    if [[ -n ${DEBUG:-} ]] || [[ -n ${TRACE:-} ]]; then
-        echo -e "${NC}$(date +"%F %T") ${F[B]}[LOG   ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
-    else
-        echo -e "${NC}$(date +"%F %T") ${F[B]}[LOG   ]${NC}        $*${NC}" | tee -a "${LOG_FILE}" > /dev/null
-    fi
+    local TOTERM=${1:-}
+    local MESSAGE=${2:-}
+    echo -e "${MESSAGE:-}" | (
+        if [[ -n ${TOTERM} ]]; then
+            tee -a "${LOG_TEMP}" >&2
+        else
+            cat >> "${LOG_TEMP}" 2>&1
+        fi
+    )
 }
-trace() { if [[ -n ${TRACE:-} ]]; then
-    echo -e "${NC}$(date +"%F %T") ${F[B]}[TRACE ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
-fi; }
-debug() { if [[ -n ${DEBUG:-} ]]; then
-    echo -e "${NC}$(date +"%F %T") ${F[B]}[DEBUG ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
-fi; }
-info() { if [[ -n ${VERBOSE:-} ]]; then
-    echo -e "${NC}$(date +"%F %T") ${F[B]}[INFO  ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
-fi; }
-notice() { echo -e "${NC}$(date +"%F %T") ${F[G]}[NOTICE]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-warn() { echo -e "${NC}$(date +"%F %T") ${F[Y]}[WARN  ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2; }
-error() { echo -e "${NC}$(date +"%F %T") ${F[R]}[ERROR ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2; }
+trace() { log "${TRACE:-}" "${NC}$(date +"%F %T") ${F[B]}[TRACE ]${NC}   $*${NC}"; }
+debug() { log "${DEBUG:-}" "${NC}$(date +"%F %T") ${F[B]}[DEBUG ]${NC}   $*${NC}"; }
+info() { log "${VERBOSE:-}" "${NC}$(date +"%F %T") ${F[B]}[INFO  ]${NC}   $*${NC}"; }
+notice() { log "true" "${NC}$(date +"%F %T") ${F[G]}[NOTICE]${NC}   $*${NC}"; }
+warn() { log "true" "${NC}$(date +"%F %T") ${F[Y]}[WARN  ]${NC}   $*${NC}"; }
+error() { log "true" "${NC}$(date +"%F %T") ${F[R]}[ERROR ]${NC}   $*${NC}"; }
 fatal() {
-    echo -e "${NC}$(date +"%F %T") ${B[R]}${F[W]}[FATAL ]${NC}   $*${NC}" | tee -a "${LOG_FILE}" >&2
+    log "true" "${NC}$(date +"%F %T") ${B[R]}${F[W]}[FATAL ]${NC}   $*${NC}"
     exit 1
 }
 
@@ -288,7 +288,7 @@ cleanup() {
 
     if repo_exists; then
         info "Setting executable permission on ${SCRIPTNAME}"
-        sudo chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
+        sudo -E chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
     fi
     if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == false ]]; then
         warn "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
@@ -297,6 +297,9 @@ cleanup() {
     if [[ ${EXIT_CODE} -ne 0 ]]; then
         error "DockSTARTer App Config did not finish running successfully."
     fi
+
+    sudo sh -c "cat ${LOG_TEMP} >> ${SCRIPTPATH}/dockstarterappconfig.log" || true
+
     exit ${EXIT_CODE}
     trap - 0 1 2 3 6 14 15
 }
@@ -305,7 +308,7 @@ trap 'cleanup' 0 1 2 3 6 14 15
 # Main Function
 main() {
     #Save current log if not empty and rotate logs
-    savelog -n -C -l -t "${LOG_FILE}" > /dev/null
+    savelog -n -C -l -t "${SCRIPTPATH}/dockstarterappconfig.log" > /dev/null
     # Arch Check
     readonly ARCH=$(uname -m)
     if [[ ${ARCH} != "aarch64" ]] && [[ ${ARCH} != "armv7l" ]] && [[ ${ARCH} != "x86_64" ]]; then
@@ -317,6 +320,9 @@ main() {
     fi
     # Repo Check
     local PROMPT
+    if [[ ${FORCE:-} == true ]]; then
+        PROMPT="FORCE"
+    fi
     local DSAC_COMMAND
     DSAC_COMMAND=$(command -v dsac || true)
     if [[ -L ${DSAC_COMMAND} ]]; then
@@ -324,20 +330,16 @@ main() {
         DSAC_SYMLINK=$(readlink -f "${DSAC_COMMAND}")
         if [[ ${SCRIPTNAME} != "${DSAC_SYMLINK}" ]]; then
             if repo_exists; then
-                if [[ ${PROMPT:-} != "GUI" ]]; then
-                    PROMPT="CLI"
-                fi
-                if run_script 'question_prompt' "${PROMPT:-}" N "DockSTARTer App Config installation found at ${DSAC_SYMLINK} location. Would you like to run ${SCRIPTNAME} instead?"; then
+                if run_script 'question_prompt' "${PROMPT:-CLI}" N "DockSTARTer App Config installation found at ${DSAC_SYMLINK} location. Would you like to run ${SCRIPTNAME} instead?"; then
                     run_script 'symlink_dsac'
                     DSAC_COMMAND=$(command -v dsac || true)
                     DSAC_SYMLINK=$(readlink -f "${DSAC_COMMAND}")
                 fi
-                unset PROMPT
             fi
             warn "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
-            sudo bash "${DSAC_SYMLINK}" -vu
-            sudo bash "${DSAC_SYMLINK}" -vi
-            exec sudo bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
+            sudo -E bash "${DSAC_SYMLINK}" -vu
+            sudo -E bash "${DSAC_SYMLINK}" -vi
+            exec sudo -E bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
         fi
     else
         if ! repo_exists; then
@@ -348,12 +350,12 @@ main() {
             fi
             git clone https://github.com/GhostWriters/DSAC "${DETECTED_DSACDIR}" || fatal "Failed to clone DockSTARTer App Config repo to ${DETECTED_DSACDIR} location."
             notice "Performing first run install."
-            exec sudo bash "${DETECTED_DSACDIR}/main.sh" "-vi"
+            exec sudo -E bash "${DETECTED_DSACDIR}/main.sh" "-vi"
         fi
     fi
     # Sudo Check
     if [[ ${EUID} -ne 0 ]]; then
-        exec sudo bash "${SCRIPTNAME}" "${ARGS[@]:-}"
+        exec sudo -E bash "${SCRIPTNAME}" "${ARGS[@]:-}"
     fi
     # Create Symlink
     run_script 'symlink_dsac'

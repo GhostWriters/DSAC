@@ -5,28 +5,27 @@ IFS=$'\n\t'
 update_self() {
     local BRANCH=${1:-origin/master}
     if run_script 'question_prompt' "${PROMPT:-}" Y "Would you like to update DockSTARTer App Config to ${BRANCH} now?"; then
-        info "Updating DockSTARTer App Config to ${BRANCH}."
+        notice "Updating DockSTARTer App Config to ${BRANCH}."
     else
-        info "DockSTARTer App Config will not be updated to ${BRANCH}."
+        notice "DockSTARTer App Config will not be updated to ${BRANCH}."
         return 1
     fi
     cd "${SCRIPTPATH}" || fatal "Failed to change to ${SCRIPTPATH} directory."
     info "Fetching recent changes from git."
     git fetch --all --prune > /dev/null 2>&1 || fatal "Failed to fetch recent changes from git."
+    if [[ ${CI:-} != true ]]; then
     info "Resetting to ${BRANCH}."
     git reset --hard "${BRANCH}" > /dev/null 2>&1 || fatal "Failed to reset to ${BRANCH}."
-    if [[ ${CI:-} != true ]]; then
         info "Pulling recent changes from git."
         git pull > /dev/null 2>&1 || fatal "Failed to pull recent changes from git."
     fi
-    info "Removing unused branches."
-    git for-each-ref --format '%(refname:short)' refs/heads | grep -v master | xargs git branch -D > /dev/null 2>&1 || true
-    while IFS= read -r line; do
-        info "Setting file ownership on ${line}"
-        chown -R "${DETECTED_PUID}":"${DETECTED_PGID}" "${line}" > /dev/null 2>&1 || true
-    done < <(git ls-tree -r HEAD | awk '{print $4}')
+    info "Cleaning up unnecessary files and optimizing the local repository."
+    git gc > /dev/null 2>&1 || true
+    info "Setting file ownership on repository files"
+    git ls-tree -r HEAD | awk '{print $4}' | xargs chown "${DETECTED_PUID}":"${DETECTED_PGID}" > /dev/null 2>&1 || true
+    chown -R "${DETECTED_PUID}":"${DETECTED_PGID}" "${SCRIPTPATH}/.git" > /dev/null 2>&1 || true
 }
 
 test_update_self() {
-    run_script 'update_self' "${TRAVIS_COMMIT:-}"
+    run_script 'update_self' "${COMMIT_SHA:-}"
 }
