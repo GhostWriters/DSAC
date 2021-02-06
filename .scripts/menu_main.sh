@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
 menu_main() {
@@ -24,9 +24,9 @@ menu_main() {
             run_script 'menu_custom_app_select' || run_script 'menu_main'
             ;;
         "Configure Existing Containers ")
-            info "Generating configure_apps.json file."
-            cp "${SCRIPTPATH}/.data/supported_apps.json" "${SCRIPTPATH}/.data/configure_apps.json"
-            info "Generation of configure_apps.json complete."
+            info "Generating configure_apps.yml file."
+            cp "${SCRIPTPATH}/.data/supported_apps.yml" "${SCRIPTPATH}/.data/configure_apps.yml"
+            info "Generation of configure_apps.yml complete."
             run_script 'configure_supported_apps'
             ;;
         "Update DSAC ")

@@ -1,0 +1,10 @@
+services:
+  lidarr:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: "config.xml"
+          database: "lidarr.db"
+        ports:
+          default: 8686

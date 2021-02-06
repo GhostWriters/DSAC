@@ -1,0 +1,10 @@
+services:
+  sonarr:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: "config.xml"
+          database: "nzbdrone.db"
+        ports:
+          default: 8989

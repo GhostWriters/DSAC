@@ -1,0 +1,10 @@
+services:
+  mylar:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: "mylar/config.ini"
+          database: "mylar/mylar.db"
+        ports:
+          default: 8090

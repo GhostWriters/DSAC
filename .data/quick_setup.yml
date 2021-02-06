@@ -1,0 +1,24 @@
+downloaders:
+  usenet:
+    - nzbget
+  torrent:
+    - qbittorrent
+managers:
+  books:
+    - lazylibrarian
+  comics:
+    - mylar
+  movies:
+    - radarr
+  music:
+    - lidarr
+  series:
+    - sonarr
+  subtitles:
+    - bazarr
+indexers:
+  - nzbhydra2
+  - jackett
+others:
+  - ourobouros
+  - portainer

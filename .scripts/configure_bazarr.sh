@@ -1,32 +1,36 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
 configure_bazarr() {
-    local container_name=${1}
+    local APPNAME=${1}
     # local db_path=${2}
-    local config_path=${3}
+    local CONFIG_PATH=${3}
+    local APP_YML
+    APP_YML="services.${APPNAME}.labels[com.dockstarter.dsac]"
 
-    # shellcheck disable=SC2154,SC2001
-    if [[ ${containers[$container_name]+true} == "true" ]]; then
+    if [[ $(run_script 'yml_get' "${APPNAME}" "${APP_YML}.docker.running") == "true" ]]; then
         local LOCAL_IP
         LOCAL_IP=$(run_script 'detect_local_ip')
-        if [[ ${containers[sonarr]+true} == "true" ]]; then
-            local sonarr_port
-            sonarr_port=$(jq -r --arg port 8989 '.ports[$port]' <<< "${containers[sonarr]}")
-            crudini --set "${config_path}" sonarr apikey "${API_KEYS[sonarr]}"
-            crudini --set "${config_path}" sonarr ip "${LOCAL_IP}"
-            crudini --set "${config_path}" sonarr port "${sonarr_port}"
-            crudini --set "${config_path}" general use_sonarr true
+        local SONARR_APP_YML="services.sonarr.labels[com.dockstarter.dsac]"
+        if [[ $(run_script 'yml_get' "sonarr" "${SONARR_APP_YML}.docker.running") == "true" ]]; then
+            local SONARR_PORT
+            SONARR_PORT=$(run_script 'yml_get' "sonarr" "${SONARR_APP_YML}.ports.default")
+            SONARR_PORT=$(run_script 'yml_get' "sonarr" "${SONARR_APP_YML}.ports.${SONARR_PORT}" || echo "${SONARR_PORT}")
+            crudini --set "${CONFIG_PATH}" sonarr apikey "${API_KEYS[sonarr]}"
+            crudini --set "${CONFIG_PATH}" sonarr ip "${LOCAL_IP}"
+            crudini --set "${CONFIG_PATH}" sonarr port "${SONARR_PORT}"
+            crudini --set "${CONFIG_PATH}" general use_sonarr true
         fi
-
-        if [[ ${containers[radarr]+true} == "true" ]]; then
-            local radarr_port
-            radarr_port=$(jq -r --arg port 7878 '.ports[$port]' <<< "${containers[radarr]}")
-            crudini --set "${config_path}" radarr apikey "${API_KEYS[radarr]}"
-            crudini --set "${config_path}" radarr ip "${LOCAL_IP}"
-            crudini --set "${config_path}" radarr port "${radarr_port}"
-            crudini --set "${config_path}" general use_radarr true
+        local RADARR_APP_YML="services.sonarr.labels[com.dockstarter.dsac]"
+        if [[ $(run_script 'yml_get' "radarr" "${RADARR_APP_YML}.docker.running") == "true" ]]; then
+            local RADARR_PORT
+            RADARR_PORT=$(run_script 'yml_get' "radarr" "${RADARR_APP_YML}.ports.default")
+            RADARR_PORT=$(run_script 'yml_get' "radarr" "${RADARR_APP_YML}.ports.${RADARR_PORT}" || echo "${RADARR_PORT}")
+            crudini --set "${CONFIG_PATH}" radarr apikey "${API_KEYS[radarr]}"
+            crudini --set "${CONFIG_PATH}" radarr ip "${LOCAL_IP}"
+            crudini --set "${CONFIG_PATH}" radarr port "${RADARR_PORT}"
+            crudini --set "${CONFIG_PATH}" general use_radarr true
         fi
     fi
 }

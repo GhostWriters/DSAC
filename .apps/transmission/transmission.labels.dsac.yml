@@ -1,0 +1,10 @@
+services:
+  transmission:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: ""
+          database: ""
+        ports:
+          default: 9091

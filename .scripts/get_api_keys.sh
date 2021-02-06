@@ -1,78 +1,75 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
 get_api_keys() {
     info "Retrieving API Keys"
 
     # shellcheck disable=SC2154
-    for container_name in "${!containers[@]}"; do
-        local config_file
-        local config_path
+    while IFS= read -r line; do
+        local APP_NAME=${line//.yml/}
+        local CONFIG_FILE
+        local CONFIG_PATH
         local API_KEY
         local restricted_user
         local restricted_pass
+        local CONTAINER_YML
 
-        info "- ${container_name}"
-        case "${container_name}" in
-            "hydra2")
-                config_file="nzbhydra.yml"
-                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
-                config_path="${config_path}/${config_file}"
-                API_KEY=$(yq-go r "${config_path}" "main.apiKey")
-                API_KEY=${API_KEY// /}
-                API_KEYS[$container_name]=${API_KEY}
-                debug "  ${API_KEYS[$container_name]}"
-                ;;
-            "nzbget")
-                config_file="nzbget.conf"
-                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
-                config_path="${config_path}/${config_file}"
-                restricted_user=$(grep 'RestrictedUsername=' "${config_path}" | sed -e 's/Restricted.*=\(.*\)/\1/')
-                if [[ ${restricted_user} == "" ]]; then
-                    restricted_user="dsac"
-                    # TODO: Move this to the proper place for setting config
-                    sed -i "s/RestrictedUsername=.*/RestrictedUsername=${restricted_user}/" "${config_path}"
-                fi
-                restricted_pass=$(grep 'RestrictedPassword=' "${config_path}" | sed -e 's/Restricted.*=\(.*\)/\1/')
-                if [[ ${restricted_pass} == "" ]]; then
-                    restricted_pass=$(uuidgen | tr -d - | tr -d '' | tr '[:upper:]' '[:lower:]')
-                    # TODO: Move this to the proper place for setting config
-                    sed -i "s/RestrictedPassword=.*/RestrictedPassword=${restricted_pass}/" "${config_path}"
-                fi
-                API_KEY="${restricted_user},${restricted_pass}"
-                API_KEYS[$container_name]=${API_KEY}
-                debug "  ${API_KEYS[$container_name]}"
-                ;;
-            "radarr" | "sonarr" | "lidarr")
-                config_file="config.xml"
-                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
-                config_path="${config_path}/${config_file}"
-                API_KEY=$(grep '<ApiKey>' "${config_path}" | sed -e 's/<ApiKey>\(.*\)<\/ApiKey>/\1/')
-                API_KEY=${API_KEY// /}
-                API_KEYS[$container_name]=${API_KEY}
-                debug "  ${API_KEYS[$container_name]}"
-                ;;
-            "jackett")
-                config_file="ServerConfig.json"
-                config_path=$(jq -r '.config.source' <<< "${containers[$container_name]}")
-                config_path="${config_path}/Jackett/${config_file}"
-                API_KEY=$(jq -r '.APIKey' "${config_path}")
-                API_KEY=${API_KEY// /}
-                API_KEYS[$container_name]=${API_KEY}
-                debug "  ${API_KEYS[$container_name]}"
-                ;;
-            "portainer" | "heimdall" | "qbittorrent" | "mylar" | "lazylibrarian" | "bazarr" | "couchpotato")
-                trace "  API Key currently not needed"
-                ;;
-            *)
-                trace "  No API Key retrieval configured"
-                ;;
-        esac
-        if [[ ${API_KEY:-} != "" ]]; then
-            containers[$container_name]=$(jq --arg var "${API_KEY}" '.api_key = $var' <<< "${containers[$container_name]}")
+        info "${APP_NAME^}"
+        CONTAINER_YML="services.${APP_NAME}.labels[com.dockstarter.dsac]"
+        if [[ $(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.docker.running") == "true" ]]; then
+            CONFIG_FILE=$(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.config.file")
+            CONFIG_PATH=$(run_script 'yml_get' "${APP_NAME}" "${CONTAINER_YML}.config.source")
+            CONFIG_PATH_FULL="${CONFIG_PATH}/${CONFIG_FILE}"
+            case "${APP_NAME}" in
+                "nzbhydra2")
+                    API_KEY=$(yq-go r "${CONFIG_PATH}" "main.apiKey")
+                    API_KEY=${API_KEY// /}
+                    API_KEYS[$APP_NAME]=${API_KEY}
+                    debug "  ${API_KEYS[$APP_NAME]}"
+                    ;;
+                "jackett")
+                    CONFIG_PATH_FULL="${CONFIG_PATH}/Jackett/${CONFIG_FILE}"
+                    API_KEY=$(jq -r '.APIKey' "${CONFIG_PATH_FULL}")
+                    API_KEY=${API_KEY// /}
+                    API_KEYS[$APP_NAME]=${API_KEY}
+                    debug "${API_KEYS[$APP_NAME]}"
+                    ;;
+                "nzbget")
+                    restricted_user=$(grep 'RestrictedUsername=' "${CONFIG_PATH_FULL}" | sed -e 's/Restricted.*=\(.*\)/\1/')
+                    if [[ ${restricted_user} == "" ]]; then
+                        restricted_user="dsac"
+                        # TODO: Move this to the proper place for setting config
+                        sed -i "s/RestrictedUsername=.*/RestrictedUsername=${restricted_user}/" "${CONFIG_PATH_FULL}"
+                    fi
+                    restricted_pass=$(grep 'RestrictedPassword=' "${CONFIG_PATH_FULL}" | sed -e 's/Restricted.*=\(.*\)/\1/')
+                    if [[ ${restricted_pass} == "" ]]; then
+                        restricted_pass=$(uuidgen | tr -d - | tr -d '' | tr '[:upper:]' '[:lower:]')
+                        # TODO: Move this to the proper place for setting config
+                        sed -i "s/RestrictedPassword=.*/RestrictedPassword=${restricted_pass}/" "${CONFIG_PATH_FULL}"
+                    fi
+                    API_KEY="${restricted_user},${restricted_pass}"
+                    API_KEYS[$APP_NAME]=${API_KEY}
+                    debug "${API_KEYS[$APP_NAME]}"
+                    ;;
+                "radarr" | "sonarr" | "lidarr")
+                    API_KEY=$(grep '<ApiKey>' "${CONFIG_PATH_FULL}" | sed -e 's/<ApiKey>\(.*\)<\/ApiKey>/\1/')
+                    API_KEY=${API_KEY// /}
+                    API_KEYS[$APP_NAME]=${API_KEY}
+                    debug "${API_KEYS[$APP_NAME]}"
+                    ;;
+                "portainer" | "heimdall" | "qbittorrent" | "mylar" | "lazylibrarian" | "bazarr" | "couchpotato")
+                    debug "API Key currently not needed"
+                    ;;
+                *)
+                    debug "No API Key retrieval configured"
+                    ;;
+            esac
+            if [[ ${API_KEY:-} != "" ]]; then
+                run_script 'yml_set' "${APP_NAME}" "${CONTAINER_YML}.data.api_key" "${API_KEY}"
+            fi
         fi
-    done
+    done < <(ls -A "${DETECTED_DSACDIR}/.data/apps/")
 }
 
 test_get_api_keys() {

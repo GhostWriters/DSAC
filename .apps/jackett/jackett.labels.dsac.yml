@@ -1,0 +1,9 @@
+services:
+  jackett:
+    labels:
+      com.dockstarter.dsac:
+        supported: true
+        config:
+          file: "ServerConfig.json"
+        ports:
+          default: 9117
