@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 pm_yum_install() {
     info "Installing dependencies."
-    yum -y install curl git grep newt sed whiptail sqlite3 crudini jq > /dev/null 2>&1 || fatal "Failed to install dependencies from yum."
+    yum -y install curl git grep newt sed sqlite3 crudini jq > /dev/null 2>&1 || fatal "Failed to install dependencies from yum."
 }
 
 test_pm_yum_install() {

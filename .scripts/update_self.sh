@@ -5,9 +5,9 @@ IFS=$'\n\t'
 update_self() {
     local BRANCH=${1:-origin/master}
     if run_script 'question_prompt' "${PROMPT:-}" Y "Would you like to update DockSTARTer App Config to ${BRANCH} now?"; then
-        info "Updating DockSTARTer App Config to ${BRANCH}."
+        notice "Updating DockSTARTer App Config to ${BRANCH}."
     else
-        info "DockSTARTer App Config will not be updated to ${BRANCH}."
+        notice "DockSTARTer App Config will not be updated to ${BRANCH}."
         return 1
     fi
     cd "${SCRIPTPATH}" || fatal "Failed to change to ${SCRIPTPATH} directory."
@@ -21,9 +21,9 @@ update_self() {
     fi
     info "Cleaning up unnecessary files and optimizing the local repository."
     git gc > /dev/null 2>&1 || true
-    # git for-each-ref --format '%(refname:short)' refs/heads | grep -v master | xargs git branch -D > /dev/null 2>&1 || true
     info "Setting file ownership on repository files"
     git ls-tree -r HEAD | awk '{print $4}' | xargs chown "${DETECTED_PUID}":"${DETECTED_PGID}" > /dev/null 2>&1 || true
+    chown -R "${DETECTED_PUID}":"${DETECTED_PGID}" "${SCRIPTPATH}/.git" > /dev/null 2>&1 || true
 }
 
 test_update_self() {

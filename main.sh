@@ -100,7 +100,7 @@ cmdline() {
                 ;;
         esac
     done
-    return 0
+    return
 }
 cmdline "${ARGS[@]:-}"
 if [[ -n ${DEBUG:-} ]] && [[ -n ${VERBOSE:-} ]]; then
@@ -293,7 +293,7 @@ cleanup() {
 
     if repo_exists; then
         info "Setting executable permission on ${SCRIPTNAME}"
-        sudo chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
+        sudo -E chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || fatal "dsac must be executable."
     fi
     if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == false ]]; then
         warn "TRAVIS_SECURE_ENV_VARS is false for Pull Requests from remote branches. Please retry failed builds!"
@@ -312,6 +312,8 @@ trap 'cleanup' 0 1 2 3 6 14 15
 
 # Main Function
 main() {
+    #Save current log if not empty and rotate logs
+    savelog -n -C -l -t "${SCRIPTPATH}/dockstarterappconfig.log" > /dev/null
     # Arch Check
     readonly ARCH=$(uname -m)
     if [[ ${ARCH} != "aarch64" ]] && [[ ${ARCH} != "armv7l" ]] && [[ ${ARCH} != "x86_64" ]]; then
@@ -333,19 +335,15 @@ main() {
         DSAC_SYMLINK=$(readlink -f "${DSAC_COMMAND}")
         if [[ ${SCRIPTNAME} != "${DSAC_SYMLINK}" ]]; then
             if repo_exists; then
-                if [[ ${PROMPT:-} != "GUI" ]]; then
-                    PROMPT="CLI"
-                fi
                 if run_script 'question_prompt' "${PROMPT:-CLI}" N "DockSTARTer App Config installation found at ${DSAC_SYMLINK} location. Would you like to run ${SCRIPTNAME} instead?"; then
                     run_script 'symlink_dsac'
                     DSAC_COMMAND=$(command -v dsac || true)
                     DSAC_SYMLINK=$(readlink -f "${DSAC_COMMAND}")
                 fi
-                unset PROMPT
             fi
             warn "Attempting to run DockSTARTer App Config from ${DSAC_SYMLINK} location."
-            sudo bash "${DSAC_SYMLINK}" -vu
-            sudo bash "${DSAC_SYMLINK}" -vi
+            sudo -E bash "${DSAC_SYMLINK}" -vu
+            sudo -E bash "${DSAC_SYMLINK}" -vi
             exec sudo -E bash "${DSAC_SYMLINK}" "${ARGS[@]:-}"
         fi
     else
