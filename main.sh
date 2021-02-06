@@ -20,7 +20,7 @@ For regular usage you can run without providing any options.
     update DockSTARTer to the latest commits from the specified branch
 -v --verbose
     verbose
-  -x --debug
+-x --debug
     debug
 EOF
     exit
