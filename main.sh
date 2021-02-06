@@ -3,8 +3,6 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Usage Information
- 
-
 usage() {
     cat << EOF
 Usage: sudo dsac [OPTION]
@@ -41,8 +39,10 @@ get_scriptname() {
     done
     echo "${SOURCE}"
 }
-readonly SCRIPTPATH=$(cd -P "$(dirname "$(get_scriptname)")" > /dev/null 2>&1 && pwd)
-readonly SCRIPTNAME="${SCRIPTPATH}/$(basename "$(get_scriptname)")"
+SCRIPTPATH=$(cd -P "$(dirname "$(get_scriptname)")" > /dev/null 2>&1 && pwd)
+readonly SCRIPTPATH
+SCRIPTNAME="${SCRIPTPATH}/$(basename "$(get_scriptname)")"
+readonly SCRIPTNAME
 
 # Cleanup Function
 cleanup() {
@@ -174,7 +174,8 @@ NC=$(tput sgr0 2> /dev/null || echo -e "\e[0m")
 readonly NC
 
 # Log Functions
-readonly LOG_TEMP=$(mktemp) || echo "Failed to create temporary log file."
+LOG_TEMP=$(mktemp) || echo "Failed to create temporary log file."
+readonly LOG_TEMP
 echo "DockSTARTer App Config Log" > "${LOG_TEMP}"
 log() {
     local TOTERM=${1:-}
@@ -200,19 +201,25 @@ fatal() {
 
 # User/Group Information
 readonly DETECTED_PUID=${SUDO_UID:-$UID}
-readonly DETECTED_UNAME=$(id -un "${DETECTED_PUID}" 2> /dev/null || true)
-readonly DETECTED_PGID=$(id -g "${DETECTED_PUID}" 2> /dev/null || true)
+DETECTED_UNAME=$(id -un "${DETECTED_PUID}" 2> /dev/null || true)
+readonly DETECTED_UNAME
+DETECTED_PGID=$(id -g "${DETECTED_PUID}" 2> /dev/null || true)
+readonly DETECTED_PGID
 export DETECTED_PGID
-readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
+DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
+readonly DETECTED_UGROUP
 export DETECTED_UGROUP
-readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
+DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
+readonly DETECTED_HOMEDIR
 
 # DS Information
-readonly DETECTED_DSDIR=$(eval echo "~${DETECTED_UNAME}/.docker" 2> /dev/null || true)
+DETECTED_DSDIR=$(eval echo "~${DETECTED_UNAME}/.docker" 2> /dev/null || true)
+readonly DETECTED_DSDIR
 export DETECTED_DSDIR
 
 # DSAC Information
-readonly DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null || true)
+DETECTED_DSACDIR=$(eval echo "~${DETECTED_UNAME}/.dsac" 2> /dev/null || true)
+readonly DETECTED_DSACDIR
 
 # Repo Exists Function
 repo_exists() {
@@ -269,10 +276,17 @@ vergt() { ! vergte "${2}" "${1}"; }
 verlte() { printf '%s\n%s' "${1}" "${2}" | sort -C -V; }
 verlt() { ! verlte "${2}" "${1}"; }
 
+# Github Token for Travis CI
+if [[ ${CI:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS:-} == true ]]; then
+    readonly GH_HEADER="Authorization: token ${GH_TOKEN}"
+    export GH_HEADER
+fi
+
 # Main Function
 main() {
     # Arch Check
-    readonly ARCH=$(uname -m)
+    ARCH=$(uname -m)
+    readonly ARCH
     if [[ ${ARCH} != "aarch64" ]] && [[ ${ARCH} != "armv7l" ]] && [[ ${ARCH} != "x86_64" ]]; then
         fatal "Unsupported architecture."
     fi
