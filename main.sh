@@ -47,7 +47,8 @@ readonly SCRIPTNAME
 # Cleanup Function
 cleanup() {
     local -ri EXIT_CODE=$?
-    sudo sh -c "cat ${LOG_TEMP:-/dev/null} >> ${SCRIPTPATH}/dockstarterappconfig.log" || true
+    sudo sh -c "cat ${MKTEMP_LOG:-/dev/null} >> ${SCRIPTPATH}/dockstarterappconfig.log" || true
+    sudo rm -f "${MKTEMP_LOG}" || true
     sudo -E chmod +x "${SCRIPTNAME}" > /dev/null 2>&1 || true
 
     if repo_exists; then
@@ -174,17 +175,17 @@ NC=$(tput sgr0 2> /dev/null || echo -e "\e[0m")
 readonly NC
 
 # Log Functions
-LOG_TEMP=$(mktemp) || echo "Failed to create temporary log file."
-readonly LOG_TEMP
-echo "DockSTARTer App Config Log" > "${LOG_TEMP}"
+MKTEMP_LOG=$(mktemp) || echo "Failed to create temporary log file."
+readonly MKTEMP_LOG
+echo "DockSTARTer App Config Log" > "${MKTEMP_LOG}"
 log() {
     local TOTERM=${1:-}
     local MESSAGE=${2:-}
     echo -e "${MESSAGE:-}" | (
         if [[ -n ${TOTERM} ]]; then
-            tee -a "${LOG_TEMP}" >&2
+            tee -a "${MKTEMP_LOG}" >&2
         else
-            cat >> "${LOG_TEMP}" 2>&1
+            cat >> "${MKTEMP_LOG}" 2>&1
         fi
     )
 }
